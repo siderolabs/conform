@@ -1,0 +1,105 @@
+metadata:
+  repository: autonomy/conform
+
+default: image
+
+scripts:
+  init : |
+    #!/bin/bash
+
+    set -e
+
+    BUILDDEPS=( github.com/golang/dep/cmd/dep )
+    for b in  ${BUILDDEPS[@]}; do
+      echo "Installing $b"
+      go get -u $b
+    done
+
+  test_artifacts: |
+    #!/bin/bash
+
+    set -e
+
+    docker run --rm -i --volume $(pwd):/out ${CONFORM_IMAGE} cp coverage.txt /out
+
+  deploy: |
+    #!/bin/bash
+
+    set -e
+
+    if [ ${CONFORM_IS_DIRTY} == "true" ]; then
+      echo "The working tree is dirty, aborting ..."
+      exit 1
+    fi
+
+    docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
+    docker push ${CONFORM_IMAGE}
+
+    if [ ${CONFORM_IS_TAG} == "true" ]; then
+      docker tag ${CONFORM_IMAGE} autonomy/conform:${CONFORM_TAG}
+      docker push autonomy/conform:${CONFORM_TAG}
+      if [ ${CONFORM_PRERELEASE} == "" ]; then
+        docker tag ${CONFORM_IMAGE} autonomy/conform:latest
+        docker push autonomy/conform:latest
+      fi
+    fi
+
+  clean: |
+    dep ensure
+    dep prune
+
+templates:
+  build: |
+    FROM golang:1.8.3 as build
+    WORKDIR /go/src/github.com/autonomy/conform
+    COPY ./ ./
+    RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform -a -ldflags "-X \"github.com/autonomy/conform/version.Tag={{ trimAll "v" .GitInfo.Tag }}\" -X \"github.com/autonomy/conform/version.SHA={{ .GitInfo.SHA }}\" -X \"github.com/autonomy/conform/version.Built={{ .Built }}\""
+  test: |
+    FROM golang:1.8.3 as test
+    MAINTAINER Andrew Rynhard <andrew.rynhard@autonomy.io>
+    WORKDIR /go/src/github.com/autonomy/conform
+    RUN go get -u github.com/golang/lint/golint
+    COPY --from=build /go/src/github.com/autonomy/conform .
+    RUN chmod +x ./scripts/test.sh; sync; ./scripts/test.sh
+  image: |
+    FROM alpine:3.6 as image
+    MAINTAINER Andrew Rynhard <andrew.rynhard@autonomy.io>
+    RUN apk --update add bash \
+        && rm -rf /var/cache/apk/*
+    WORKDIR /app
+    COPY --from=build /go/src/github.com/autonomy/conform/conform .
+    ENTRYPOINT ["./conform"]
+
+rules:
+  build:
+    templates:
+      - build
+
+  test:
+    templates:
+      - build
+      - test
+    after:
+      - test_artifacts
+
+  image:
+    templates:
+      - build
+      - image
+
+  all:
+    before:
+      - init
+      - clean
+    templates:
+      - build
+      - test
+      - image
+
+  deploy:
+    templates:
+      - build
+      - test
+      - image
+    after:
+      - deploy

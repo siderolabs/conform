@@ -36,9 +36,11 @@ var enforceCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-
-		dp := conform.NewExecuter(args[0])
-		err = dp.ExecuteRule()
+		e, err := conform.NewEnforcer(args[0])
+		if err != nil {
+			return err
+		}
+		err = e.ExecuteRule()
 		if err != nil {
 			return err
 		}

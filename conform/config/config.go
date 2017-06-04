@@ -32,16 +32,16 @@ type Rule struct {
 }
 
 // NewConfig instantiates and returns a config.
-func NewConfig() *Config {
+func NewConfig() (*Config, error) {
 	rBytes, err := ioutil.ReadFile("conform.yaml")
 	if err != nil {
-		fmt.Printf("Unable to load conform.yaml: %v", err)
+		return nil, fmt.Errorf("Unable to load conform.yaml: %v", err)
 	}
 	c := Config{}
 	err = yaml.Unmarshal(rBytes, &c)
 	if err != nil {
-		fmt.Printf("Unable to load conform.yaml: %v", err)
+		return nil, fmt.Errorf("Unable to load conform.yaml: %v", err)
 	}
 
-	return &c
+	return &c, nil
 }

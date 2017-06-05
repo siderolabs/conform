@@ -5,20 +5,20 @@ set -e
 GOPACKAGES=$(go list ./... | grep -v /vendor/ | grep -v /api)
 GOFILES=$(find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./api/*")
 
-COVERAGE=coverage.txt
+COVERAGE_REPORT=coverage.txt
 PROFILE=profile.out
 
-if [[ -f ${COVERAGE} ]]; then
-  rm ${COVERAGE}
+if [[ -f ${COVERAGE_REPORT} ]]; then
+  rm ${COVERAGE_REPORT}
 fi
 
-touch ${COVERAGE}
+touch ${COVERAGE_REPORT}
 
 echo "Running tests"
 for package in ${GOPACKAGES[@]}; do
-  go test -race -coverprofile=${PROFILE} -covermode=atomic $package
+  go test -v -race -coverprofile=${PROFILE} -covermode=atomic $package
   if [ -f ${PROFILE} ]; then
-    cat ${PROFILE} >> ${COVERAGE}
+    cat ${PROFILE} >> ${COVERAGE_REPORT}
     rm ${PROFILE}
   fi
 done

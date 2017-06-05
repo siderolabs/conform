@@ -1,0 +1,32 @@
+sudo: required
+dist: trusty
+
+language: go
+
+go:
+  - 1.8.3
+
+before_install:
+  - sudo apt-get -y remove docker docker-engine
+  - sudo apt-get -y update
+  - sudo apt-get -y install apt-transport-https ca-certificates curl software-properties-common
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) edge"
+  - sudo apt-get update
+  - sudo apt-get -y install docker-ce
+  - go get -u github.com/autonomy/conform
+
+script:
+  - conform enforce test
+  - conform enforce image
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+deploy:
+  provider: script
+  script: scripts/deploy.sh
+  skip_cleanup: true
+  on:
+    tags: true
+    branch: master

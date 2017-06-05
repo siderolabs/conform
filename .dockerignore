@@ -1,10 +1,7 @@
-.git
-.gitignore
-conform.yaml
-coverage.txt
-Dockerfile
-docs
-examples
-LICENSE
-Makefile
-README.md
+*
+!cmd
+!conform
+!Gopkg*
+!main.go
+!scripts
+!vendor

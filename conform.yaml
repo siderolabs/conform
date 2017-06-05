@@ -41,8 +41,8 @@ scripts:
     docker push ${CONFORM_IMAGE}
 
     if [ ${CONFORM_IS_TAG} == "true" ]; then
-      docker tag ${CONFORM_IMAGE} autonomy/conform:${CONFORM_TAG}
-      docker push autonomy/conform:${CONFORM_TAG}
+      docker tag ${CONFORM_IMAGE} autonomy/conform:${CONFORM_TAG:1}
+      docker push autonomy/conform:${CONFORM_TAG:1}
       if [ ${CONFORM_PRERELEASE} == "" ]; then
         docker tag ${CONFORM_IMAGE} autonomy/conform:latest
         docker push autonomy/conform:latest

@@ -32,17 +32,27 @@ rules:
       - after
 `
 
+func RemoveAll(dir string) {
+	err := os.RemoveAll(dir)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func TestNewEnforcer(t *testing.T) {
 	dir, err := ioutil.TempDir("", "test")
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer RemoveAll(dir)
 	tmpfn := filepath.Join(dir, "conform.yaml")
 	if err = ioutil.WriteFile(tmpfn, []byte(conformYAML), 0666); err != nil {
 		log.Fatal(err)
 	}
-	os.Chdir(dir)
+	err = os.Chdir(dir)
+	if err != nil {
+		t.Error(err)
+	}
 	output, err := exec.Command("git", "init").Output()
 	if err != nil {
 		t.Fatal(output)

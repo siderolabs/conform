@@ -29,9 +29,7 @@ const (
 )
 
 var (
-	target    string
-	imageName string
-	debug     bool
+	debug bool
 )
 
 // RootCmd represents the base command when called without any subcommands

@@ -28,24 +28,23 @@ var enforceCmd = &cobra.Command{
 	Use:   "enforce",
 	Short: "",
 	Long:  ``,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		if len(args) != 1 {
-			return fmt.Errorf("Invalid argument")
-		}
-		err := checkDockerVersion()
-		if err != nil {
+			err = fmt.Errorf("Invalid arguments %v", args)
+
 			return err
+		}
+		err = checkDockerVersion()
+		if err != nil {
+			return
 		}
 		e, err := conform.NewEnforcer(args[0])
 		if err != nil {
-			return err
+			return
 		}
 		err = e.ExecuteRule()
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return
 	},
 }
 
@@ -54,25 +53,27 @@ func init() {
 	RootCmd.Flags().BoolVar(&debug, "debug", false, "Debug rendering")
 }
 
-func checkDockerVersion() error {
+func checkDockerVersion() (err error) {
 	cli, err := client.NewEnvClient()
 	if err != nil {
-		return err
+		return
 	}
 
 	serverVersion, err := cli.ServerVersion(context.Background())
 	if err != nil {
-		return err
+		return
 	}
 	minVersion, err := semver.NewVersion(minDockerVersion)
 	if err != nil {
-		return err
+		return
 	}
 	serverSemVer := semver.MustParse(serverVersion.Version)
 	i := serverSemVer.Compare(minVersion)
 	if i < 0 {
-		return fmt.Errorf("At least Docker version %s is required", minDockerVersion)
+		err = fmt.Errorf("At least Docker version %s is required", minDockerVersion)
+
+		return err
 	}
 
-	return nil
+	return
 }

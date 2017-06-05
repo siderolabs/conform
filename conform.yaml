@@ -76,7 +76,7 @@ templates:
     RUN apk --update add bash \
         && rm -rf /var/cache/apk/*
     WORKDIR /app
-    COPY --from=build /go/src/github.com/autonomy/conform/conform .
+    COPY --from=build /conform .
     ENTRYPOINT ["./conform"]
 
 rules:

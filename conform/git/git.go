@@ -12,12 +12,13 @@ import (
 
 // Info contains the status of the working tree.
 type Info struct {
-	Branch     string
-	SHA        string
-	Tag        string
-	Prerelease string
-	IsTag      bool
-	IsDirty    bool
+	Branch       string
+	SHA          string
+	Tag          string
+	Prerelease   string
+	IsTag        bool
+	IsPrerelease bool
+	IsDirty      bool
 }
 
 // NewInfo instantiates and returns info.
@@ -37,17 +38,24 @@ func NewInfo() (info *Info, err error) {
 		return
 	}
 
+	prerelease, isPrerelease, err := Prerelease(tag, isTag)
+	if err != nil {
+		return
+	}
+
 	_, isDirty, err := Status()
 	if err != nil {
 		return
 	}
 
 	info = &Info{
-		Branch:  branch,
-		SHA:     sha,
-		Tag:     strings.TrimSuffix(tag, "\n"),
-		IsTag:   isTag,
-		IsDirty: isDirty,
+		Branch:       branch,
+		SHA:          sha,
+		Tag:          tag,
+		Prerelease:   prerelease,
+		IsTag:        isTag,
+		IsPrerelease: isPrerelease,
+		IsDirty:      isDirty,
 	}
 
 	return
@@ -100,8 +108,35 @@ func Tag() (tag string, isTag bool, err error) {
 	if err != nil {
 		return
 	}
-	fmt.Printf("IsTag: %v\n", isTag)
 	fmt.Printf("Tag: %s\n", tag)
+	fmt.Printf("IsTag: %v\n", isTag)
+
+	return
+}
+
+// Prerelease returns the prerelease name if the tag is a prerelease.
+func Prerelease(tag string, isTag bool) (prerelease string, isPrerelease bool, err error) {
+	if isTag {
+		var ver *semver.Version
+		ver, err = semver.NewVersion(tag[1:])
+		if err != nil {
+			return
+		}
+		if ver.Prerelease() != "" {
+			prerelease = ver.Prerelease()
+			isPrerelease = true
+		}
+	}
+	err = ExportConformVar("prerelease", prerelease)
+	if err != nil {
+		return
+	}
+	err = ExportConformVar("is_prerelease", strconv.FormatBool(isPrerelease))
+	if err != nil {
+		return
+	}
+	fmt.Printf("Prerelease: %s\n", prerelease)
+	fmt.Printf("IsPrerelease: %v\n", isPrerelease)
 
 	return
 }

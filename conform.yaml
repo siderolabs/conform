@@ -63,7 +63,7 @@ templates:
     FROM golang:1.8.3 as build
     WORKDIR /go/src/github.com/autonomy/conform
     COPY ./ ./
-    RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform -a -ldflags "-X \"github.com/autonomy/conform/version.Tag={{ trimAll "v" .GitInfo.Tag }}\" -X \"github.com/autonomy/conform/version.SHA={{ .GitInfo.SHA }}\" -X \"github.com/autonomy/conform/version.Built={{ .Built }}\""
+    RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform -a -ldflags "-X \"github.com/autonomy/conform/conform/version.Tag={{ trimAll "v" .GitInfo.Tag }}\" -X \"github.com/autonomy/conform/conform/version.SHA={{ .GitInfo.SHA }}\" -X \"github.com/autonomy/conform/conform/version.Built={{ .Built }}\""
   test: |
     FROM golang:1.8.3 as test
     WORKDIR /go/src/github.com/autonomy/conform

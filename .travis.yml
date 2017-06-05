@@ -25,7 +25,7 @@ after_success:
 
 deploy:
   provider: script
-  script: scripts/deploy.sh
+  script: chmod +x scripts/deploy.sh && scripts/deploy.sh
   skip_cleanup: true
   on:
     condition: $TRAVIS_BRANCH == "master" || -n $TRAVIS_TAG

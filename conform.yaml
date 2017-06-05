@@ -50,6 +50,10 @@ scripts:
     fi
 
   clean: |
+    #!/bin/bash
+
+    set -e
+
     cat .gitignore | while read line; do rm -rf "$line"; done
     dep ensure
     dep prune

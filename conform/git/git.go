@@ -2,7 +2,6 @@ package git
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"strconv"
@@ -22,66 +21,115 @@ type Info struct {
 }
 
 // NewInfo instantiates and returns info.
-func NewInfo() *Info {
-	branch, err := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD").Output()
+func NewInfo() (info *Info, err error) {
+	branch, err := Branch()
 	if err != nil {
-		log.Fatalf("Failed to get branch [%v]", err)
+		return
 	}
-	fmt.Printf("Branch: %s\n", strings.TrimSuffix(string(branch), "\n"))
-	os.Setenv("CONFORM_BRANCH", strings.TrimSuffix(string(branch), "\n"))
 
-	sha, err := exec.Command("git", "rev-parse", "--short", "HEAD").Output()
+	sha, err := SHA()
 	if err != nil {
-		log.Fatalf("Failed to get sha [%v]", err)
+		return
 	}
-	fmt.Printf("SHA: %s\n", strings.TrimSuffix(string(sha), "\n"))
-	os.Setenv("CONFORM_SHA", strings.TrimSuffix(string(sha), "\n"))
 
-	tag := "undefined"
-	isTag := false
-	_tag, err := exec.Command("git", "describe", "--exact-match", "--tags", "HEAD").Output()
-	if err == nil {
+	tag, isTag, err := Tag()
+	if err != nil {
+		return
+	}
+
+	_, isDirty, err := Status()
+	if err != nil {
+		return
+	}
+
+	info = &Info{
+		Branch:  branch,
+		SHA:     sha,
+		Tag:     strings.TrimSuffix(tag, "\n"),
+		IsTag:   isTag,
+		IsDirty: isDirty,
+	}
+
+	return
+}
+
+// Branch returns the current git branch name.
+func Branch() (branch string, err error) {
+	branchBytes, err := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD").Output()
+	if err != nil {
+		return
+	}
+	branch = strings.TrimSuffix(string(branchBytes), "\n")
+	err = ExportConformVar("branch", branch)
+	fmt.Printf("Branch: %s\n", branch)
+
+	return
+}
+
+// SHA returns the sha of the current commit.
+func SHA() (sha string, err error) {
+	shaBytes, err := exec.Command("git", "rev-parse", "--short", "HEAD").Output()
+	if err != nil {
+		return
+	}
+	sha = strings.TrimSuffix(string(shaBytes), "\n")
+	err = ExportConformVar("sha", sha)
+	fmt.Printf("SHA: %s\n", sha)
+
+	return
+}
+
+// Tag returns the tag name if HEAD is a tag.
+func Tag() (tag string, isTag bool, err error) {
+	tagBytes, isTagErr := exec.Command("git", "describe", "--exact-match", "--tags", "HEAD").Output()
+	if isTagErr == nil {
 		isTag = true
 	}
+	tag = strings.TrimSuffix(string(tagBytes), "\n")
 	if isTag {
-		tag = string(_tag)
+		_, err = semver.NewVersion(tag[1:])
+		if err != nil {
+			return
+		}
+	}
+	err = ExportConformVar("tag", tag)
+	if err != nil {
+		return
+	}
+	err = ExportConformVar("is_tag", strconv.FormatBool(isTag))
+	if err != nil {
+		return
 	}
 	fmt.Printf("IsTag: %v\n", isTag)
-	os.Setenv("CONFORM_IS_TAG", strconv.FormatBool(isTag))
-	fmt.Printf("Tag: %s\n", strings.TrimSuffix(string(tag), "\n"))
-	os.Setenv("CONFORM_TAG", strings.TrimSuffix(string(tag), "\n"))
+	fmt.Printf("Tag: %s\n", tag)
 
-	status, err := exec.Command("git", "status", "--porcelain").Output()
+	return
+}
+
+// Status returns the status of the working tree.
+func Status() (status string, isDirty bool, err error) {
+	statusBytes, err := exec.Command("git", "status", "--porcelain").Output()
 	if err != nil {
-		log.Fatal(err)
+		return
 	}
-	fmt.Printf("Status: %s\n", strings.TrimSuffix(string(status), "\n"))
-
-	isDirty := false
-	if strings.TrimSuffix(string(status), "\n") != "" {
+	status = strings.TrimSuffix(string(statusBytes), "\n")
+	if status != "" {
 		isDirty = true
 	}
+	err = ExportConformVar("is_dirty", strconv.FormatBool(isDirty))
+	if err != nil {
+		return
+	}
+	fmt.Printf("Status: %s\n", status)
 	fmt.Printf("IsDirty: %v\n", isDirty)
-	os.Setenv("CONFORM_IS_DIRTY", strconv.FormatBool(isDirty))
 
-	prerelease := ""
-	if isTag {
-		sv, err := semver.NewVersion(strings.TrimSuffix(string(tag[1:]), "\n"))
-		if err != nil {
-			log.Fatal(err)
-		}
+	return
+}
 
-		prerelease = sv.Prerelease()
-	}
-	fmt.Printf("Prerelease: %s\n", prerelease)
-	os.Setenv("CONFORM_PRERELEASE", prerelease)
+// ExportConformVar exports variable prefixed with CONFORM_
+func ExportConformVar(name, value string) (err error) {
+	variable := fmt.Sprintf("CONFORM_%s", strings.ToUpper(name))
+	err = os.Setenv(variable, value)
 
-	return &Info{
-		Branch:     strings.TrimSuffix(string(branch), "\n"),
-		SHA:        strings.TrimSuffix(string(sha), "\n"),
-		Tag:        strings.TrimSuffix(string(tag), "\n"),
-		Prerelease: prerelease,
-		IsTag:      isTag,
-		IsDirty:    isDirty,
-	}
+	return
 }

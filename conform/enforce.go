@@ -24,29 +24,30 @@ type Enforcer struct {
 }
 
 // NewEnforcer instantiates and returns an executer.
-func NewEnforcer(rule string) (*Enforcer, error) {
-	e := &Enforcer{}
-	gitInfo := git.NewInfo()
+func NewEnforcer(rule string) (enforcer *Enforcer, err error) {
+	enforcer = &Enforcer{}
+	gitInfo, err := git.NewInfo()
+	if err != nil {
+		return
+	}
 	date := []byte{}
 	if gitInfo.IsTag {
-		_date, err := exec.Command("date").Output()
+		date, err = exec.Command("/bin/date").Output()
 		if err != nil {
-			fmt.Print(err)
+			return
 		}
-
-		date = _date
 	}
 
 	c, err := config.NewConfig()
 	if err != nil {
-		return nil, err
+		return
 	}
-	e.config = c
-	e.GitInfo = gitInfo
-	e.Built = strings.TrimSuffix(string(date), "\n")
-	e.rule = rule
+	enforcer.config = c
+	enforcer.GitInfo = gitInfo
+	enforcer.Built = strings.TrimSuffix(string(date), "\n")
+	enforcer.rule = rule
 
-	return e, nil
+	return
 }
 
 // ExecuteBuild executes a docker build.
@@ -56,19 +57,22 @@ func (e *Enforcer) ExecuteBuild() error {
 		image = e.FormatImageNameDirty()
 	}
 
-	os.Setenv("CONFORM_IMAGE", image)
+	err := os.Setenv("CONFORM_IMAGE", image)
+	if err != nil {
+		return err
+	}
 
 	args := append([]string{"build", "--tag", image, "."})
 	command := exec.Command("docker", args...)
 	command.Stdout = os.Stdout
 	command.Stderr = os.Stderr
-	command.Start()
-	err := command.Wait()
+	err = command.Start()
 	if err != nil {
 		return err
 	}
+	err = command.Wait()
 
-	return nil
+	return err
 }
 
 // RenderDockerfile writes the final Dockerfile to disk.
@@ -87,7 +91,10 @@ func (e *Enforcer) RenderDockerfile(target *config.Rule) error {
 	if e.config.Debug {
 		fmt.Println(dockerfile)
 	} else {
-		ioutil.WriteFile("Dockerfile", []byte(dockerfile), 0644)
+		err := ioutil.WriteFile("Dockerfile", []byte(dockerfile), 0644)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -127,8 +134,11 @@ func (e *Enforcer) ExecuteScript(script string) error {
 		command := exec.Command("bash", "-c", s)
 		command.Stdout = os.Stdout
 		command.Stderr = os.Stderr
-		command.Start()
-		err := command.Wait()
+		err := command.Start()
+		if err != nil {
+			return err
+		}
+		err = command.Wait()
 		if err != nil {
 			return fmt.Errorf("Failed executing %q: %v", script, err)
 		}

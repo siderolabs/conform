@@ -67,7 +67,8 @@ templates:
   test: |
     FROM golang:1.8.3 as test
     WORKDIR /go/src/github.com/autonomy/conform
-    RUN go get -u github.com/golang/lint/golint
+    RUN go get -u gopkg.in/alecthomas/gometalinter.v1
+    RUN gometalinter.v1 --install
     COPY --from=build /go/src/github.com/autonomy/conform .
     RUN chmod +x ./scripts/test.sh; sync; ./scripts/test.sh
   image: |

@@ -1,12 +1,18 @@
 sudo: required
 dist: trusty
 
-language: go
+language: generic
 
-go:
-  - 1.8.3
-
-before_install:
+install:
+  - mkdir -p $HOME/goroot
+  - curl -L https://storage.googleapis.com/golang/go1.8.3.linux-amd64.tar.gz | tar -xz --strip-components=1 -C $HOME/goroot
+  - export GOROOT=$HOME/goroot
+  - export GOPATH=$HOME/gopath
+  - export PATH=$GOROOT/bin:$GOPATH/bin:$PATH
+  - mkdir -p $GOPATH/src/github.com/autonomy/conform
+  - rsync -az ${TRAVIS_BUILD_DIR}/ $GOPATH/src/github.com/autonomy/conform/
+  - export TRAVIS_BUILD_DIR=$GOPATH/src/github.com/autonomy/conform
+  - cd $GOPATH/src/github.com/autonomy/conform
   - sudo apt-get -y remove docker docker-engine
   - sudo apt-get -y update
   - sudo apt-get -y install apt-transport-https ca-certificates curl software-properties-common
@@ -14,7 +20,7 @@ before_install:
   - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) edge"
   - sudo apt-get update
   - sudo apt-get -y install docker-ce
-  - go get -u github.com/autonomy/conform
+  - go get github.com/autonomy/conform
 
 script:
   - conform enforce test

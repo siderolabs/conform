@@ -123,13 +123,9 @@ func (e *Enforcer) ExtractArtifact(artifact string) error {
 func (e *Enforcer) ExecuteScript(script string) error {
 	if s, ok := e.config.Scripts[script]; ok {
 		log.Printf("Running %s script", script)
-		command := exec.Command("bash", "-c", s)
-		command.Stdout = os.Stdout
-		command.Stderr = os.Stderr
-		command.Start()
-		err := command.Wait()
+		out, err := exec.Command("bash", "-c", s).Output()
 		if err != nil {
-			return err
+			return fmt.Errorf("Failed executing %s: %v\n%s", script, err, out)
 		}
 
 		return nil

@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -27,6 +27,10 @@ type Enforcer struct {
 func NewEnforcer(rule string) (enforcer *Enforcer, err error) {
 	enforcer = &Enforcer{}
 	gitInfo, err := git.NewInfo()
+	if err != nil {
+		return
+	}
+	err = exportAll(gitInfo)
 	if err != nil {
 		return
 	}
@@ -129,7 +133,7 @@ func (e *Enforcer) ExtractArtifact(artifact string) error {
 // ExecuteScript executes a script for a rule.
 func (e *Enforcer) ExecuteScript(script string) error {
 	if s, ok := e.config.Scripts[script]; ok {
-		log.Printf("Running %q script", script)
+		fmt.Printf("Running %q script\n", script)
 
 		command := exec.Command("bash", "-c", s)
 		command.Stdout = os.Stdout
@@ -152,7 +156,7 @@ func (e *Enforcer) ExecuteScript(script string) error {
 // ExecuteRule performs all the relevant actions specified in its' declaration.
 func (e *Enforcer) ExecuteRule() error {
 	if t, ok := e.config.Rules[e.rule]; ok {
-		log.Printf("Enforcing %q", e.rule)
+		fmt.Printf("Enforcing %q\n", e.rule)
 		for _, s := range t.Before {
 			err := e.ExecuteScript(s)
 			if err != nil {
@@ -178,6 +182,59 @@ func (e *Enforcer) ExecuteRule() error {
 	}
 
 	return fmt.Errorf("Rule %q is not defined in conform.yaml", e.rule)
+}
+
+func exportAll(gitInfo *git.Info) (err error) {
+	fmt.Printf("Branch: %s\n", gitInfo.Branch)
+	err = ExportConformVar("branch", gitInfo.Branch)
+	if err != nil {
+		return
+	}
+	fmt.Printf("SHA: %s\n", gitInfo.SHA)
+	err = ExportConformVar("sha", gitInfo.SHA)
+	if err != nil {
+		return
+	}
+	fmt.Printf("Tag: %s\n", gitInfo.Tag)
+	err = ExportConformVar("tag", gitInfo.Tag)
+	if err != nil {
+		return
+	}
+	fmt.Printf("IsTag: %s\n", strconv.FormatBool(gitInfo.IsTag))
+	err = ExportConformVar("is_tag", strconv.FormatBool(gitInfo.IsTag))
+	if err != nil {
+		return
+	}
+	fmt.Printf("Prerelease: %s\n", gitInfo.Prerelease)
+	err = ExportConformVar("prerelease", gitInfo.Prerelease)
+	if err != nil {
+		return
+	}
+	fmt.Printf("IsPrerelease: %s\n", strconv.FormatBool(gitInfo.IsPrerelease))
+	err = ExportConformVar("is_prerelease", strconv.FormatBool(gitInfo.IsPrerelease))
+	if err != nil {
+		return
+	}
+	fmt.Printf("Status: \n%s\n", strings.TrimRight(gitInfo.Status, "\n"))
+	err = ExportConformVar("status", strconv.FormatBool(gitInfo.IsDirty))
+	if err != nil {
+		return
+	}
+	fmt.Printf("IsDirty: %s\n", strconv.FormatBool(gitInfo.IsDirty))
+	err = ExportConformVar("is_dirty", strconv.FormatBool(gitInfo.IsDirty))
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+// ExportConformVar exports variable prefixed with CONFORM_
+func ExportConformVar(name, value string) (err error) {
+	variable := fmt.Sprintf("CONFORM_%s", strings.ToUpper(name))
+	err = os.Setenv(variable, value)
+
+	return
 }
 
 // FormatImageNameDirty formats the image name.

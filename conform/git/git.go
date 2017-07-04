@@ -1,13 +1,10 @@
 package git
 
 import (
-	"fmt"
-	"os"
-	"os/exec"
-	"strconv"
-	"strings"
-
 	"github.com/Masterminds/semver"
+	// git "github.com/libgit2/git2go"
+	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
 // Info contains the status of the working tree.
@@ -16,6 +13,7 @@ type Info struct {
 	SHA          string
 	Tag          string
 	Prerelease   string
+	Status       string
 	IsTag        bool
 	IsPrerelease bool
 	IsDirty      bool
@@ -23,17 +21,22 @@ type Info struct {
 
 // NewInfo instantiates and returns info.
 func NewInfo() (info *Info, err error) {
-	branch, err := Branch()
+	repo, err := git.PlainOpen("./")
 	if err != nil {
 		return
 	}
 
-	sha, err := SHA()
+	branch, err := Branch(repo)
 	if err != nil {
 		return
 	}
 
-	tag, isTag, err := Tag()
+	sha, err := SHA(repo)
+	if err != nil {
+		return
+	}
+
+	tag, isTag, err := Tag(repo)
 	if err != nil {
 		return
 	}
@@ -43,7 +46,7 @@ func NewInfo() (info *Info, err error) {
 		return
 	}
 
-	_, isDirty, err := Status()
+	status, isDirty, err := Status(repo)
 	if err != nil {
 		return
 	}
@@ -53,6 +56,7 @@ func NewInfo() (info *Info, err error) {
 		SHA:          sha,
 		Tag:          tag,
 		Prerelease:   prerelease,
+		Status:       status,
 		IsTag:        isTag,
 		IsPrerelease: isPrerelease,
 		IsDirty:      isDirty,
@@ -62,54 +66,50 @@ func NewInfo() (info *Info, err error) {
 }
 
 // Branch returns the current git branch name.
-func Branch() (branch string, err error) {
-	branchBytes, err := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD").Output()
+func Branch(repo *git.Repository) (branch string, err error) {
+	ref, err := repo.Head()
 	if err != nil {
 		return
 	}
-	branch = strings.TrimSuffix(string(branchBytes), "\n")
-	err = ExportConformVar("branch", branch)
-	fmt.Printf("Branch: %s\n", branch)
+	if ref.IsBranch() {
+		branch = ref.Name().Short()
+	}
 
 	return
 }
 
 // SHA returns the sha of the current commit.
-func SHA() (sha string, err error) {
-	shaBytes, err := exec.Command("git", "rev-parse", "--short", "HEAD").Output()
+func SHA(repo *git.Repository) (sha string, err error) {
+	ref, err := repo.Head()
 	if err != nil {
 		return
 	}
-	sha = strings.TrimSuffix(string(shaBytes), "\n")
-	err = ExportConformVar("sha", sha)
-	fmt.Printf("SHA: %s\n", sha)
+	sha = ref.Hash().String()[0:7]
 
 	return
 }
 
 // Tag returns the tag name if HEAD is a tag.
-func Tag() (tag string, isTag bool, err error) {
-	tagBytes, isTagErr := exec.Command("git", "describe", "--exact-match", "--tags", "HEAD").Output()
-	if isTagErr == nil {
-		isTag = true
+func Tag(repo *git.Repository) (tag string, isTag bool, err error) {
+	ref, err := repo.Head()
+	if err != nil {
+		return
 	}
-	tag = strings.TrimSuffix(string(tagBytes), "\n")
-	if isTag {
-		_, err = semver.NewVersion(tag[1:])
-		if err != nil {
-			return
+	tags, err := repo.Tags()
+	if err != nil {
+		return
+	}
+	err = tags.ForEach(func(_ref *plumbing.Reference) error {
+		if _ref.Hash().String() == ref.Hash().String() {
+			isTag = true
+			tag = _ref.Name().Short()
+			return nil
 		}
-	}
-	err = ExportConformVar("tag", tag)
+		return nil
+	})
 	if err != nil {
 		return
 	}
-	err = ExportConformVar("is_tag", strconv.FormatBool(isTag))
-	if err != nil {
-		return
-	}
-	fmt.Printf("Tag: %s\n", tag)
-	fmt.Printf("IsTag: %v\n", isTag)
 
 	return
 }
@@ -127,44 +127,23 @@ func Prerelease(tag string, isTag bool) (prerelease string, isPrerelease bool, e
 			isPrerelease = true
 		}
 	}
-	err = ExportConformVar("prerelease", prerelease)
-	if err != nil {
-		return
-	}
-	err = ExportConformVar("is_prerelease", strconv.FormatBool(isPrerelease))
-	if err != nil {
-		return
-	}
-	fmt.Printf("Prerelease: %s\n", prerelease)
-	fmt.Printf("IsPrerelease: %v\n", isPrerelease)
 
 	return
 }
 
 // Status returns the status of the working tree.
-func Status() (status string, isDirty bool, err error) {
-	statusBytes, err := exec.Command("git", "status", "--porcelain").Output()
+func Status(repo *git.Repository) (status string, isDirty bool, err error) {
+	worktree, err := repo.Worktree()
 	if err != nil {
 		return
 	}
-	status = strings.TrimSuffix(string(statusBytes), "\n")
-	if status != "" {
+	worktreeStatus, err := worktree.Status()
+	if worktreeStatus.IsClean() {
+		status = " nothing to commit, working tree clean"
+	} else {
 		isDirty = true
+		status = worktreeStatus.String()
 	}
-	err = ExportConformVar("is_dirty", strconv.FormatBool(isDirty))
-	if err != nil {
-		return
-	}
-	fmt.Printf("Status: %s\n", status)
-	fmt.Printf("IsDirty: %v\n", isDirty)
-
-	return
-}
-
-// ExportConformVar exports variable prefixed with CONFORM_
-func ExportConformVar(name, value string) (err error) {
-	variable := fmt.Sprintf("CONFORM_%s", strings.ToUpper(name))
-	err = os.Setenv(variable, value)
 
 	return
 }

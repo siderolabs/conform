@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 	"text/template"
 
 	"github.com/Masterminds/sprig"
 	"github.com/autonomy/conform/conform/config"
 	"github.com/autonomy/conform/conform/git"
+	"github.com/autonomy/conform/conform/policy"
 )
 
 // Enforcer performs all the build actions for a rule.
@@ -26,10 +26,6 @@ type Enforcer struct {
 func NewEnforcer(rule string) (enforcer *Enforcer, err error) {
 	enforcer = &Enforcer{}
 	gitInfo, err := git.NewInfo()
-	if err != nil {
-		return
-	}
-	err = exportAll(gitInfo)
 	if err != nil {
 		return
 	}
@@ -146,8 +142,38 @@ func (e *Enforcer) ExecuteScript(script string) error {
 	return fmt.Errorf("Script %q is not defined in conform.yaml", script)
 }
 
+// EnforcePolicies enforces all defined polcies. In the case that the working
+// tree is dirty, all git policies are skipped.
+func (e *Enforcer) EnforcePolicies() {
+	if !e.GitInfo.IsDirty {
+		enforceGitPolicy(
+			e.GitInfo,
+			&git.ConventionalCommitsOptions{
+				Message: e.GitInfo.Message,
+				Types:   e.config.Policies.Git.Types,
+				Scopes:  e.config.Policies.Git.Scopes,
+			},
+		)
+	}
+}
+
+func enforceGitPolicy(p policy.Policy, opts *git.ConventionalCommitsOptions) {
+	report, err := p.Compliance(opts)
+	if err != nil {
+		fmt.Print(err)
+		os.Exit(1)
+	}
+	if !report.Valid {
+		for _, err := range report.Errors {
+			fmt.Printf("%s", err)
+			os.Exit(1)
+		}
+	}
+}
+
 // ExecuteRule performs all the relevant actions specified in its' declaration.
 func (e *Enforcer) ExecuteRule() error {
+	e.EnforcePolicies()
 	if t, ok := e.config.Rules[e.rule]; ok {
 		fmt.Printf("Enforcing %q\n", e.rule)
 		for _, s := range t.Before {
@@ -175,59 +201,6 @@ func (e *Enforcer) ExecuteRule() error {
 	}
 
 	return fmt.Errorf("Rule %q is not defined in conform.yaml", e.rule)
-}
-
-func exportAll(gitInfo *git.Info) (err error) {
-	fmt.Printf("Branch: %s\n", gitInfo.Branch)
-	err = ExportConformVar("branch", gitInfo.Branch)
-	if err != nil {
-		return
-	}
-	fmt.Printf("SHA: %s\n", gitInfo.SHA)
-	err = ExportConformVar("sha", gitInfo.SHA)
-	if err != nil {
-		return
-	}
-	fmt.Printf("Tag: %s\n", gitInfo.Tag)
-	err = ExportConformVar("tag", gitInfo.Tag)
-	if err != nil {
-		return
-	}
-	fmt.Printf("IsTag: %s\n", strconv.FormatBool(gitInfo.IsTag))
-	err = ExportConformVar("is_tag", strconv.FormatBool(gitInfo.IsTag))
-	if err != nil {
-		return
-	}
-	fmt.Printf("Prerelease: %s\n", gitInfo.Prerelease)
-	err = ExportConformVar("prerelease", gitInfo.Prerelease)
-	if err != nil {
-		return
-	}
-	fmt.Printf("IsPrerelease: %s\n", strconv.FormatBool(gitInfo.IsPrerelease))
-	err = ExportConformVar("is_prerelease", strconv.FormatBool(gitInfo.IsPrerelease))
-	if err != nil {
-		return
-	}
-	fmt.Printf("Status: \n%s\n", strings.TrimRight(gitInfo.Status, "\n"))
-	err = ExportConformVar("status", strconv.FormatBool(gitInfo.IsDirty))
-	if err != nil {
-		return
-	}
-	fmt.Printf("IsDirty: %s\n", strconv.FormatBool(gitInfo.IsDirty))
-	err = ExportConformVar("is_dirty", strconv.FormatBool(gitInfo.IsDirty))
-	if err != nil {
-		return
-	}
-
-	return
-}
-
-// ExportConformVar exports variable prefixed with CONFORM_
-func ExportConformVar(name, value string) (err error) {
-	variable := fmt.Sprintf("CONFORM_%s", strings.ToUpper(name))
-	err = os.Setenv(variable, value)
-
-	return
 }
 
 // FormatImageNameDirty formats the image name.

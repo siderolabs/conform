@@ -1,8 +1,12 @@
 package git
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/Masterminds/semver"
-	// git "github.com/libgit2/git2go"
+	"github.com/autonomy/conform/conform/utilities"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 )
@@ -14,6 +18,7 @@ type Info struct {
 	Tag          string
 	Prerelease   string
 	Status       string
+	Message      string
 	IsTag        bool
 	IsPrerelease bool
 	IsDirty      bool
@@ -51,12 +56,18 @@ func NewInfo() (info *Info, err error) {
 		return
 	}
 
+	message, err := Message(repo, isDirty)
+	if err != nil {
+		return
+	}
+
 	info = &Info{
 		Branch:       branch,
 		SHA:          sha,
 		Tag:          tag,
 		Prerelease:   prerelease,
 		Status:       status,
+		Message:      message,
 		IsTag:        isTag,
 		IsPrerelease: isPrerelease,
 		IsDirty:      isDirty,
@@ -75,6 +86,12 @@ func Branch(repo *git.Repository) (branch string, err error) {
 		branch = ref.Name().Short()
 	}
 
+	fmt.Printf("Branch: %s\n", branch)
+	err = utilities.ExportConformVar("branch", branch)
+	if err != nil {
+		return
+	}
+
 	return
 }
 
@@ -85,6 +102,12 @@ func SHA(repo *git.Repository) (sha string, err error) {
 		return
 	}
 	sha = ref.Hash().String()[0:7]
+
+	fmt.Printf("SHA: %s\n", sha)
+	err = utilities.ExportConformVar("sha", sha)
+	if err != nil {
+		return
+	}
 
 	return
 }
@@ -111,6 +134,17 @@ func Tag(repo *git.Repository) (tag string, isTag bool, err error) {
 		return
 	}
 
+	fmt.Printf("Tag: %s\n", tag)
+	err = utilities.ExportConformVar("tag", tag)
+	if err != nil {
+		return
+	}
+	fmt.Printf("IsTag: %s\n", strconv.FormatBool(isTag))
+	err = utilities.ExportConformVar("is_tag", strconv.FormatBool(isTag))
+	if err != nil {
+		return
+	}
+
 	return
 }
 
@@ -128,6 +162,17 @@ func Prerelease(tag string, isTag bool) (prerelease string, isPrerelease bool, e
 		}
 	}
 
+	fmt.Printf("Prerelease: %s\n", prerelease)
+	err = utilities.ExportConformVar("prerelease", prerelease)
+	if err != nil {
+		return
+	}
+	fmt.Printf("IsPrerelease: %s\n", strconv.FormatBool(isPrerelease))
+	err = utilities.ExportConformVar("is_prerelease", strconv.FormatBool(isPrerelease))
+	if err != nil {
+		return
+	}
+
 	return
 }
 
@@ -138,11 +183,62 @@ func Status(repo *git.Repository) (status string, isDirty bool, err error) {
 		return
 	}
 	worktreeStatus, err := worktree.Status()
+	if err != nil {
+		return
+	}
 	if worktreeStatus.IsClean() {
 		status = " nothing to commit, working tree clean"
 	} else {
 		isDirty = true
 		status = worktreeStatus.String()
+	}
+
+	fmt.Printf("Status: \n%s\n", strings.TrimRight(status, "\n"))
+	err = utilities.ExportConformVar("status", strconv.FormatBool(isDirty))
+	if err != nil {
+		return
+	}
+	fmt.Printf("IsDirty: %s\n", strconv.FormatBool(isDirty))
+	err = utilities.ExportConformVar("is_dirty", strconv.FormatBool(isDirty))
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+// Message returns the commit message. In the case that a commit has multiple
+// parents, the message of the last parent is returned.
+func Message(repo *git.Repository, isDirty bool) (message string, err error) {
+	ref, err := repo.Head()
+	if err != nil {
+		return
+	}
+	commit, err := repo.CommitObject(ref.Hash())
+	if err != nil {
+		return
+	}
+	if commit.NumParents() != 1 {
+		parents := commit.Parents()
+		for i := 1; i <= commit.NumParents(); i++ {
+			next, err := parents.Next()
+			if err != nil {
+				return "", err
+			}
+			if i == commit.NumParents() {
+				message = next.Message
+			}
+		}
+	} else {
+		message = commit.Message
+	}
+
+	if !isDirty {
+		fmt.Printf("Message: %s\n", strings.TrimRight(message, "\n"))
+		err = utilities.ExportConformVar("message", message)
+		if err != nil {
+			return
+		}
 	}
 
 	return

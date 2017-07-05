@@ -3,6 +3,22 @@ metadata:
 
 default: image
 
+policies:
+  git:
+    types:
+      - "docs"
+      - "style"
+      - "refactor"
+      - "perf"
+      - "test"
+      - "chore"
+    scopes:
+      - "ci"
+      - "docker"
+      - "git"
+      - "policy"
+      - "*"
+
 scripts:
   init : |
     #!/bin/bash

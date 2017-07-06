@@ -12,6 +12,7 @@ type Config struct {
 	Debug     bool
 	Default   *string           `yaml:"default"`
 	Metadata  *Metadata         `yaml:"metadata"`
+	Policies  *Policies         `yaml:"policies"`
 	Scripts   map[string]string `yaml:"scripts"`
 	Templates map[string]string `yaml:"templates"`
 	Rules     map[string]*Rule  `yaml:"rules"`
@@ -21,6 +22,17 @@ type Config struct {
 type Metadata struct {
 	Repository *string `yaml:"repository"`
 	Registry   *string `yaml:"registry"`
+}
+
+// Policies contains policies that are enforced.
+type Policies struct {
+	Git *Git `yaml:"git"`
+}
+
+// Git contains git specific policies.
+type Git struct {
+	Types  []string `yaml:"types"`
+	Scopes []string `yaml:"scopes"`
 }
 
 // Rule contains rules.

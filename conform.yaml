@@ -1,124 +1,101 @@
 metadata:
   repository: autonomy/conform
 
-default: image
-
 policies:
-  git:
-    types:
-      - "docs"
-      - "style"
-      - "refactor"
-      - "perf"
-      - "test"
-      - "chore"
-    scopes:
-      - "ci"
-      - "docker"
-      - "git"
-      - "policy"
-      - "*"
+  - type: conventionalCommit
+    spec:
+      types:
+        - "docs"
+        - "style"
+        - "refactor"
+        - "perf"
+        - "test"
+        - "chore"
+      scopes:
+        - "ci"
+        - "docker"
+        - "git"
+        - "policy"
+        - "renderer"
+        - "*"
 
-scripts:
-  init : |
+script:
+  template: |
     #!/bin/bash
 
     set -e
 
-    BUILDDEPS=( github.com/golang/dep/cmd/dep )
-    for b in  ${BUILDDEPS[@]}; do
-      echo "Installing $b"
-      go get $b
-    done
-
-  cp_coverage_report: |
-    #!/bin/bash
-
-    set -e
-
-    docker run --rm -i --volume $(pwd):/out ${CONFORM_IMAGE} cp coverage.txt /out
-
-    if [ ! -f coverage.txt ]; then
-      echo "No coverage report found."
-      exit 1
-    fi
-
-  deploy: |
-    #!/bin/bash
-
-    set -e
-
-    if [ ${CONFORM_IS_DIRTY} == "true" ]; then
-      echo "The working tree is dirty."
-      exit 1
-    fi
-
+    {{ if not .Git.IsClean }}
+    echo "The working tree is dirty."
+    exit 1
+    {{ end }}
+    {{ if eq .Git.Branch "master" }}
     docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
-    docker push ${CONFORM_IMAGE}
+    docker push {{ .Docker.Image }}
+      {{ if .Git.IsTag }}
+    docker tag {{ .Docker.Image }} {{ .Repository }}:{{ .Git.Tag }}
+    docker push {{ .Repository }}:{{ .Git.Tag }}
+      {{ end }}
+      {{ if not .Git.IsPrerelease }}
+    docker tag {{ .Docker.Image }} {{ .Repository }}:latest
+    docker push {{ .Repository }}:latest
+      {{ end }}
+    {{ end }}
 
-    if [ ${CONFORM_IS_TAG} == "true" ]; then
-      docker tag ${CONFORM_IMAGE} autonomy/conform:${CONFORM_TAG:1}
-      docker push autonomy/conform:${CONFORM_TAG:1}
-      if [ ${CONFORM_PRERELEASE} == "" ]; then
-        docker tag ${CONFORM_IMAGE} autonomy/conform:latest
-        docker push autonomy/conform:latest
-      fi
-    fi
+pipeline:
+  stages:
+    - test
+    - lint
+    - build
 
-  clean: |
-    #!/bin/bash
-
-    set -e
-
-    cat .gitignore | while read line; do rm -rf "$line"; done
-    dep ensure
-    dep prune
-
-templates:
-  build: |
-    FROM golang:1.8.3 as build
-    WORKDIR $GOPATH/src/github.com/autonomy/conform
-    COPY ./ ./
-    RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform -ldflags "-X \"github.com/autonomy/conform/cmd.Tag={{ trimAll "v" .GitInfo.Tag }}\" -X \"github.com/autonomy/conform/conform.Tag={{ trimAll "v" .GitInfo.Tag }}\" -X \"github.com/autonomy/conform/conform.SHA={{ .GitInfo.SHA }}\" -X \"github.com/autonomy/conform/conform.Built={{ .Built }}\""
-  test: |
-    FROM golang:1.8.3 as test
-    WORKDIR $GOPATH/src/github.com/autonomy/conform
-    RUN go get -u gopkg.in/alecthomas/gometalinter.v1
-    RUN gometalinter.v1 --install
-    COPY --from=build $GOPATH/src/github.com/autonomy/conform .
-    RUN chmod +x ./scripts/test.sh; sync; ./scripts/test.sh
-  image: |
-    FROM alpine:3.6 as image
-    MAINTAINER Andrew Rynhard <andrew.rynhard@autonomy.io>
-    RUN apk --update add bash \
-        && rm -rf /var/cache/apk/*
-    COPY --from=build /conform /bin
-    ENTRYPOINT ["conform"]
-
-rules:
-  build:
-    templates:
-      - build
-
+stages:
   test:
-    before:
-      - init
-      - clean
-    templates:
+    artifacts:
+      - coverage.txt
+    tasks:
       - build
       - test
-    after:
-      - cp_coverage_report
+  lint:
+    tasks:
+      - build
+      - lint
+  build:
+    tasks:
+      - build
+      - image
 
+tasks:
+  build:
+    template: |
+      FROM golang:1.8.3 as build
+      WORKDIR $GOPATH/src/github.com/{{ .Repository }}
+      COPY ./ ./
+      {{ if and .Git.IsClean .Git.IsTag }}
+      RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform -ldflags "-X \"github.com/{{ .Repository }}/conform/version.Tag={{ trimAll "v" .Git.Tag }}\" -X \"github.com/{{ .Repository }}/conform/version.SHA={{ .Git.SHA }}\" -X \"github.com/{{ .Repository }}/conform/version.Built={{ .Built }}\""
+      {{ else if .Git.IsClean }}
+      RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform -ldflags "-X \"github.com/{{ .Repository }}/conform/version.SHA={{ .Git.SHA }}\" -X \"github.com/{{ .Repository }}/conform/version.Built={{ .Built }}\""
+      {{ else }}
+      RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform
+      {{ end }}
+  test:
+    template: |
+      FROM golang:1.8.3 as test
+      WORKDIR $GOPATH/src/github.com/{{ .Repository }}
+      COPY --from=build $GOPATH/src/github.com/{{ .Repository }} .
+      RUN chmod +x ./scripts/test.sh; sync; ./scripts/test.sh
+  lint:
+    template: |
+      FROM golang:1.8.3 as lint
+      WORKDIR $GOPATH/src/github.com/{{ .Repository }}
+      RUN go get -u github.com/alecthomas/gometalinter
+      RUN gometalinter --install
+      COPY --from=build $GOPATH/src/github.com/{{ .Repository }} .
+      RUN chmod +x ./scripts/lint.sh; sync; ./scripts/lint.sh
   image:
-    templates:
-      - build
-      - image
-
-  deploy:
-    templates:
-      - build
-      - test
-      - image
-    after:
-      - deploy
+    template: |
+      FROM alpine:3.6 as image
+      MAINTAINER Andrew Rynhard <andrew.rynhard@autonomy.io>
+      RUN apk --update add bash \
+          && rm -rf /var/cache/apk/*
+      COPY --from=build /conform /bin
+      ENTRYPOINT ["conform"]

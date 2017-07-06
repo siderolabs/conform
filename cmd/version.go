@@ -14,7 +14,7 @@
 package cmd
 
 import (
-	"github.com/autonomy/conform/conform"
+	"github.com/autonomy/conform/conform/version"
 	"github.com/spf13/cobra"
 )
 
@@ -29,9 +29,9 @@ var versionCmd = &cobra.Command{
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		if shortVersion {
-			conform.PrintShortVersion()
+			version.PrintShortVersion()
 		} else {
-			conform.PrintLongVersion()
+			version.PrintLongVersion()
 		}
 	},
 }

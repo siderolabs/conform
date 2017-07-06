@@ -1,4 +1,4 @@
-package conform
+package version
 
 import (
 	"bytes"

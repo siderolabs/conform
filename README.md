@@ -31,50 +31,34 @@ Create a file named `conform.yaml` with the following contents:
 ```yaml
 metadata:
   repository: example
-scripts:
-  init : |
-    #!/bin/bash
-
-    set -e
-
-    echo "Initialize any dependencies here."
-  deploy : |
-    #!/bin/bash
-
-    set -e
-
-    echo "Deploy you image here."
-templates:
-  build: |
-    FROM alpine:latest as build
-    RUN echo "Run your build here."
-    RUN touch artifact
-  test: |
-    FROM alpine:latest as test
-    COPY --from=build artifact .
-    RUN echo "Run your tests here."
-  image: |
-    FROM scratch as image
-    RUN echo "Prepare your final image here."
-    COPY --from=build artifact .
-rules:
-  image:
-    before:
-      - init
-    templates:
-      - build
-      - test
-      - image
-    after:
-      - deploy
+policies:
+  - type: conventionalCommit
+    spec:
+      types:
+        - "type"
+      scopes:
+        - "scope"
+  - type: branch
+    spec:
+      name: master
+      pipelines:
+        - name: example
+pipelines:
+  example:
+    stages:
+      - example
+stages:
+  example:
+    template: |
+      FROM scratch
 ```
 
 In the same directory, run:
 ```
-$ conform enforce image
+$ conform enforce
 ```
 
-Devloping Conform
+Developing Conform
 ----------------
 
 ### License

@@ -3,8 +3,6 @@
 set -e
 
 GOPACKAGES=$(go list ./... | grep -v /vendor/)
-GOFILES=$(find . -type f -name '*.go' -not -path "./vendor/*")
-
 COVERAGE_REPORT=coverage.txt
 PROFILE=profile.out
 
@@ -21,12 +19,6 @@ for package in ${GOPACKAGES[@]}; do
   fi
 done
 
-echo "Linting packages"
-gometalinter.v1 --vendor --disable=gas --disable=gotype --sort=linter --deadline=240s ./...
-
-echo "Formatting go files"
-if [ ! -z "$(gofmt -l -s ${GOFILES})" ]; then
-  exit 1
-fi
+mv ${COVERAGE_REPORT} /${COVERAGE_REPORT}
 
 exit 0

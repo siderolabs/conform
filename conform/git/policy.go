@@ -19,20 +19,23 @@ const TypeFix = "fix"
 
 // ConventionalCommitsOptions are the configurable options used to check the copliance of conventional commits policy.
 type ConventionalCommitsOptions struct {
-	Message string
-	Types   []string
-	Scopes  []string
+	Types  []string
+	Scopes []string
 }
 
 // Compliance implements the policy.Policy interface.
-func (i *Info) Compliance(obj interface{}) (report *policy.Report, err error) {
+func (g *Git) Compliance(obj interface{}) (report *policy.Report, err error) {
 	opts := obj.(*ConventionalCommitsOptions)
 	report = &policy.Report{Valid: true}
 	re, err := regexp.Compile(ConventionalCommitsOneDotZeroDotZeroBeta1)
 	if err != nil {
 		return
 	}
-	lines := strings.Split(opts.Message, "\n")
+	message, err := g.Message()
+	if err != nil {
+		return
+	}
+	lines := strings.Split(message, "\n")
 	groups := re.FindStringSubmatch(lines[0])
 	if len(groups) != 5 {
 		err = fmt.Errorf("Invalid commit format")

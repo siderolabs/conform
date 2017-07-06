@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/Masterminds/sprig"
 	"github.com/autonomy/conform/conform/config"
@@ -16,25 +17,17 @@ import (
 
 // Enforcer performs all the build actions for a rule.
 type Enforcer struct {
-	config  *config.Config
-	rule    string
-	GitInfo *git.Info
-	Built   string
+	config *config.Config
+	rule   string
+	git    *git.Git
 }
 
 // NewEnforcer instantiates and returns an executer.
 func NewEnforcer(rule string) (enforcer *Enforcer, err error) {
 	enforcer = &Enforcer{}
-	gitInfo, err := git.NewInfo()
+	g, err := git.NewGit()
 	if err != nil {
 		return
-	}
-	date := []byte{}
-	if gitInfo.IsTag {
-		date, err = exec.Command("/bin/date").Output()
-		if err != nil {
-			return
-		}
 	}
 
 	c, err := config.NewConfig()
@@ -42,21 +35,28 @@ func NewEnforcer(rule string) (enforcer *Enforcer, err error) {
 		return
 	}
 	enforcer.config = c
-	enforcer.GitInfo = gitInfo
-	enforcer.Built = strings.TrimSuffix(string(date), "\n")
+	enforcer.git = g
 	enforcer.rule = rule
 
 	return
 }
 
 // ExecuteBuild executes a docker build.
-func (e *Enforcer) ExecuteBuild(dockerfile string) error {
-	image := e.FormatImageNameSHA()
-	if e.GitInfo.IsDirty {
+func (e *Enforcer) ExecuteBuild(dockerfile string) (err error) {
+	sha, err := e.git.SHA()
+	if err != nil {
+		return
+	}
+	image := e.FormatImageNameSHA(sha)
+	_, isClean, err := e.git.Status()
+	if err != nil {
+		return
+	}
+	if !isClean {
 		image = e.FormatImageNameDirty()
 	}
 
-	err := os.Setenv("CONFORM_IMAGE", image)
+	err = os.Setenv("CONFORM_IMAGE", image)
 	if err != nil {
 		return err
 	}
@@ -78,12 +78,16 @@ func (e *Enforcer) ExecuteBuild(dockerfile string) error {
 // RenderDockerfile writes the final Dockerfile to disk.
 func (e *Enforcer) RenderDockerfile(target *config.Rule) (dockerfile string, err error) {
 	for _, p := range target.Templates {
-		r, _err := e.RenderTemplate(p)
-		if _err != nil {
-			err = _err
-			return
+		if _s, ok := e.config.Templates[p]; ok {
+			r, _err := e.RenderTemplate(_s)
+			if _err != nil {
+				err = _err
+				return
+			}
+			dockerfile = dockerfile + "\n" + r
+		} else {
+			return "", fmt.Errorf("Template %q is not defined in conform.yaml", p)
 		}
-		dockerfile = dockerfile + "\n" + *r
 	}
 
 	if e.config.Debug {
@@ -94,24 +98,40 @@ func (e *Enforcer) RenderDockerfile(target *config.Rule) (dockerfile string, err
 }
 
 // RenderTemplate executes the template and returns it.
-func (e *Enforcer) RenderTemplate(s string) (*string, error) {
-	if _s, ok := e.config.Templates[s]; ok {
-		var wr bytes.Buffer
-		tmpl, err := template.New("").Funcs(sprig.TxtFuncMap()).Parse(_s)
-		if err != nil {
-			return nil, err
-		}
-
-		err = tmpl.Execute(&wr, &e)
-		if err != nil {
-			return nil, err
-		}
-
-		str := wr.String()
-		return &str, nil
+func (e *Enforcer) RenderTemplate(s string) (string, error) {
+	var wr bytes.Buffer
+	tmpl, err := template.New("").Funcs(sprig.TxtFuncMap()).Parse(s)
+	if err != nil {
+		return "", err
 	}
+	tag, err := e.git.Tag()
+	if err != nil {
+		return "", err
+	}
+	sha, err := e.git.SHA()
+	if err != nil {
+		return "", err
+	}
+	built := ""
+	if tag != "" {
+		built = time.Now().Format(time.RFC3339)
+	}
+	data := struct {
+		Tag   string
+		SHA   string
+		Built string
+	}{
+		tag,
+		sha,
+		built,
+	}
+	err = tmpl.Execute(&wr, &data)
+	if err != nil {
+		return "", err
+	}
+	str := wr.String()
 
-	return nil, fmt.Errorf("Template %q is not defined in conform.yaml", s)
+	return str, nil
 }
 
 // ExtractArtifact copies an artifact from a build.
@@ -122,12 +142,16 @@ func (e *Enforcer) ExtractArtifact(artifact string) error {
 // ExecuteScript executes a script for a rule.
 func (e *Enforcer) ExecuteScript(script string) error {
 	if s, ok := e.config.Scripts[script]; ok {
+		_s, err := e.RenderTemplate(s)
+		if err != nil {
+			return err
+		}
 		fmt.Printf("Running %q script\n", script)
 
-		command := exec.Command("bash", "-c", s)
+		command := exec.Command("bash", "-c", _s)
 		command.Stdout = os.Stdout
 		command.Stderr = os.Stderr
-		err := command.Start()
+		err = command.Start()
 		if err != nil {
 			return err
 		}
@@ -145,13 +169,16 @@ func (e *Enforcer) ExecuteScript(script string) error {
 // EnforcePolicies enforces all defined polcies. In the case that the working
 // tree is dirty, all git policies are skipped.
 func (e *Enforcer) EnforcePolicies() {
-	if !e.GitInfo.IsDirty {
+	_, isClean, err := e.git.Status()
+	if err != nil {
+		return
+	}
+	if isClean {
 		enforceGitPolicy(
-			e.GitInfo,
+			e.git,
 			&git.ConventionalCommitsOptions{
-				Message: e.GitInfo.Message,
-				Types:   e.config.Policies.Git.Types,
-				Scopes:  e.config.Policies.Git.Scopes,
+				Types:  e.config.Policies.Git.Types,
+				Scopes: e.config.Policies.Git.Scopes,
 			},
 		)
 	}
@@ -209,13 +236,13 @@ func (e *Enforcer) FormatImageNameDirty() string {
 }
 
 // FormatImageNameSHA formats the image name.
-func (e *Enforcer) FormatImageNameSHA() string {
-	return fmt.Sprintf("%s:%s", *e.config.Metadata.Repository, e.GitInfo.SHA)
+func (e *Enforcer) FormatImageNameSHA(sha string) string {
+	return fmt.Sprintf("%s:%s", *e.config.Metadata.Repository, sha)
 }
 
 // FormatImageNameTag formats the image name.
-func (e *Enforcer) FormatImageNameTag() string {
-	return fmt.Sprintf("%s:%s", *e.config.Metadata.Repository, e.GitInfo.Tag)
+func (e *Enforcer) FormatImageNameTag(tag string) string {
+	return fmt.Sprintf("%s:%s", *e.config.Metadata.Repository, tag)
 }
 
 // FormatImageNameLatest formats the image name.

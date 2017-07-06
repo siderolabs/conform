@@ -22,7 +22,7 @@ for package in ${GOPACKAGES[@]}; do
 done
 
 echo "Linting packages"
-gometalinter.v1 --vendor --disable=gas --disable=gotype --sort=linter --deadline=240s ./...
+gometalinter.v1 --vendor --disable=gas --disable=gotype --sort=linter --deadline=600s ./...
 
 echo "Formatting go files"
 if [ ! -z "$(gofmt -l -s ${GOFILES})" ]; then

@@ -1,124 +1,130 @@
 metadata:
   repository: autonomy/conform
-
-default: image
-
 policies:
-  git:
-    types:
-      - "docs"
-      - "style"
-      - "refactor"
-      - "perf"
-      - "test"
-      - "chore"
-    scopes:
-      - "ci"
-      - "docker"
-      - "git"
-      - "policy"
-      - "*"
-
-scripts:
-  init : |
-    #!/bin/bash
-
-    set -e
-
-    BUILDDEPS=( github.com/golang/dep/cmd/dep )
-    for b in  ${BUILDDEPS[@]}; do
-      echo "Installing $b"
-      go get $b
-    done
-
-  cp_coverage_report: |
-    #!/bin/bash
-
-    set -e
-
-    docker run --rm -i --volume $(pwd):/out ${CONFORM_IMAGE} cp coverage.txt /out
-
-    if [ ! -f coverage.txt ]; then
-      echo "No coverage report found."
-      exit 1
-    fi
-
-  deploy: |
-    #!/bin/bash
-
-    set -e
-
-    if [ ${CONFORM_IS_DIRTY} == "true" ]; then
-      echo "The working tree is dirty."
-      exit 1
-    fi
-
-    docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
-    docker push ${CONFORM_IMAGE}
-
-    if [ ${CONFORM_IS_TAG} == "true" ]; then
-      docker tag ${CONFORM_IMAGE} autonomy/conform:${CONFORM_TAG:1}
-      docker push autonomy/conform:${CONFORM_TAG:1}
-      if [ ${CONFORM_PRERELEASE} == "" ]; then
-        docker tag ${CONFORM_IMAGE} autonomy/conform:latest
-        docker push autonomy/conform:latest
-      fi
-    fi
-
-  clean: |
-    #!/bin/bash
-
-    set -e
-
-    cat .gitignore | while read line; do rm -rf "$line"; done
-    dep ensure
-    dep prune
-
-templates:
-  build: |
-    FROM golang:1.8.3 as build
-    WORKDIR $GOPATH/src/github.com/autonomy/conform
-    COPY ./ ./
-    RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform -ldflags "-X \"github.com/autonomy/conform/cmd.Tag={{ trimAll "v" .GitInfo.Tag }}\" -X \"github.com/autonomy/conform/conform.Tag={{ trimAll "v" .GitInfo.Tag }}\" -X \"github.com/autonomy/conform/conform.SHA={{ .GitInfo.SHA }}\" -X \"github.com/autonomy/conform/conform.Built={{ .Built }}\""
-  test: |
-    FROM golang:1.8.3 as test
-    WORKDIR $GOPATH/src/github.com/autonomy/conform
-    RUN go get -u gopkg.in/alecthomas/gometalinter.v1
-    RUN gometalinter.v1 --install
-    COPY --from=build $GOPATH/src/github.com/autonomy/conform .
-    RUN chmod +x ./scripts/test.sh; sync; ./scripts/test.sh
-  image: |
-    FROM alpine:3.6 as image
-    MAINTAINER Andrew Rynhard <andrew.rynhard@autonomy.io>
-    RUN apk --update add bash \
-        && rm -rf /var/cache/apk/*
-    COPY --from=build /conform /bin
-    ENTRYPOINT ["conform"]
-
-rules:
+  commit:
+    type: conventional
+    spec:
+      types:
+        - "docs"
+        - "style"
+        - "refactor"
+        - "perf"
+        - "test"
+        - "chore"
+      scopes:
+        - "ci"
+        - "docker"
+        - "git"
+        - "policy"
+        - "renderer"
+        - "*"
+  branch:
+    spec:
+      default:
+        pipelines:
+          - name: image
+      master:
+        pipelines:
+          - name: deploy
+  tag:
+    spec:
+      versioning:
+        type: semantic
+      pipeline: deploy
+pipelines:
   build:
-    templates:
+    stages:
       - build
-
   test:
-    before:
-      - init
-      - clean
-    templates:
+    artifacts:
+      - coverage.txt
+    stages:
       - build
       - test
-    after:
-      - cp_coverage_report
-
   image:
-    templates:
+    stages:
       - build
       - image
-
   deploy:
-    templates:
+    stages:
       - build
       - test
       - image
-    after:
       - deploy
+stages:
+  build:
+    template: |
+      FROM golang:1.8.3 as build
+      WORKDIR $GOPATH/src/github.com/autonomy/conform
+      COPY ./ ./
+      {{ if .Git.IsTag }}
+        {{ if .Git.IsClean }}
+      RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform -ldflags "-X \"github.com/autonomy/conform/version.SHA={{ .Git.SHA }}\""
+        {{ else }}
+      RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform -ldflags "-X \"github.com/autonomy/conform/version.SHA=dirty\""
+        {{ end }}
+      {{ else }}
+      RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform -ldflags "-X \"github.com/autonomy/conform/version.Tag={{ trimAll "v" .Git.Tag }}\" -X \"github.com/autonomy/conform/version.SHA={{ .Git.SHA }}\" -X \"github.com/autonomy/conform/version.Built={{ .Built }}\""
+      {{ end }}
+  test:
+    template: |
+      FROM golang:1.8.3 as test
+      WORKDIR $GOPATH/src/github.com/autonomy/conform
+      RUN go get -u gopkg.in/alecthomas/gometalinter.v1
+      RUN gometalinter.v1 --install
+      COPY --from=build $GOPATH/src/github.com/autonomy/conform .
+      RUN chmod +x ./scripts/test.sh; sync; ./scripts/test.sh
+  image:
+    template: |
+      FROM alpine:3.6 as image
+      MAINTAINER Andrew Rynhard <andrew.rynhard@autonomy.io>
+      RUN apk --update add bash \
+          && rm -rf /var/cache/apk/*
+      COPY --from=build /conform /bin
+      ENTRYPOINT ["conform"]
+  deploy:
+    template: |
+      FROM docker:17.05-ce as deploy
+  # scripts:
+  #   init : |
+  #     set -e
+  #
+  #     BUILDDEPS=( github.com/golang/dep/cmd/dep )
+  #     for b in  ${BUILDDEPS[@]}; do
+  #       echo "Installing $b"
+  #       go get $b
+  #     done
+  #   cp_coverage_report: |
+  #     set -e
+  #
+  #     docker run --rm -i --volume $(pwd):/out {{ .Image }} cp coverage.txt /out
+  #
+  #     if [ ! -f coverage.txt ]; then
+  #       echo "No coverage report found."
+  #       exit 1
+  #     fi
+  #   deploy: |
+  #     set -e
+  #
+  #     if [ ${CONFORM_IS_DIRTY} == "true" ]; then
+  #       echo "The working tree is dirty."
+  #       exit 1
+  #     fi
+  #
+  #     docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
+  #     docker push ${CONFORM_IMAGE}
+  #
+  #     if [ ${CONFORM_IS_TAG} == "true" ]; then
+  #       docker tag ${CONFORM_IMAGE} autonomy/conform:${CONFORM_TAG:1}
+  #       docker push autonomy/conform:${CONFORM_TAG:1}
+  #       if [ ${CONFORM_PRERELEASE} == "" ]; then
+  #         docker tag ${CONFORM_IMAGE} autonomy/conform:latest
+  #         docker push autonomy/conform:latest
+  #       fi
+  #     fi
+  #   clean: |
+  #     set -e
+  #
+  #     cat .gitignore | while read line; do rm -rf "$line"; done
+  #     dep ensure
+  #     dep prune

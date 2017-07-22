@@ -42,7 +42,7 @@ var policyMap = map[string]policy.Policy{
 
 // New loads the conform.yaml file and unmarshals it into a Conform struct.
 func New() (*Conform, error) {
-	configBytes, err := ioutil.ReadFile("conform.yaml")
+	configBytes, err := ioutil.ReadFile(".conform.yaml")
 	if err != nil {
 		return nil, err
 	}

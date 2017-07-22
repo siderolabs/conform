@@ -17,6 +17,7 @@ policies:
         - "git"
         - "metadata"
         - "policy"
+        - "readme"
         - "renderer"
         - "*"
 

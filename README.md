@@ -27,10 +27,11 @@ The key features of Conform are:
 
 Getting Started
 ---------------
-Create a file named `conform.yaml` with the following contents:
+Create a file named `.conform.yaml` with the following contents:
 ```yaml
 metadata:
-  repository: example
+  repository: hello/world
+
 policies:
   - type: conventionalCommit
     spec:
@@ -38,17 +39,24 @@ policies:
         - "type"
       scopes:
         - "scope"
-  - type: branch
-    spec:
-      name: master
-      pipelines:
-        - name: example
-pipelines:
-  example:
-    stages:
-      - example
+
+script:
+  template: |
+    #!/bin/bash
+
+    echo "Hello, world!"
+
+pipeline:
+  stages:
+    - example
+
 stages:
   example:
+    tasks:
+      - task
+
+tasks:
+  task:
     template: |
       FROM scratch
 ```

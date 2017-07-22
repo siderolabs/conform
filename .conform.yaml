@@ -26,9 +26,7 @@ script:
 
     set -e
 
-    # Check if the branch is a master.
-    if [[ "{{ .Git.Branch }}" != "master" ]]; then
-      echo "Branch '{{ .Git.Branch }}' is not 'master'"
+    if [[ "${TRAVIS_BRANCH}" != "master" ]] || [[ -z "${TRAVIS_TAG}" ]]; then
       exit 0
     fi
 
@@ -47,13 +45,13 @@ script:
       exit 0
     fi
 
-    # Check if tag is a prerelease.
+    # Check if the tag is a prerelease.
     if [[ "{{ .Version.IsPrerelease }}" == "true" ]]; then
-      echo "Prerelease {{ .Version.Major }}.{{ .Version.Minor }}.{{ .Version.Patch }}-{{ .Version.Prerelease }}"
+      echo "Publishing prerelease {{ .Version.Major }}.{{ .Version.Minor }}.{{ .Version.Patch }}-{{ .Version.Prerelease }}"
       docker tag {{ .Docker.Image }} {{ .Repository }}:{{ .Version.Major }}.{{ .Version.Minor }}.{{ .Version.Patch }}-{{ .Version.Prerelease }}
       docker push {{ .Repository }}:{{ .Version.Major }}.{{ .Version.Minor }}.{{ .Version.Patch }}-{{ .Version.Prerelease }}
     else
-      echo "Release {{ .Version.Major }}.{{ .Version.Minor }}.{{ .Version.Patch }}"
+      echo "Publishing release {{ .Version.Major }}.{{ .Version.Minor }}.{{ .Version.Patch }}"
       docker tag {{ .Docker.Image }} {{ .Repository }}:{{ .Version.Major }}.{{ .Version.Minor }}.{{ .Version.Patch }}
       docker push {{ .Repository }}:{{ .Version.Major }}.{{ .Version.Minor }}.{{ .Version.Patch }}
       docker tag {{ .Docker.Image }} {{ .Repository }}:latest

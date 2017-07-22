@@ -21,22 +21,11 @@ install:
   - sudo apt-get update
   - sudo apt-get -y install docker-ce
   - go get github.com/autonomy/conform
+  - go get github.com/golang/dep/cmd/dep
+  - dep ensure
 
 script:
-  - conform enforce test
-  - conform enforce image
+  - conform enforce
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
-
-deploy:
-  - provider: script
-    script: chmod +x scripts/deploy.sh && scripts/deploy.sh
-    skip_cleanup: true
-    on:
-      branch: master
-  - provider: script
-    script: chmod +x scripts/deploy.sh && scripts/deploy.sh
-    skip_cleanup: true
-    on:
-      tags: true

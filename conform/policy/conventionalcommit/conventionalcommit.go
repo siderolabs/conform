@@ -18,6 +18,10 @@ type Conventional struct {
 	Scopes []string `mapstructure:"scopes"`
 }
 
+// MaxNumberOfCommitCharacters is the maximium number of characters allowed in
+// a commit header.
+const MaxNumberOfCommitCharacters = 72
+
 // HeaderRegex is the regular expression used for Conventional Commits
 // 1.0.0-beta.1.
 const HeaderRegex = `^(\w*)\(([^)]+)\):\s{1}(.*)($|\n{2})`
@@ -41,6 +45,7 @@ func (c *Conventional) Compliance(metadata *metadata.Metadata, options ...policy
 		report.Errors = append(report.Errors, fmt.Errorf("Invalid commit format"))
 		return
 	}
+	ValidateHeaderLength(&report, groups)
 	ValidateType(&report, groups, c.Types)
 	ValidateScope(&report, groups, c.Scopes)
 	ValidateDescription(&report, groups)
@@ -56,6 +61,13 @@ func (c *Conventional) Pipeline(*pipeline.Pipeline) policy.Option {
 // Tasks implements the policy.Policy.Tasks function.
 func (c *Conventional) Tasks(map[string]*task.Task) policy.Option {
 	return func(args *policy.Options) {}
+}
+
+// ValidateHeaderLength checks the header length.
+func ValidateHeaderLength(report *policy.Report, groups []string) {
+	if len(groups[1]) > MaxNumberOfCommitCharacters {
+		report.Errors = append(report.Errors, fmt.Errorf("Commit header is %d characters", len(groups[1])))
+	}
 }
 
 // ValidateType returns the commit type.

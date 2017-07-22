@@ -1,7 +1,6 @@
 package git
 
 import (
-	"github.com/Masterminds/semver"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 )
@@ -67,23 +66,6 @@ func (g *Git) Tag() (tag string, isTag bool, err error) {
 	})
 	if err != nil {
 		return
-	}
-
-	return
-}
-
-// Prerelease returns the prerelease name if the tag is a prerelease.
-func (g *Git) Prerelease(tag string, isTag bool) (prerelease string, isPrerelease bool, err error) {
-	if isTag {
-		var ver *semver.Version
-		ver, err = semver.NewVersion(tag[1:])
-		if err != nil {
-			return
-		}
-		if ver.Prerelease() != "" {
-			prerelease = ver.Prerelease()
-			isPrerelease = true
-		}
 	}
 
 	return

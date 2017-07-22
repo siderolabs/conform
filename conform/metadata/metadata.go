@@ -3,6 +3,7 @@ package metadata
 import (
 	"time"
 
+	"github.com/Masterminds/semver"
 	"github.com/autonomy/conform/conform/git"
 	"github.com/autonomy/conform/conform/utilities"
 )
@@ -34,8 +35,9 @@ type Git struct {
 
 // Version contains version specific metadata.
 type Version struct {
-	Major        string
-	Minor        string
+	Major        int64
+	Minor        int64
+	Patch        int64
 	Prerelease   string
 	IsPrerelease bool
 }
@@ -57,6 +59,29 @@ func (m *Metadata) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 	if err := addMetadataForDocker(m); err != nil {
 		return err
+	}
+	if err := addMetadataForVersion(m); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func addMetadataForVersion(m *Metadata) error {
+	m.Version = &Version{}
+	if m.Git.IsTag {
+		var ver *semver.Version
+		ver, err := semver.NewVersion(m.Git.Tag[1:])
+		if err != nil {
+			return err
+		}
+		m.Version.Major = ver.Major()
+		m.Version.Minor = ver.Minor()
+		m.Version.Patch = ver.Patch()
+		m.Version.Prerelease = ver.Prerelease()
+		if ver.Prerelease() != "" {
+			m.Version.IsPrerelease = true
+		}
 	}
 
 	return nil

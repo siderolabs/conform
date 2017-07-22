@@ -5,16 +5,17 @@ policies:
   - type: conventionalCommit
     spec:
       types:
-        - "docs"
-        - "style"
-        - "refactor"
-        - "perf"
-        - "test"
         - "chore"
+        - "docs"
+        - "perf"
+        - "refactor"
+        - "style"
+        - "test"
       scopes:
         - "ci"
         - "docker"
         - "git"
+        - "metadata"
         - "policy"
         - "renderer"
         - "*"
@@ -25,22 +26,31 @@ script:
 
     set -e
 
-    {{ if not .Git.IsClean }}
-    echo "The working tree is dirty."
-    exit 1
-    {{ end }}
-    {{ if eq .Git.Branch "master" }}
+    if [[ "{{ .Git.Branch }}" != "master" ]]; then
+      exit 0
+    fi
+
+    if [[ "{{ .Git.IsClean }}" != "true" ]]; then
+      echo "The working tree is dirty."
+      exit 1
+    fi
+
     docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
     docker push {{ .Docker.Image }}
-      {{ if .Git.IsTag }}
-    docker tag {{ .Docker.Image }} {{ .Repository }}:{{ .Git.Tag }}
-    docker push {{ .Repository }}:{{ .Git.Tag }}
-      {{ end }}
-      {{ if not .Git.IsPrerelease }}
-    docker tag {{ .Docker.Image }} {{ .Repository }}:latest
-    docker push {{ .Repository }}:latest
-      {{ end }}
-    {{ end }}
+
+    if [[ "{{ .Git.IsTag }}" != "true" ]]; then
+      exit 0
+    fi
+
+    if [[ "{{ .Version.IsPrerelease }}" == "true" ]]; then
+      docker tag {{ .Docker.Image }} {{ .Repository }}:{{ .Version.Major }}.{{ .Version.Minor }}.{{ .Version.Patch }}-{{ .Version.Prerelease }}
+      docker push {{ .Repository }}:{{ .Version.Major }}.{{ .Version.Minor }}.{{ .Version.Patch }}-{{ .Version.Prerelease }}
+    else
+      docker tag {{ .Docker.Image }} {{ .Repository }}:{{ .Version.Major }}.{{ .Version.Minor }}.{{ .Version.Patch }}
+      docker push {{ .Repository }}:{{ .Version.Major }}.{{ .Version.Minor }}.{{ .Version.Patch }}
+      docker tag {{ .Docker.Image }} {{ .Repository }}:latest
+      docker push {{ .Repository }}:latest
+    fi
 
 pipeline:
   stages:

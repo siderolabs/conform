@@ -26,26 +26,34 @@ script:
 
     set -e
 
+    # Check if the branch is a master.
     if [[ "{{ .Git.Branch }}" != "master" ]]; then
+      echo "Branch '{{ .Git.Branch }}' is not 'master'"
       exit 0
     fi
 
+    # Check if working tree is clean.
     if [[ "{{ .Git.IsClean }}" != "true" ]]; then
       echo "The working tree is dirty."
       exit 1
     fi
 
+    echo "Pushing image {{ .Docker.Image }}"
     docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
     docker push {{ .Docker.Image }}
 
+    # Check if ref is a tag.
     if [[ "{{ .Git.IsTag }}" != "true" ]]; then
       exit 0
     fi
 
+    # Check if tag is a prerelease.
     if [[ "{{ .Version.IsPrerelease }}" == "true" ]]; then
+      echo "Prerelease {{ .Version.Major }}.{{ .Version.Minor }}.{{ .Version.Patch }}-{{ .Version.Prerelease }}"
       docker tag {{ .Docker.Image }} {{ .Repository }}:{{ .Version.Major }}.{{ .Version.Minor }}.{{ .Version.Patch }}-{{ .Version.Prerelease }}
       docker push {{ .Repository }}:{{ .Version.Major }}.{{ .Version.Minor }}.{{ .Version.Patch }}-{{ .Version.Prerelease }}
     else
+      echo "Release {{ .Version.Major }}.{{ .Version.Minor }}.{{ .Version.Patch }}"
       docker tag {{ .Docker.Image }} {{ .Repository }}:{{ .Version.Major }}.{{ .Version.Minor }}.{{ .Version.Patch }}
       docker push {{ .Repository }}:{{ .Version.Major }}.{{ .Version.Minor }}.{{ .Version.Patch }}
       docker tag {{ .Docker.Image }} {{ .Repository }}:latest

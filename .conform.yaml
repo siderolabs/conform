@@ -65,7 +65,6 @@ script:
 pipeline:
   stages:
     - test
-    - lint
     - build
 
 stages:
@@ -75,10 +74,6 @@ stages:
     tasks:
       - build
       - test
-  lint:
-    tasks:
-      - build
-      - lint
   build:
     tasks:
       - build
@@ -87,7 +82,7 @@ stages:
 tasks:
   build:
     template: |
-      FROM golang:1.8.3 as build
+      FROM autonomy/golang:1.8.3 as build
       WORKDIR $GOPATH/src/github.com/{{ .Repository }}
       COPY ./ ./
       {{ if and .Git.IsClean .Git.IsTag }}
@@ -99,18 +94,10 @@ tasks:
       {{ end }}
   test:
     template: |
-      FROM golang:1.8.3 as test
+      FROM autonomy/golang:1.8.3 as test
       WORKDIR $GOPATH/src/github.com/{{ .Repository }}
       COPY --from=build $GOPATH/src/github.com/{{ .Repository }} .
-      RUN chmod +x ./scripts/test.sh; sync; ./scripts/test.sh
-  lint:
-    template: |
-      FROM golang:1.8.3 as lint
-      WORKDIR $GOPATH/src/github.com/{{ .Repository }}
-      RUN go get -u github.com/alecthomas/gometalinter
-      RUN gometalinter --install
-      COPY --from=build $GOPATH/src/github.com/{{ .Repository }} .
-      RUN chmod +x ./scripts/lint.sh; sync; ./scripts/lint.sh
+      RUN test.sh
   image:
     template: |
       FROM alpine:3.6 as image

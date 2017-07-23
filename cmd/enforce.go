@@ -18,7 +18,7 @@ import (
 	"fmt"
 
 	"github.com/Masterminds/semver"
-	conform "github.com/autonomy/conform/pkg"
+	"github.com/autonomy/conform/pkg/enforcer"
 	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
 )
@@ -37,11 +37,11 @@ var enforceCmd = &cobra.Command{
 		if err := checkDockerVersion(); err != nil {
 			return err
 		}
-		c, err := conform.New()
+		e, err := enforcer.New()
 		if err != nil {
 			return err
 		}
-		if err = c.Enforce(); err != nil {
+		if err = e.Enforce(); err != nil {
 			return err
 		}
 

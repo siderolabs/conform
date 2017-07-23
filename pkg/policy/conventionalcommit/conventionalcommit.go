@@ -65,8 +65,8 @@ func (c *Conventional) Tasks(map[string]*task.Task) policy.Option {
 
 // ValidateHeaderLength checks the header length.
 func ValidateHeaderLength(report *policy.Report, groups []string) {
-	if len(groups[1]) > MaxNumberOfCommitCharacters {
-		report.Errors = append(report.Errors, fmt.Errorf("Commit header is %d characters", len(groups[1])))
+	if len(groups[0]) > MaxNumberOfCommitCharacters {
+		report.Errors = append(report.Errors, fmt.Errorf("Commit header is %d characters", len(groups[0])))
 	}
 }
 

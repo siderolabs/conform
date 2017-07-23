@@ -7,9 +7,9 @@ import (
 	"path"
 	"strings"
 
-	"github.com/autonomy/conform/conform/metadata"
-	"github.com/autonomy/conform/conform/stage"
-	"github.com/autonomy/conform/conform/task"
+	"github.com/autonomy/conform/pkg/metadata"
+	"github.com/autonomy/conform/pkg/stage"
+	"github.com/autonomy/conform/pkg/task"
 )
 
 // Pipeline defines the stages and artifacts.

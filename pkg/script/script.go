@@ -5,8 +5,8 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/autonomy/conform/conform/metadata"
-	"github.com/autonomy/conform/conform/renderer"
+	"github.com/autonomy/conform/pkg/metadata"
+	"github.com/autonomy/conform/pkg/renderer"
 )
 
 // Script defines a template that can be executed.

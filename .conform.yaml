@@ -91,9 +91,9 @@ tasks:
       WORKDIR $GOPATH/src/github.com/{{ .Repository }}
       COPY ./ ./
       {{ if and .Git.IsClean .Git.IsTag }}
-      RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform -ldflags "-X \"github.com/{{ .Repository }}/conform/version.Tag={{ trimAll "v" .Git.Tag }}\" -X \"github.com/{{ .Repository }}/conform/version.SHA={{ .Git.SHA }}\" -X \"github.com/{{ .Repository }}/conform/version.Built={{ .Built }}\""
+      RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform -ldflags "-X \"github.com/{{ .Repository }}/pkg/version.Tag={{ trimAll "v" .Git.Tag }}\" -X \"github.com/{{ .Repository }}/pkg/version.SHA={{ .Git.SHA }}\" -X \"github.com/{{ .Repository }}/pkg/version.Built={{ .Built }}\""
       {{ else if .Git.IsClean }}
-      RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform -ldflags "-X \"github.com/{{ .Repository }}/conform/version.SHA={{ .Git.SHA }}\" -X \"github.com/{{ .Repository }}/conform/version.Built={{ .Built }}\""
+      RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform -ldflags "-X \"github.com/{{ .Repository }}/pkg/version.SHA={{ .Git.SHA }}\" -X \"github.com/{{ .Repository }}/pkg/version.Built={{ .Built }}\""
       {{ else }}
       RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform
       {{ end }}

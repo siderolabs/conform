@@ -7,9 +7,9 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/autonomy/conform/conform/git"
-	"github.com/autonomy/conform/conform/metadata"
-	"github.com/autonomy/conform/conform/policy"
+	"github.com/autonomy/conform/pkg/git"
+	"github.com/autonomy/conform/pkg/metadata"
+	"github.com/autonomy/conform/pkg/policy"
 )
 
 func RemoveAll(dir string) {

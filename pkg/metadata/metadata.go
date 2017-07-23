@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver"
-	"github.com/autonomy/conform/conform/git"
-	"github.com/autonomy/conform/conform/utilities"
+	"github.com/autonomy/conform/pkg/git"
+	"github.com/autonomy/conform/pkg/utilities"
 )
 
 // Metadata contains metadata.

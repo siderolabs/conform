@@ -5,10 +5,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/autonomy/conform/conform/metadata"
-	"github.com/autonomy/conform/conform/pipeline"
-	"github.com/autonomy/conform/conform/policy"
-	"github.com/autonomy/conform/conform/task"
+	"github.com/autonomy/conform/pkg/metadata"
+	"github.com/autonomy/conform/pkg/pipeline"
+	"github.com/autonomy/conform/pkg/policy"
+	"github.com/autonomy/conform/pkg/task"
 )
 
 // Conventional implements the policy.Policy interface and enforces commit

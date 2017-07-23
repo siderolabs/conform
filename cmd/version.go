@@ -14,7 +14,7 @@
 package cmd
 
 import (
-	"github.com/autonomy/conform/conform/version"
+	"github.com/autonomy/conform/pkg/version"
 	"github.com/spf13/cobra"
 )
 

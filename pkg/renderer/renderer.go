@@ -5,7 +5,7 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig"
-	"github.com/autonomy/conform/conform/metadata"
+	"github.com/autonomy/conform/pkg/metadata"
 )
 
 // Renderer renders all pipeline templates.

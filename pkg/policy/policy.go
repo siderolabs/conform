@@ -1,9 +1,9 @@
 package policy
 
 import (
-	"github.com/autonomy/conform/conform/metadata"
-	"github.com/autonomy/conform/conform/pipeline"
-	"github.com/autonomy/conform/conform/task"
+	"github.com/autonomy/conform/pkg/metadata"
+	"github.com/autonomy/conform/pkg/pipeline"
+	"github.com/autonomy/conform/pkg/task"
 )
 
 // Option is a functional option used to pass in arguments to a Policy.

@@ -1,7 +1,7 @@
 *
 !cmd
-!conform
 !Gopkg*
 !main.go
+!pkg
 !scripts
 !vendor

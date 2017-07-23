@@ -18,7 +18,7 @@ import (
 	"fmt"
 
 	"github.com/Masterminds/semver"
-	"github.com/autonomy/conform/conform"
+	conform "github.com/autonomy/conform/pkg"
 	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
 )

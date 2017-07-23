@@ -1,8 +1,8 @@
 package task
 
 import (
-	"github.com/autonomy/conform/conform/metadata"
-	"github.com/autonomy/conform/conform/renderer"
+	"github.com/autonomy/conform/pkg/metadata"
+	"github.com/autonomy/conform/pkg/renderer"
 )
 
 // Task defines a stage that can be used within a pipeline.

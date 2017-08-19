@@ -1,0 +1,8 @@
+exclude:
+- /vendor/.*
+- /docs/.*
+- /website/.*
+component_depth: 1
+languages:
+- go
+- script

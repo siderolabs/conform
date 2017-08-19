@@ -14,12 +14,10 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 
-	"github.com/Masterminds/semver"
 	"github.com/autonomy/conform/pkg/enforcer"
-	"github.com/docker/docker/client"
+	"github.com/autonomy/conform/pkg/utilities"
 	"github.com/spf13/cobra"
 )
 
@@ -34,7 +32,7 @@ var enforceCmd = &cobra.Command{
 
 			return err
 		}
-		if err := checkDockerVersion(); err != nil {
+		if err := utilities.CheckDockerVersion(); err != nil {
 			return err
 		}
 		e, err := enforcer.New()
@@ -51,29 +49,4 @@ var enforceCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(enforceCmd)
-	RootCmd.Flags().BoolVar(&debug, "debug", false, "Debug rendering")
-}
-
-func checkDockerVersion() error {
-	cli, err := client.NewEnvClient()
-	if err != nil {
-		return err
-	}
-	serverVersion, err := cli.ServerVersion(context.Background())
-	if err != nil {
-		return err
-	}
-	minVersion, err := semver.NewVersion(minDockerVersion)
-	if err != nil {
-		return err
-	}
-	serverSemVer := semver.MustParse(serverVersion.Version)
-	i := serverSemVer.Compare(minVersion)
-	if i < 0 {
-		err = fmt.Errorf("At least Docker version %s is required", minDockerVersion)
-
-		return err
-	}
-
-	return nil
 }

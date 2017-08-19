@@ -17,10 +17,11 @@ type Script struct {
 
 // Execute executes the pipeline script.
 func (s *Script) Execute(metadata *metadata.Metadata) error {
-	err := s.Render(metadata)
+	r, err := renderer.RenderTemplate(s.Template, metadata)
 	if err != nil {
 		return err
 	}
+	s.Rendered = r
 	command := exec.Command("bash", "-c", s.Rendered)
 	command.Stdout = os.Stdout
 	command.Stderr = os.Stderr
@@ -32,18 +33,6 @@ func (s *Script) Execute(metadata *metadata.Metadata) error {
 	if err != nil {
 		return fmt.Errorf("Failed executing script: %v", err)
 	}
-
-	return nil
-}
-
-// Render renders the script.
-func (s *Script) Render(metadata *metadata.Metadata) error {
-	renderer := renderer.Renderer{}
-	rendered, err := renderer.Render(metadata, s.Template)
-	if err != nil {
-		return err
-	}
-	s.Rendered = rendered
 
 	return nil
 }

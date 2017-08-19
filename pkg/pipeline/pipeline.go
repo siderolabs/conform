@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
 	"strings"
 
 	"github.com/autonomy/conform/pkg/metadata"
+	"github.com/autonomy/conform/pkg/renderer"
 	"github.com/autonomy/conform/pkg/stage"
 	"github.com/autonomy/conform/pkg/task"
 )
@@ -43,10 +43,10 @@ func (p *Pipeline) Build(metadata *metadata.Metadata, stages map[string]*stage.S
 }
 
 // extract extracts an artifact from a docker image.
-func (p *Pipeline) extract(metadata *metadata.Metadata, artifact string) (err error) {
+func (p *Pipeline) extract(metadata *metadata.Metadata, artifact *stage.Artifact) (err error) {
 	argsSlice := [][]string{
 		{"create", "--name=" + metadata.Git.SHA, metadata.Docker.Image},
-		{"cp", metadata.Git.SHA + ":" + artifact, path.Base(artifact)},
+		{"cp", metadata.Git.SHA + ":" + artifact.Source, artifact.Destination},
 		{"rm", metadata.Git.SHA},
 	}
 	for _, args := range argsSlice {
@@ -70,11 +70,11 @@ func (p *Pipeline) render(metadata *metadata.Metadata, requestedTasks []string, 
 		if _, ok := tasks[task]; !ok {
 			return "", fmt.Errorf("Task %q is not defined in conform.yaml", task)
 		}
-		err := tasks[task].Render(metadata)
+		rendered, err := renderer.RenderTemplate(tasks[task].Template, metadata)
 		if err != nil {
 			return "", err
 		}
-		s += tasks[task].Rendered
+		s += rendered
 	}
 
 	return s, nil

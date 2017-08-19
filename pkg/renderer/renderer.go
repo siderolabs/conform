@@ -25,3 +25,14 @@ func (r *Renderer) Render(m *metadata.Metadata, s string) (string, error) {
 
 	return wr.String(), nil
 }
+
+// RenderTemplate renders a template with the provided metadata.
+func RenderTemplate(contents string, metadata *metadata.Metadata) (string, error) {
+	renderer := Renderer{}
+	rendered, err := renderer.Render(metadata, contents)
+	if err != nil {
+		return "", err
+	}
+
+	return rendered, nil
+}

@@ -70,19 +70,19 @@ pipeline:
 stages:
   test:
     artifacts:
-      - coverage.txt
+      - source: /go/src/github.com/autonomy/conform/coverage.txt
+        destination: coverage.txt
     tasks:
-      - build
       - test
   build:
     tasks:
-      - build
+      - binary
       - image
 
 tasks:
-  build:
+  binary:
     template: |
-      FROM autonomy/golang:1.8.3 as build
+      FROM autonomy/golang:1.8.3 as binary
       WORKDIR $GOPATH/src/github.com/{{ .Repository }}
       COPY ./ ./
       {{ if and .Git.IsClean .Git.IsTag }}
@@ -96,7 +96,7 @@ tasks:
     template: |
       FROM autonomy/golang:1.8.3 as test
       WORKDIR $GOPATH/src/github.com/{{ .Repository }}
-      COPY --from=build $GOPATH/src/github.com/{{ .Repository }} .
+      COPY ./ ./
       RUN test.sh
   image:
     template: |
@@ -104,5 +104,5 @@ tasks:
       MAINTAINER Andrew Rynhard <andrew.rynhard@autonomy.io>
       RUN apk --update add bash \
           && rm -rf /var/cache/apk/*
-      COPY --from=build /conform /bin
+      COPY --from=binary /conform /bin
       ENTRYPOINT ["conform"]

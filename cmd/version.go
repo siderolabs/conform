@@ -19,6 +19,7 @@ import (
 	"html/template"
 	"runtime"
 
+	"github.com/autonomy/conform/pkg/constants"
 	"github.com/spf13/cobra"
 )
 
@@ -32,7 +33,7 @@ var (
 	Built string
 )
 
-const versionTemplate = `Devise:
+const versionTemplate = constants.AppName + `:
 	Tag:         {{ .Tag }}
 	SHA:         {{ .SHA }}
 	Built:       {{ .Built }}
@@ -96,5 +97,5 @@ func PrintLongVersion() {
 
 // PrintShortVersion prints the tag and sha.
 func PrintShortVersion() {
-	fmt.Println(fmt.Sprintf("Devise %s-%s", Tag, SHA))
+	fmt.Println(fmt.Sprintf("%s %s-%s", constants.AppName, Tag, SHA))
 }

@@ -24,10 +24,6 @@ import (
 
 var cfgFile string
 
-const (
-	minDockerVersion = "17.05.0-ce"
-)
-
 var (
 	debug bool
 )
@@ -52,6 +48,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.conform.yaml)")
+	RootCmd.Flags().BoolVar(&debug, "debug", false, "Debug rendering")
 }
 
 // initConfig reads in config file and ENV variables if set.

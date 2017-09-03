@@ -21,8 +21,6 @@ install:
   - sudo apt-get update
   - sudo apt-get -y install docker-ce
   - go get github.com/autonomy/conform
-  - go get github.com/golang/dep/cmd/dep
-  - dep ensure
 
 script:
   - conform enforce

@@ -467,36 +467,6 @@ A flag can also be assigned locally which will only apply to that specific comma
 RootCmd.Flags().StringVarP(&Source, "source", "s", "", "Source directory to read from")
 ```
 
-## Positional and Custom Arguments
-
-Validation of positional arguments can be specified using the `Args` field.
-
-The follow validators are built in:
-
-- `NoArgs` - the command will report an error if there are any positional args.
-- `ArbitraryArgs` - the command will accept any args.
-- `OnlyValidArgs` - the command will report an error if there are any positional args that are not in the ValidArgs list.
-- `MinimumNArgs(int)` - the command will report an error if there are not at least N positional args.
-- `MaximumNArgs(int)` - the command will report an error if there are more than N positional args.
-- `ExactArgs(int)` - the command will report an error if there are not exactly N positional args.
-- `RangeArgs(min, max)` - the command will report an error if the number of args is not between the minimum and maximum number of expected args.
-
-A custom validator can be provided like this:
-
-```go
-
-Args: func validColorArgs(cmd *cobra.Command, args []string) error {
-  if err := cli.RequiresMinArgs(1)(cmd, args); err != nil {
-    return err
-  }
-  if myapp.IsValidColor(args[0]) {
-     return nil
-  }
-  return fmt.Errorf("Invalid color specified: %s", args[0])
-}
-
-```
-
 ### Bind Flags with Config
 
 You can also bind your flags with [viper](https://github.com/spf13/viper):
@@ -514,7 +484,6 @@ In this example the persistent flag `author` is bound with `viper`.
 when the `--author` flag is not provided by user.
 
 More in [viper documentation](https://github.com/spf13/viper#working-with-flags).
-
 
 ## Example
 

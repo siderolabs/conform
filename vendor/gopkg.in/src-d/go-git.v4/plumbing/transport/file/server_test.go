@@ -4,9 +4,8 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/src-d/go-git-fixtures"
-
 	. "gopkg.in/check.v1"
+	"gopkg.in/src-d/go-git-fixtures.v3"
 )
 
 type ServerSuite struct {
@@ -35,6 +34,10 @@ func (s *ServerSuite) SetUpSuite(c *C) {
 }
 
 func (s *ServerSuite) TestPush(c *C) {
+	if !s.checkExecPerm(c) {
+		c.Skip("go-git binary has not execution permissions")
+	}
+
 	// git <2.0 cannot push to an empty repository without a refspec.
 	cmd := exec.Command("git", "push",
 		"--receive-pack", s.ReceivePackBin,
@@ -48,6 +51,10 @@ func (s *ServerSuite) TestPush(c *C) {
 }
 
 func (s *ServerSuite) TestClone(c *C) {
+	if !s.checkExecPerm(c) {
+		c.Skip("go-git binary has not execution permissions")
+	}
+
 	pathToClone := c.MkDir()
 
 	cmd := exec.Command("git", "clone",
@@ -58,4 +65,11 @@ func (s *ServerSuite) TestClone(c *C) {
 	cmd.Env = append(cmd.Env, "GIT_TRACE=true", "GIT_TRACE_PACKET=true")
 	out, err := cmd.CombinedOutput()
 	c.Assert(err, IsNil, Commentf("combined stdout and stderr:\n%s\n", out))
+}
+
+func (s *ServerSuite) checkExecPerm(c *C) bool {
+	const userExecPermMask = 0100
+	info, err := os.Stat(s.ReceivePackBin)
+	c.Assert(err, IsNil)
+	return (info.Mode().Perm() & userExecPermMask) == userExecPermMask
 }

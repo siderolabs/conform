@@ -15,10 +15,15 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/autonomy/conform/pkg/enforcer"
 	"github.com/autonomy/conform/pkg/utilities"
 	"github.com/spf13/cobra"
+)
+
+var (
+	skipArray []string
 )
 
 // enforceCmd represents the enforce command
@@ -26,27 +31,37 @@ var enforceCmd = &cobra.Command{
 	Use:   "enforce",
 	Short: "",
 	Long:  ``,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) != 0 {
 			err := fmt.Errorf("The enforce command does not take arguments")
 
-			return err
+			fmt.Println(err)
+			os.Exit(1)
 		}
 		if err := utilities.CheckDockerVersion(); err != nil {
-			return err
+			fmt.Println(err)
+			os.Exit(1)
 		}
 		e, err := enforcer.New()
 		if err != nil {
-			return err
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		for _, skip := range skipArray {
+			for i, stage := range e.Pipeline.Stages {
+				if stage == skip {
+					e.Pipeline.Stages = append(e.Pipeline.Stages[:i], e.Pipeline.Stages[i+1:]...)
+				}
+			}
 		}
 		if err = e.Enforce(); err != nil {
-			return err
+			fmt.Println(err)
+			os.Exit(1)
 		}
-
-		return nil
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(enforceCmd)
+	enforceCmd.Flags().StringArrayVarP(&skipArray, "skip", "s", []string{}, "skip a stage in the pipeline")
 }

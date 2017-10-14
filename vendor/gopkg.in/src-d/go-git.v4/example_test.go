@@ -13,7 +13,7 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/storage/memory"
 
-	"gopkg.in/src-d/go-billy.v3/memfs"
+	"gopkg.in/src-d/go-billy.v4/memfs"
 )
 
 func ExampleClone() {
@@ -91,7 +91,7 @@ func ExampleRepository_CreateRemote() {
 	// Add a new remote, with the default fetch refspec
 	_, err := r.CreateRemote(&config.RemoteConfig{
 		Name: "example",
-		URL:  "https://github.com/git-fixtures/basic.git",
+		URLs: []string{"https://github.com/git-fixtures/basic.git"},
 	})
 
 	if err != nil {

@@ -5,6 +5,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"sort"
+	"strconv"
 
 	format "gopkg.in/src-d/go-git.v4/plumbing/format/config"
 )
@@ -39,6 +41,14 @@ type Config struct {
 		// Worktree is the path to the root of the working tree.
 		Worktree string
 	}
+
+	Pack struct {
+		// Window controls the size of the sliding window for delta
+		// compression.  The default is 10.  A value of 0 turns off
+		// delta compression entirely.
+		Window uint
+	}
+
 	// Remotes list of repository remotes, the key of the map is the name
 	// of the remote, should equal to RemoteConfig.Name.
 	Remotes map[string]*RemoteConfig
@@ -55,8 +65,8 @@ type Config struct {
 // NewConfig returns a new empty Config.
 func NewConfig() *Config {
 	return &Config{
-		Remotes:    make(map[string]*RemoteConfig, 0),
-		Submodules: make(map[string]*Submodule, 0),
+		Remotes:    make(map[string]*RemoteConfig),
+		Submodules: make(map[string]*Submodule),
 		Raw:        format.New(),
 	}
 }
@@ -80,10 +90,14 @@ const (
 	remoteSection    = "remote"
 	submoduleSection = "submodule"
 	coreSection      = "core"
+	packSection      = "pack"
 	fetchKey         = "fetch"
 	urlKey           = "url"
 	bareKey          = "bare"
 	worktreeKey      = "worktree"
+	windowKey        = "window"
+
+	defaultPackWindow = uint(10)
 )
 
 // Unmarshal parses a git-config file and stores it.
@@ -97,6 +111,9 @@ func (c *Config) Unmarshal(b []byte) error {
 	}
 
 	c.unmarshalCore()
+	if err := c.unmarshalPack(); err != nil {
+		return err
+	}
 	c.unmarshalSubmodules()
 	return c.unmarshalRemotes()
 }
@@ -108,6 +125,21 @@ func (c *Config) unmarshalCore() {
 	}
 
 	c.Core.Worktree = s.Options.Get(worktreeKey)
+}
+
+func (c *Config) unmarshalPack() error {
+	s := c.Raw.Section(packSection)
+	window := s.Options.Get(windowKey)
+	if window == "" {
+		c.Pack.Window = defaultPackWindow
+	} else {
+		winUint, err := strconv.ParseUint(window, 10, 32)
+		if err != nil {
+			return err
+		}
+		c.Pack.Window = uint(winUint)
+	}
+	return nil
 }
 
 func (c *Config) unmarshalRemotes() error {
@@ -137,6 +169,7 @@ func (c *Config) unmarshalSubmodules() {
 // Marshal returns Config encoded as a git-config file.
 func (c *Config) Marshal() ([]byte, error) {
 	c.marshalCore()
+	c.marshalPack()
 	c.marshalRemotes()
 	c.marshalSubmodules()
 
@@ -157,15 +190,38 @@ func (c *Config) marshalCore() {
 	}
 }
 
+func (c *Config) marshalPack() {
+	s := c.Raw.Section(packSection)
+	if c.Pack.Window != defaultPackWindow {
+		s.SetOption(windowKey, fmt.Sprintf("%d", c.Pack.Window))
+	}
+}
+
 func (c *Config) marshalRemotes() {
 	s := c.Raw.Section(remoteSection)
-	s.Subsections = make(format.Subsections, len(c.Remotes))
-
-	var i int
-	for _, r := range c.Remotes {
-		s.Subsections[i] = r.marshal()
-		i++
+	newSubsections := make(format.Subsections, 0, len(c.Remotes))
+	added := make(map[string]bool)
+	for _, subsection := range s.Subsections {
+		if remote, ok := c.Remotes[subsection.Name]; ok {
+			newSubsections = append(newSubsections, remote.marshal())
+			added[subsection.Name] = true
+		}
 	}
+
+	remoteNames := make([]string, 0, len(c.Remotes))
+	for name := range c.Remotes {
+		remoteNames = append(remoteNames, name)
+	}
+
+	sort.Strings(remoteNames)
+
+	for _, name := range remoteNames {
+		if !added[name] {
+			newSubsections = append(newSubsections, c.Remotes[name].marshal())
+		}
+	}
+
+	s.Subsections = newSubsections
 }
 
 func (c *Config) marshalSubmodules() {
@@ -187,8 +243,9 @@ func (c *Config) marshalSubmodules() {
 type RemoteConfig struct {
 	// Name of the remote
 	Name string
-	// URL the URL of a remote repository
-	URL string
+	// URLs the URLs of a remote repository. It must be non-empty. Fetch will
+	// always use the first URL, while push will use all of them.
+	URLs []string
 	// Fetch the default set of "refspec" for fetch operation
 	Fetch []RefSpec
 
@@ -203,7 +260,7 @@ func (c *RemoteConfig) Validate() error {
 		return ErrRemoteConfigEmptyName
 	}
 
-	if c.URL == "" {
+	if len(c.URLs) == 0 {
 		return ErrRemoteConfigEmptyURL
 	}
 
@@ -234,7 +291,7 @@ func (c *RemoteConfig) unmarshal(s *format.Subsection) error {
 	}
 
 	c.Name = c.raw.Name
-	c.URL = c.raw.Option(urlKey)
+	c.URLs = append([]string(nil), c.raw.Options.GetAll(urlKey)...)
 	c.Fetch = fetch
 
 	return nil
@@ -246,9 +303,21 @@ func (c *RemoteConfig) marshal() *format.Subsection {
 	}
 
 	c.raw.Name = c.Name
-	c.raw.SetOption(urlKey, c.URL)
-	for _, rs := range c.Fetch {
-		c.raw.SetOption(fetchKey, rs.String())
+	if len(c.URLs) == 0 {
+		c.raw.RemoveOption(urlKey)
+	} else {
+		c.raw.SetOption(urlKey, c.URLs...)
+	}
+
+	if len(c.Fetch) == 0 {
+		c.raw.RemoveOption(fetchKey)
+	} else {
+		var values []string
+		for _, rs := range c.Fetch {
+			values = append(values, rs.String())
+		}
+
+		c.raw.SetOption(fetchKey, values...)
 	}
 
 	return c.raw

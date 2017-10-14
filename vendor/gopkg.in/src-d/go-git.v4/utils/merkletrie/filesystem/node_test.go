@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"path"
 	"testing"
 
 	. "gopkg.in/check.v1"
-	"gopkg.in/src-d/go-billy.v3"
-	"gopkg.in/src-d/go-billy.v3/memfs"
+	"gopkg.in/src-d/go-billy.v4"
+	"gopkg.in/src-d/go-billy.v4/memfs"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/utils/merkletrie"
 	"gopkg.in/src-d/go-git.v4/utils/merkletrie/noder"
@@ -81,6 +82,42 @@ func (s *NoderSuite) TestDiffChangeContent(c *C) {
 	c.Assert(ch, HasLen, 1)
 }
 
+func (s *NoderSuite) TestDiffSymlinkDirOnA(c *C) {
+	fsA := memfs.New()
+	WriteFile(fsA, "qux/qux", []byte("foo"), 0644)
+
+	fsB := memfs.New()
+	fsB.Symlink("qux", "foo")
+	WriteFile(fsB, "qux/qux", []byte("foo"), 0644)
+
+	ch, err := merkletrie.DiffTree(
+		NewRootNode(fsA, nil),
+		NewRootNode(fsB, nil),
+		IsEquals,
+	)
+
+	c.Assert(err, IsNil)
+	c.Assert(ch, HasLen, 1)
+}
+
+func (s *NoderSuite) TestDiffSymlinkDirOnB(c *C) {
+	fsA := memfs.New()
+	fsA.Symlink("qux", "foo")
+	WriteFile(fsA, "qux/qux", []byte("foo"), 0644)
+
+	fsB := memfs.New()
+	WriteFile(fsB, "qux/qux", []byte("foo"), 0644)
+
+	ch, err := merkletrie.DiffTree(
+		NewRootNode(fsA, nil),
+		NewRootNode(fsB, nil),
+		IsEquals,
+	)
+
+	c.Assert(err, IsNil)
+	c.Assert(ch, HasLen, 1)
+}
+
 func (s *NoderSuite) TestDiffChangeMissing(c *C) {
 	fsA := memfs.New()
 	WriteFile(fsA, "foo", []byte("foo"), 0644)
@@ -133,18 +170,19 @@ func (s *NoderSuite) TestDiffChangeModeNotRelevant(c *C) {
 }
 
 func (s *NoderSuite) TestDiffDirectory(c *C) {
+	dir := path.Join("qux", "bar")
 	fsA := memfs.New()
-	fsA.MkdirAll("qux/bar", 0644)
+	fsA.MkdirAll(dir, 0644)
 
 	fsB := memfs.New()
-	fsB.MkdirAll("qux/bar", 0644)
+	fsB.MkdirAll(dir, 0644)
 
 	ch, err := merkletrie.DiffTree(
 		NewRootNode(fsA, map[string]plumbing.Hash{
-			"qux/bar": plumbing.NewHash("aa102815663d23f8b75a47e7a01965dcdc96468c"),
+			dir: plumbing.NewHash("aa102815663d23f8b75a47e7a01965dcdc96468c"),
 		}),
 		NewRootNode(fsB, map[string]plumbing.Hash{
-			"qux/bar": plumbing.NewHash("19102815663d23f8b75a47e7a01965dcdc96468c"),
+			dir: plumbing.NewHash("19102815663d23f8b75a47e7a01965dcdc96468c"),
 		}),
 		IsEquals,
 	)

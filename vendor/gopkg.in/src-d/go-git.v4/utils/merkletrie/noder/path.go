@@ -3,10 +3,12 @@ package noder
 import (
 	"bytes"
 	"strings"
+
+	"golang.org/x/text/unicode/norm"
 )
 
 // Path values represent a noder and its ancestors.  The root goes first
-// and the actual final noder the path is refering to will be the last.
+// and the actual final noder the path is referring to will be the last.
 //
 // A path implements the Noder interface, redirecting all the interface
 // calls to its final noder.
@@ -78,7 +80,11 @@ func (p Path) Compare(other Path) int {
 		case i == len(p):
 			return -1
 		default:
-			cmp := strings.Compare(p[i].Name(), other[i].Name())
+			form := norm.Form(norm.NFC)
+			this := form.String(p[i].Name())
+			that := form.String(other[i].Name())
+
+			cmp := strings.Compare(this, that)
 			if cmp != 0 {
 				return cmp
 			}

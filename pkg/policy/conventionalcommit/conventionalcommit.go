@@ -42,7 +42,7 @@ func (c *Conventional) Compliance(metadata *metadata.Metadata, options ...policy
 	}
 	groups := parseHeader(metadata.Git.Message)
 	if len(groups) != 5 {
-		report.Errors = append(report.Errors, fmt.Errorf("Invalid commit format"))
+		report.Errors = append(report.Errors, fmt.Errorf("Invalid commit format: %s", metadata.Git.Message))
 		return
 	}
 	ValidateHeaderLength(&report, groups)
@@ -50,7 +50,7 @@ func (c *Conventional) Compliance(metadata *metadata.Metadata, options ...policy
 	ValidateScope(&report, groups, c.Scopes)
 	ValidateDescription(&report, groups)
 
-	return
+	return report
 }
 
 // Pipeline implements the policy.Policy.Pipeline function.

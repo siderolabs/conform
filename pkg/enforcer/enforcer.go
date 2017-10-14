@@ -68,7 +68,11 @@ func (c *Conform) Enforce() error {
 		return err
 	}
 
-	return c.Script.Execute(c.Metadata)
+	if c.Script != nil {
+		return c.Script.Execute(c.Metadata)
+	}
+
+	return nil
 }
 
 func (c *Conform) enforce(p *PolicyDeclaration) error {

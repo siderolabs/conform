@@ -7,6 +7,7 @@ package common
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -17,6 +18,7 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing/format/pktline"
 	"gopkg.in/src-d/go-git.v4/plumbing/protocol/packp"
 	"gopkg.in/src-d/go-git.v4/plumbing/protocol/packp/capability"
+	"gopkg.in/src-d/go-git.v4/plumbing/protocol/packp/sideband"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 	"gopkg.in/src-d/go-git.v4/utils/ioutil"
 )
@@ -37,7 +39,7 @@ type Commander interface {
 	// error should be returned if the endpoint is not supported or the
 	// command cannot be created (e.g. binary does not exist, connection
 	// cannot be established).
-	Command(cmd string, ep transport.Endpoint, auth transport.AuthMethod) (Command, error)
+	Command(cmd string, ep *transport.Endpoint, auth transport.AuthMethod) (Command, error)
 }
 
 // Command is used for a single command execution.
@@ -64,6 +66,13 @@ type Command interface {
 	Close() error
 }
 
+// CommandKiller expands the Command interface, enableing it for being killed.
+type CommandKiller interface {
+	// Kill and close the session whatever the state it is. It will block until
+	// the command is terminated.
+	Kill() error
+}
+
 type client struct {
 	cmdr Commander
 }
@@ -74,14 +83,14 @@ func NewClient(runner Commander) transport.Transport {
 }
 
 // NewUploadPackSession creates a new UploadPackSession.
-func (c *client) NewUploadPackSession(ep transport.Endpoint, auth transport.AuthMethod) (
+func (c *client) NewUploadPackSession(ep *transport.Endpoint, auth transport.AuthMethod) (
 	transport.UploadPackSession, error) {
 
 	return c.newSession(transport.UploadPackServiceName, ep, auth)
 }
 
 // NewReceivePackSession creates a new ReceivePackSession.
-func (c *client) NewReceivePackSession(ep transport.Endpoint, auth transport.AuthMethod) (
+func (c *client) NewReceivePackSession(ep *transport.Endpoint, auth transport.AuthMethod) (
 	transport.ReceivePackSession, error) {
 
 	return c.newSession(transport.ReceivePackServiceName, ep, auth)
@@ -99,7 +108,7 @@ type session struct {
 	firstErrLine  chan string
 }
 
-func (c *client) newSession(s string, ep transport.Endpoint, auth transport.AuthMethod) (*session, error) {
+func (c *client) newSession(s string, ep *transport.Endpoint, auth transport.AuthMethod) (*session, error) {
 	cmd, err := c.cmdr.Command(s, ep, auth)
 	if err != nil {
 		return nil, err
@@ -212,7 +221,7 @@ func (s *session) handleAdvRefDecodeError(err error) error {
 
 // UploadPack performs a request to the server to fetch a packfile. A reader is
 // returned with the packfile content. The reader must be closed after reading.
-func (s *session) UploadPack(req *packp.UploadPackRequest) (*packp.UploadPackResponse, error) {
+func (s *session) UploadPack(ctx context.Context, req *packp.UploadPackRequest) (*packp.UploadPackResponse, error) {
 	if req.IsEmpty() {
 		return nil, transport.ErrEmptyUploadPackRequest
 	}
@@ -227,11 +236,14 @@ func (s *session) UploadPack(req *packp.UploadPackRequest) (*packp.UploadPackRes
 
 	s.packRun = true
 
-	if err := uploadPack(s.Stdin, s.Stdout, req); err != nil {
+	in := s.StdinContext(ctx)
+	out := s.StdoutContext(ctx)
+
+	if err := uploadPack(in, out, req); err != nil {
 		return nil, err
 	}
 
-	r, err := ioutil.NonEmptyReader(s.Stdout)
+	r, err := ioutil.NonEmptyReader(out)
 	if err == ioutil.ErrEmptyReader {
 		if c, ok := s.Stdout.(io.Closer); ok {
 			_ = c.Close()
@@ -244,37 +256,74 @@ func (s *session) UploadPack(req *packp.UploadPackRequest) (*packp.UploadPackRes
 		return nil, err
 	}
 
-	rc := ioutil.NewReadCloser(r, s.Command)
+	rc := ioutil.NewReadCloser(r, s)
 	return DecodeUploadPackResponse(rc, req)
 }
 
-func (s *session) ReceivePack(req *packp.ReferenceUpdateRequest) (*packp.ReportStatus, error) {
+func (s *session) StdinContext(ctx context.Context) io.WriteCloser {
+	return ioutil.NewWriteCloserOnError(
+		ioutil.NewContextWriteCloser(ctx, s.Stdin),
+		s.onError,
+	)
+}
+
+func (s *session) StdoutContext(ctx context.Context) io.Reader {
+	return ioutil.NewReaderOnError(
+		ioutil.NewContextReader(ctx, s.Stdout),
+		s.onError,
+	)
+}
+
+func (s *session) onError(err error) {
+	if k, ok := s.Command.(CommandKiller); ok {
+		_ = k.Kill()
+	}
+
+	_ = s.Close()
+}
+
+func (s *session) ReceivePack(ctx context.Context, req *packp.ReferenceUpdateRequest) (*packp.ReportStatus, error) {
 	if _, err := s.AdvertisedReferences(); err != nil {
 		return nil, err
 	}
 
 	s.packRun = true
 
-	if err := req.Encode(s.Stdin); err != nil {
+	w := s.StdinContext(ctx)
+	if err := req.Encode(w); err != nil {
 		return nil, err
 	}
 
-	if err := s.Stdin.Close(); err != nil {
+	if err := w.Close(); err != nil {
 		return nil, err
 	}
 
 	if !req.Capabilities.Supports(capability.ReportStatus) {
-		// If we have neither report-status or sideband, we can only
+		// If we don't have report-status, we can only
 		// check return value error.
 		return nil, s.Command.Close()
 	}
 
+	r := s.StdoutContext(ctx)
+
+	var d *sideband.Demuxer
+	if req.Capabilities.Supports(capability.Sideband64k) {
+		d = sideband.NewDemuxer(sideband.Sideband64k, r)
+	} else if req.Capabilities.Supports(capability.Sideband) {
+		d = sideband.NewDemuxer(sideband.Sideband, r)
+	}
+	if d != nil {
+		d.Progress = req.Progress
+		r = d
+	}
+
 	report := packp.NewReportStatus()
-	if err := report.Decode(s.Stdout); err != nil {
+	if err := report.Decode(r); err != nil {
 		return nil, err
 	}
 
 	if err := report.Error(); err != nil {
+		defer s.Close()
 		return report, err
 	}
 
@@ -300,8 +349,9 @@ func (s *session) finish() error {
 }
 
 func (s *session) Close() (err error) {
-	defer ioutil.CheckClose(s.Command, &err)
 	err = s.finish()
+
+	defer ioutil.CheckClose(s.Command, &err)
 	return
 }
 

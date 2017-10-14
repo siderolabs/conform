@@ -1,6 +1,8 @@
 package packfile
 
-import "gopkg.in/src-d/go-git.v4/plumbing"
+import (
+	"gopkg.in/src-d/go-git.v4/plumbing"
+)
 
 // ObjectToPack is a representation of an object that is going to be into a
 // pack file.
@@ -11,12 +13,16 @@ type ObjectToPack struct {
 	// If the main object is not a delta, Base will be null
 	Base *ObjectToPack
 	// Original is the object that we can generate applying the delta to
-	// Base, or the same object as EncodedObject in the case of a non-delta
+	// Base, or the same object as Object in the case of a non-delta
 	// object.
 	Original plumbing.EncodedObject
 	// Depth is the amount of deltas needed to resolve to obtain Original
 	// (delta based on delta based on ...)
 	Depth int
+
+	// offset in pack when object has been already written, or 0 if it
+	// has not been written yet
+	Offset int64
 }
 
 // newObjectToPack creates a correct ObjectToPack based on a non-delta object
@@ -39,12 +45,76 @@ func newDeltaObjectToPack(base *ObjectToPack, original, delta plumbing.EncodedOb
 	}
 }
 
-func (o *ObjectToPack) IsDelta() bool {
-	if o.Base != nil {
-		return true
+// BackToOriginal converts that ObjectToPack to a non-deltified object if it was one
+func (o *ObjectToPack) BackToOriginal() {
+	if o.IsDelta() {
+		o.Object = o.Original
+		o.Base = nil
+		o.Depth = 0
+	}
+}
+
+// IsWritten returns if that ObjectToPack was
+// already written into the packfile or not
+func (o *ObjectToPack) IsWritten() bool {
+	return o.Offset > 1
+}
+
+// MarkWantWrite marks this ObjectToPack as WantWrite
+// to avoid delta chain loops
+func (o *ObjectToPack) MarkWantWrite() {
+	o.Offset = 1
+}
+
+// WantWrite checks if this ObjectToPack was marked as WantWrite before
+func (o *ObjectToPack) WantWrite() bool {
+	return o.Offset == 1
+}
+
+func (o *ObjectToPack) Type() plumbing.ObjectType {
+	if o.Original != nil {
+		return o.Original.Type()
 	}
 
-	return false
+	if o.Base != nil {
+		return o.Base.Type()
+	}
+
+	if o.Object != nil {
+		return o.Object.Type()
+	}
+
+	panic("cannot get type")
+}
+
+func (o *ObjectToPack) Hash() plumbing.Hash {
+	if o.Original != nil {
+		return o.Original.Hash()
+	}
+
+	do, ok := o.Object.(plumbing.DeltaObject)
+	if ok {
+		return do.ActualHash()
+	}
+
+	panic("cannot get hash")
+}
+
+func (o *ObjectToPack) Size() int64 {
+	if o.Original != nil {
+		return o.Original.Size()
+	}
+
+	do, ok := o.Object.(plumbing.DeltaObject)
+	if ok {
+		return do.ActualSize()
+	}
+
+	panic("cannot get ObjectToPack size")
+}
+
+func (o *ObjectToPack) IsDelta() bool {
+	return o.Base != nil
 }
 
 func (o *ObjectToPack) SetDelta(base *ObjectToPack, delta plumbing.EncodedObject) {

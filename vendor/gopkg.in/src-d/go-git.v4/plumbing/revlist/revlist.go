@@ -18,11 +18,26 @@ import (
 // from the object storer.
 func Objects(
 	s storer.EncodedObjectStorer,
-	objects []plumbing.Hash,
-	ignore []plumbing.Hash) ([]plumbing.Hash, error) {
+	objs,
+	ignore []plumbing.Hash,
+) ([]plumbing.Hash, error) {
+	ignore, err := objects(s, ignore, nil, true)
+	if err != nil {
+		return nil, err
+	}
 
+	return objects(s, objs, ignore, false)
+}
+
+func objects(
+	s storer.EncodedObjectStorer,
+	objects,
+	ignore []plumbing.Hash,
+	allowMissingObjects bool,
+) ([]plumbing.Hash, error) {
 	seen := hashListToSet(ignore)
 	result := make(map[plumbing.Hash]bool)
+	visited := make(map[plumbing.Hash]bool)
 
 	walkerFunc := func(h plumbing.Hash) {
 		if !seen[h] {
@@ -32,7 +47,11 @@ func Objects(
 	}
 
 	for _, h := range objects {
-		if err := processObject(s, h, seen, walkerFunc); err != nil {
+		if err := processObject(s, h, seen, visited, ignore, walkerFunc); err != nil {
+			if allowMissingObjects && err == plumbing.ErrObjectNotFound {
+				continue
+			}
+
 			return nil, err
 		}
 	}
@@ -45,8 +64,14 @@ func processObject(
 	s storer.EncodedObjectStorer,
 	h plumbing.Hash,
 	seen map[plumbing.Hash]bool,
+	visited map[plumbing.Hash]bool,
+	ignore []plumbing.Hash,
 	walkerFunc func(h plumbing.Hash),
 ) error {
+	if seen[h] {
+		return nil
+	}
+
 	o, err := s.EncodedObject(plumbing.AnyObject, h)
 	if err != nil {
 		return err
@@ -59,12 +84,12 @@ func processObject(
 
 	switch do := do.(type) {
 	case *object.Commit:
-		return reachableObjects(do, seen, walkerFunc)
+		return reachableObjects(do, seen, visited, ignore, walkerFunc)
 	case *object.Tree:
 		return iterateCommitTrees(seen, do, walkerFunc)
 	case *object.Tag:
 		walkerFunc(do.Hash)
-		return processObject(s, do.Target, seen, walkerFunc)
+		return processObject(s, do.Target, seen, visited, ignore, walkerFunc)
 	case *object.Blob:
 		walkerFunc(do.Hash)
 	default:
@@ -82,36 +107,74 @@ func processObject(
 func reachableObjects(
 	commit *object.Commit,
 	seen map[plumbing.Hash]bool,
-	cb func(h plumbing.Hash)) error {
-	return object.NewCommitPreorderIter(commit).
-		ForEach(func(commit *object.Commit) error {
-			if seen[commit.Hash] {
-				return nil
-			}
+	visited map[plumbing.Hash]bool,
+	ignore []plumbing.Hash,
+	cb func(h plumbing.Hash),
+) error {
+	i := object.NewCommitPreorderIter(commit, seen, ignore)
+	pending := make(map[plumbing.Hash]bool)
+	addPendingParents(pending, visited, commit)
 
-			cb(commit.Hash)
+	for {
+		commit, err := i.Next()
+		if err == io.EOF {
+			break
+		}
 
-			tree, err := commit.Tree()
-			if err != nil {
-				return err
-			}
+		if err != nil {
+			return err
+		}
 
-			return iterateCommitTrees(seen, tree, cb)
-		})
+		if pending[commit.Hash] {
+			delete(pending, commit.Hash)
+		}
+
+		addPendingParents(pending, visited, commit)
+
+		if visited[commit.Hash] && len(pending) == 0 {
+			break
+		}
+
+		if seen[commit.Hash] {
+			continue
+		}
+
+		cb(commit.Hash)
+
+		tree, err := commit.Tree()
+		if err != nil {
+			return err
+		}
+
+		if err := iterateCommitTrees(seen, tree, cb); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func addPendingParents(pending, visited map[plumbing.Hash]bool, commit *object.Commit) {
+	for _, p := range commit.ParentHashes {
+		if !visited[p] {
+			pending[p] = true
+		}
+	}
 }
 
 // iterateCommitTrees iterate all reachable trees from the given commit
 func iterateCommitTrees(
 	seen map[plumbing.Hash]bool,
 	tree *object.Tree,
-	cb func(h plumbing.Hash)) error {
+	cb func(h plumbing.Hash),
+) error {
 	if seen[tree.Hash] {
 		return nil
 	}
 
 	cb(tree.Hash)
 
-	treeWalker := object.NewTreeWalker(tree, true)
+	treeWalker := object.NewTreeWalker(tree, true, seen)
 
 	for {
 		_, e, err := treeWalker.Next()

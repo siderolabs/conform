@@ -12,16 +12,16 @@ import (
 // ImageName formats the image name based on the status of a git repository.
 func ImageName(repository, sha string, isClean bool) (image string, err error) {
 	if !isClean {
-		image = formatImageNameDirty(repository)
+		image = formatImageNameWIP(repository)
 	} else {
 		image = formatImageNameSHA(repository, sha)
 	}
 
-	return
+	return image, err
 }
 
-func formatImageNameDirty(repository string) string {
-	return fmt.Sprintf("%s:dirty", repository)
+func formatImageNameWIP(repository string) string {
+	return fmt.Sprintf("%s:wip", repository)
 }
 
 func formatImageNameSHA(repository, sha string) string {

@@ -3,6 +3,7 @@ package ssh
 import (
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -11,6 +12,7 @@ import (
 
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 
+	"github.com/mitchellh/go-homedir"
 	"github.com/xanzy/ssh-agent"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/knownhosts"
@@ -23,8 +25,9 @@ const DefaultUsername = "git"
 // configuration needed to establish an ssh connection.
 type AuthMethod interface {
 	transport.AuthMethod
-	clientConfig() *ssh.ClientConfig
-	hostKeyCallback() (ssh.HostKeyCallback, error)
+	// ClientConfig should return a valid ssh.ClientConfig to be used to create
+	// a connection to the SSH server.
+	ClientConfig() (*ssh.ClientConfig, error)
 }
 
 // The names of the AuthMethod implementations. To be returned by the
@@ -43,7 +46,7 @@ const (
 type KeyboardInteractive struct {
 	User      string
 	Challenge ssh.KeyboardInteractiveChallenge
-	baseAuthMethod
+	HostKeyCallbackHelper
 }
 
 func (a *KeyboardInteractive) Name() string {
@@ -54,18 +57,20 @@ func (a *KeyboardInteractive) String() string {
 	return fmt.Sprintf("user: %s, name: %s", a.User, a.Name())
 }
 
-func (a *KeyboardInteractive) clientConfig() *ssh.ClientConfig {
-	return &ssh.ClientConfig{
+func (a *KeyboardInteractive) ClientConfig() (*ssh.ClientConfig, error) {
+	return a.SetHostKeyCallback(&ssh.ClientConfig{
 		User: a.User,
-		Auth: []ssh.AuthMethod{ssh.KeyboardInteractiveChallenge(a.Challenge)},
-	}
+		Auth: []ssh.AuthMethod{
+			ssh.KeyboardInteractiveChallenge(a.Challenge),
+		},
+	})
 }
 
 // Password implements AuthMethod by using the given password.
 type Password struct {
-	User string
-	Pass string
-	baseAuthMethod
+	User     string
+	Password string
+	HostKeyCallbackHelper
 }
 
 func (a *Password) Name() string {
@@ -76,11 +81,11 @@ func (a *Password) String() string {
 	return fmt.Sprintf("user: %s, name: %s", a.User, a.Name())
 }
 
-func (a *Password) clientConfig() *ssh.ClientConfig {
-	return &ssh.ClientConfig{
+func (a *Password) ClientConfig() (*ssh.ClientConfig, error) {
+	return a.SetHostKeyCallback(&ssh.ClientConfig{
 		User: a.User,
-		Auth: []ssh.AuthMethod{ssh.Password(a.Pass)},
-	}
+		Auth: []ssh.AuthMethod{ssh.Password(a.Password)},
+	})
 }
 
 // PasswordCallback implements AuthMethod by using a callback
@@ -88,7 +93,7 @@ func (a *Password) clientConfig() *ssh.ClientConfig {
 type PasswordCallback struct {
 	User     string
 	Callback func() (pass string, err error)
-	baseAuthMethod
+	HostKeyCallbackHelper
 }
 
 func (a *PasswordCallback) Name() string {
@@ -99,25 +104,25 @@ func (a *PasswordCallback) String() string {
 	return fmt.Sprintf("user: %s, name: %s", a.User, a.Name())
 }
 
-func (a *PasswordCallback) clientConfig() *ssh.ClientConfig {
-	return &ssh.ClientConfig{
+func (a *PasswordCallback) ClientConfig() (*ssh.ClientConfig, error) {
+	return a.SetHostKeyCallback(&ssh.ClientConfig{
 		User: a.User,
 		Auth: []ssh.AuthMethod{ssh.PasswordCallback(a.Callback)},
-	}
+	})
 }
 
 // PublicKeys implements AuthMethod by using the given key pairs.
 type PublicKeys struct {
 	User   string
 	Signer ssh.Signer
-	baseAuthMethod
+	HostKeyCallbackHelper
 }
 
 // NewPublicKeys returns a PublicKeys from a PEM encoded private key. An
 // encryption password should be given if the pemBytes contains a password
 // encrypted PEM block otherwise password should be empty. It supports RSA
 // (PKCS#1), DSA (OpenSSL), and ECDSA private keys.
-func NewPublicKeys(user string, pemBytes []byte, password string) (AuthMethod, error) {
+func NewPublicKeys(user string, pemBytes []byte, password string) (*PublicKeys, error) {
 	block, _ := pem.Decode(pemBytes)
 	if x509.IsEncryptedPEMBlock(block) {
 		key, err := x509.DecryptPEMBlock(block, []byte(password))
@@ -140,7 +145,7 @@ func NewPublicKeys(user string, pemBytes []byte, password string) (AuthMethod, e
 // NewPublicKeysFromFile returns a PublicKeys from a file containing a PEM
 // encoded private key. An encryption password should be given if the pemBytes
 // contains a password encrypted PEM block otherwise password should be empty.
-func NewPublicKeysFromFile(user, pemFile, password string) (AuthMethod, error) {
+func NewPublicKeysFromFile(user, pemFile, password string) (*PublicKeys, error) {
 	bytes, err := ioutil.ReadFile(pemFile)
 	if err != nil {
 		return nil, err
@@ -157,11 +162,26 @@ func (a *PublicKeys) String() string {
 	return fmt.Sprintf("user: %s, name: %s", a.User, a.Name())
 }
 
-func (a *PublicKeys) clientConfig() *ssh.ClientConfig {
-	return &ssh.ClientConfig{
+func (a *PublicKeys) ClientConfig() (*ssh.ClientConfig, error) {
+	return a.SetHostKeyCallback(&ssh.ClientConfig{
 		User: a.User,
 		Auth: []ssh.AuthMethod{ssh.PublicKeys(a.Signer)},
+	})
+}
+
+func username() (string, error) {
+	var username string
+	if user, err := user.Current(); err == nil {
+		username = user.Username
+	} else {
+		username = os.Getenv("USER")
 	}
+
+	if username == "" {
+		return "", errors.New("failed to get username")
+	}
+
+	return username, nil
 }
 
 // PublicKeysCallback implements AuthMethod by asking a
@@ -169,20 +189,19 @@ func (a *PublicKeys) clientConfig() *ssh.ClientConfig {
 type PublicKeysCallback struct {
 	User     string
 	Callback func() (signers []ssh.Signer, err error)
-	baseAuthMethod
+	HostKeyCallbackHelper
 }
 
 // NewSSHAgentAuth returns a PublicKeysCallback based on a SSH agent, it opens
 // a pipe with the SSH agent and uses the pipe as the implementer of the public
 // key callback function.
-func NewSSHAgentAuth(u string) (AuthMethod, error) {
+func NewSSHAgentAuth(u string) (*PublicKeysCallback, error) {
+	var err error
 	if u == "" {
-		usr, err := user.Current()
+		u, err = username()
 		if err != nil {
-			return nil, fmt.Errorf("error getting current user: %q", err)
+			return nil, err
 		}
-
-		u = usr.Username
 	}
 
 	a, _, err := sshagent.New()
@@ -204,11 +223,11 @@ func (a *PublicKeysCallback) String() string {
 	return fmt.Sprintf("user: %s, name: %s", a.User, a.Name())
 }
 
-func (a *PublicKeysCallback) clientConfig() *ssh.ClientConfig {
-	return &ssh.ClientConfig{
+func (a *PublicKeysCallback) ClientConfig() (*ssh.ClientConfig, error) {
+	return a.SetHostKeyCallback(&ssh.ClientConfig{
 		User: a.User,
 		Auth: []ssh.AuthMethod{ssh.PublicKeysCallback(a.Callback)},
-	}
+	})
 }
 
 // NewKnownHostsCallback returns ssh.HostKeyCallback based on a file based on a
@@ -241,13 +260,13 @@ func getDefaultKnownHostsFiles() ([]string, error) {
 		return files, nil
 	}
 
-	user, err := user.Current()
+	homeDirPath, err := homedir.Dir()
 	if err != nil {
 		return nil, err
 	}
 
 	return []string{
-		filepath.Join(user.HomeDir, "/.ssh/known_hosts"),
+		filepath.Join(homeDirPath, "/.ssh/known_hosts"),
 		"/etc/ssh/ssh_known_hosts",
 	}, nil
 }
@@ -273,17 +292,26 @@ func filterKnownHostsFiles(files ...string) ([]string, error) {
 	return out, nil
 }
 
-type baseAuthMethod struct {
+// HostKeyCallbackHelper is a helper that provides common functionality to
+// configure HostKeyCallback into a ssh.ClientConfig.
+type HostKeyCallbackHelper struct {
 	// HostKeyCallback is the function type used for verifying server keys.
-	// If nil default callback will be create using NewKnownHostsHostKeyCallback
+	// If nil default callback will be create using NewKnownHostsCallback
 	// without argument.
 	HostKeyCallback ssh.HostKeyCallback
 }
 
-func (m *baseAuthMethod) hostKeyCallback() (ssh.HostKeyCallback, error) {
+// SetHostKeyCallback sets the field HostKeyCallback in the given cfg. If
+// HostKeyCallback is empty a default callback is created using
+// NewKnownHostsCallback.
+func (m *HostKeyCallbackHelper) SetHostKeyCallback(cfg *ssh.ClientConfig) (*ssh.ClientConfig, error) {
+	var err error
 	if m.HostKeyCallback == nil {
-		return NewKnownHostsCallback()
+		if m.HostKeyCallback, err = NewKnownHostsCallback(); err != nil {
+			return cfg, err
+		}
 	}
 
-	return m.HostKeyCallback, nil
+	cfg.HostKeyCallback = m.HostKeyCallback
+	return cfg, nil
 }

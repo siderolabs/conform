@@ -3,17 +3,17 @@ package git
 import (
 	"testing"
 
-	billy "gopkg.in/src-d/go-billy.v3"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/format/packfile"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 	"gopkg.in/src-d/go-git.v4/storage/filesystem"
 	"gopkg.in/src-d/go-git.v4/storage/memory"
 
-	"github.com/src-d/go-git-fixtures"
 	. "gopkg.in/check.v1"
-	"gopkg.in/src-d/go-billy.v3/memfs"
-	"gopkg.in/src-d/go-billy.v3/util"
+	"gopkg.in/src-d/go-billy.v4"
+	"gopkg.in/src-d/go-billy.v4/memfs"
+	"gopkg.in/src-d/go-billy.v4/util"
+	"gopkg.in/src-d/go-git-fixtures.v3"
 )
 
 func Test(t *testing.T) { TestingT(t) }
@@ -30,7 +30,7 @@ func (s *BaseSuite) SetUpSuite(c *C) {
 	s.Suite.SetUpSuite(c)
 	s.buildBasicRepository(c)
 
-	s.cache = make(map[string]*Repository, 0)
+	s.cache = make(map[string]*Repository)
 }
 
 func (s *BaseSuite) TearDownSuite(c *C) {
@@ -167,5 +167,16 @@ func (s *SuiteCommon) TestCountLines(c *C) {
 	for i, t := range countLinesTests {
 		o := countLines(t.i)
 		c.Assert(o, Equals, t.e, Commentf("subtest %d, input=%q", i, t.i))
+	}
+}
+
+func AssertReferences(c *C, r *Repository, expected map[string]string) {
+	for name, target := range expected {
+		expected := plumbing.NewReferenceFromStrings(name, target)
+
+		obtained, err := r.Reference(expected.Name(), true)
+		c.Assert(err, IsNil)
+
+		c.Assert(obtained, DeepEquals, expected)
 	}
 }

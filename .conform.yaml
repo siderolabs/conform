@@ -16,6 +16,7 @@ policies:
         - "docker"
         - "git"
         - "metadata"
+        - "pipeline"
         - "policy"
         - "readme"
         - "renderer"

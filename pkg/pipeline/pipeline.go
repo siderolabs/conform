@@ -94,7 +94,6 @@ func (p *Pipeline) extract(sha, image string, artifact *stage.Artifact) error {
 	}
 	for _, args := range argsSlice {
 		command := exec.Command("docker", args...)
-		command.Stdout = os.Stdout
 		command.Stderr = os.Stderr
 		err := command.Start()
 		if err != nil {

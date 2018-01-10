@@ -719,23 +719,6 @@ func TestSet(t *testing.T) {
 	}
 }
 
-func TestSetValue(t *testing.T) {
-	tests := []interface{}{
-		true, false,
-		int8(123), int16(123), int32(123), int64(123), int(123),
-		uint8(123), uint16(123), uint32(123), uint64(123), uint(123),
-		float32(1.23), float64(1.23),
-		"abc",
-	}
-
-	for _, v := range tests {
-		p := NewProperties()
-		err := p.SetValue("x", v)
-		assert.Equal(t, err, nil)
-		assert.Equal(t, p.GetString("x", ""), fmt.Sprintf("%v", v))
-	}
-}
-
 func TestMustSet(t *testing.T) {
 	input := "key=${key}"
 	p := mustParse(t, input)

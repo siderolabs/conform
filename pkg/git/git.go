@@ -3,6 +3,7 @@ package git
 import (
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
+	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
 // Git is a helper for git.
@@ -18,7 +19,7 @@ func NewGit() (g *Git, err error) {
 	}
 	g = &Git{repo: repo}
 
-	return
+	return g, err
 }
 
 // Branch returns the current git branch name.
@@ -27,12 +28,12 @@ func (g *Git) Branch() (branch string, isBranch bool, err error) {
 	if err != nil {
 		return
 	}
-	if ref.IsBranch() {
+	if ref.Name().IsBranch() {
 		isBranch = true
 		branch = ref.Name().Short()
 	}
 
-	return
+	return branch, isBranch, err
 }
 
 // SHA returns the sha of the current commit.
@@ -43,7 +44,7 @@ func (g *Git) SHA() (sha string, err error) {
 	}
 	sha = ref.Hash().String()[0:7]
 
-	return
+	return sha, err
 }
 
 // Tag returns the tag name if HEAD is a tag.
@@ -68,7 +69,7 @@ func (g *Git) Tag() (tag string, isTag bool, err error) {
 		return
 	}
 
-	return
+	return tag, isTag, err
 }
 
 // Status returns the status of the working tree.
@@ -88,7 +89,7 @@ func (g *Git) Status() (status string, isClean bool, err error) {
 		status = worktreeStatus.String()
 	}
 
-	return
+	return status, isClean, err
 }
 
 // Message returns the commit message. In the case that a commit has multiple
@@ -105,9 +106,10 @@ func (g *Git) Message() (message string, err error) {
 	if commit.NumParents() > 1 {
 		parents := commit.Parents()
 		for i := 1; i <= commit.NumParents(); i++ {
-			next, err := parents.Next()
+			var next *object.Commit
+			next, err = parents.Next()
 			if err != nil {
-				return "", err
+				return
 			}
 			if i == commit.NumParents() {
 				message = next.Message
@@ -117,5 +119,5 @@ func (g *Git) Message() (message string, err error) {
 		message = commit.Message
 	}
 
-	return
+	return message, err
 }

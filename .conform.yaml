@@ -19,6 +19,7 @@ policies:
         - "policy"
         - "readme"
         - "renderer"
+        - "service"
         - "*"
 
 script:
@@ -45,13 +46,13 @@ stages:
 tasks:
   binary:
     template: |
-      FROM autonomy/golang:1.8.3 as binary
+      FROM autonomy/golang:1.9 as {{ .Docker.CurrentStage }}
       WORKDIR $GOPATH/src/github.com/{{ .Repository }}
       COPY ./ ./
       {{ if and .Git.IsClean .Git.IsTag }}
-      RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform -ldflags "-X \"github.com/{{ .Repository }}/pkg/version.Tag={{ trimAll "v" .Git.Tag }}\" -X \"github.com/{{ .Repository }}/pkg/version.SHA={{ .Git.SHA }}\" -X \"github.com/{{ .Repository }}/pkg/version.Built={{ .Built }}\""
+      RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform -ldflags "-X \"github.com/{{ .Repository }}/cmd.Tag={{ trimAll "v" .Git.Tag }}\" -X \"github.com/{{ .Repository }}/cmd.SHA={{ .Git.SHA }}\" -X \"github.com/{{ .Repository }}/cmd.Built={{ .Built }}\""
       {{ else if .Git.IsClean }}
-      RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform -ldflags "-X \"github.com/{{ .Repository }}/pkg/version.SHA={{ .Git.SHA }}\" -X \"github.com/{{ .Repository }}/pkg/version.Built={{ .Built }}\""
+      RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform -ldflags "-X \"github.com/{{ .Repository }}/cmd.SHA={{ .Git.SHA }}\" -X \"github.com/{{ .Repository }}/cmd.Built={{ .Built }}\""
       {{ else }}
       RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform
       {{ end }}
@@ -60,8 +61,8 @@ tasks:
       {{ fromURL "https://raw.githubusercontent.com/autonomy/conform-templates/master/golang/Dockerfile.test" }}
   image:
     template: |
-      FROM alpine:3.6 as image
-      MAINTAINER Andrew Rynhard <andrew.rynhard@autonomy.io>
+      FROM alpine:3.6 as {{ .Docker.CurrentStage }}
+      LABEL maintainer="Andrew Rynhard <andrew.rynhard@autonomy.io>"
       RUN apk --update add bash \
           && rm -rf /var/cache/apk/*
       COPY --from=binary /conform /bin

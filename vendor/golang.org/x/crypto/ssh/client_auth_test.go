@@ -359,8 +359,9 @@ func testPermissionsPassing(withPermissions bool, t *testing.T) {
 		PublicKeyCallback: func(conn ConnMetadata, key PublicKey) (*Permissions, error) {
 			if conn.User() == "nopermissions" {
 				return nil, nil
+			} else {
+				return &Permissions{}, nil
 			}
-			return &Permissions{}, nil
 		},
 	}
 	serverConfig.AddHostKey(testSigners["rsa"])
@@ -509,8 +510,9 @@ func TestClientAuthMaxAuthTries(t *testing.T) {
 					n--
 					if n == 0 {
 						return "right", nil
+					} else {
+						return "wrong", nil
 					}
-					return "wrong", nil
 				}), tries),
 			},
 			HostKeyCallback: InsecureIgnoreHostKey(),
@@ -622,7 +624,7 @@ func TestClientAuthErrorList(t *testing.T) {
 				t.Fatalf("errors: got %v, want %v", e, publicKeyErr)
 			}
 		default:
-			t.Fatalf("errors: got %v, expected 2 errors", authErrs.Errors)
+			t.Fatal("errors: got %v, expected 2 errors", authErrs.Errors)
 		}
 	}
 }

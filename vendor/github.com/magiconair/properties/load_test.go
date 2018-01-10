@@ -41,14 +41,6 @@ func TestLoadString(t *testing.T) {
 	assert.Equal(t, p1, p2)
 }
 
-func TestLoadMap(t *testing.T) {
-	// LoadMap does not guarantee the same import order
-	// of keys every time since map access is randomized.
-	// Therefore, we need to compare the generated maps.
-	m := map[string]string{"key": "value", "abc": "def"}
-	assert.Equal(t, LoadMap(m).Map(), m)
-}
-
 func TestLoadFile(t *testing.T) {
 	tf := make(tempFiles, 0)
 	defer tf.removeAll()

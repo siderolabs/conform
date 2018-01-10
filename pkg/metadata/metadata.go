@@ -19,7 +19,10 @@ type Metadata struct {
 
 // Docker contains docker specific metadata.
 type Docker struct {
-	Image string
+	Image         string
+	PreviousStage string
+	CurrentStage  string
+	NextStage     string
 }
 
 // Git contains git specific metadata.

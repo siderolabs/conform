@@ -1,5 +1,9 @@
 metadata:
   repository: autonomy/conform
+  variables:
+    binaryPath: /conform
+    gitRepository: github.com/autonomy/conform
+    maintainer: Andrew Rynhard <andrew.rynhard@autonomy.io>
 
 policies:
   - type: conventionalCommit
@@ -48,23 +52,27 @@ tasks:
   binary:
     template: |
       FROM autonomy/golang:1.9 as {{ .Docker.CurrentStage }}
-      WORKDIR $GOPATH/src/github.com/{{ .Repository }}
+      WORKDIR $GOPATH/src/{{ index .Variables "gitRepository" }}
       COPY ./ ./
       {{ if and .Git.IsClean .Git.IsTag }}
-      RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform -ldflags "-X \"github.com/{{ .Repository }}/cmd.Tag={{ trimAll "v" .Git.Tag }}\" -X \"github.com/{{ .Repository }}/cmd.SHA={{ .Git.SHA }}\" -X \"github.com/{{ .Repository }}/cmd.Built={{ .Built }}\""
+      RUN go build -o {{ index .Variables "binaryPath" }} -ldflags "-X \"{{ index .Variables "gitRepository" }}/cmd.Tag={{ trimAll "v" .Git.Tag }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.SHA={{ .Git.SHA }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.Built={{ .Built }}\""
       {{ else if .Git.IsClean }}
-      RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform -ldflags "-X \"github.com/{{ .Repository }}/cmd.SHA={{ .Git.SHA }}\" -X \"github.com/{{ .Repository }}/cmd.Built={{ .Built }}\""
+      RUN go build -o {{ index .Variables "binaryPath" }} -ldflags "-X \"{{ index .Variables "gitRepository" }}/cmd.SHA={{ .Git.SHA }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.Built={{ .Built }}\""
       {{ else }}
-      RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /conform
+      RUN go build -o {{ index .Variables "binaryPath" }}
       {{ end }}
   test:
     template: |
-      {{ fromURL "https://raw.githubusercontent.com/autonomy/conform-templates/master/golang/Dockerfile.test" }}
+      FROM autonomy/golang:1.9 as {{ .Docker.CurrentStage }}
+      WORKDIR $GOPATH/src/{{ index .Variables "gitRepository" }}
+      COPY ./ ./
+      RUN test.sh
+
   image:
     template: |
       FROM alpine:3.6 as {{ .Docker.CurrentStage }}
-      LABEL maintainer="Andrew Rynhard <andrew.rynhard@autonomy.io>"
+      LABEL maintainer="{{ index .Variables "maintainer" }}"
       RUN apk --update add bash \
           && rm -rf /var/cache/apk/*
-      COPY --from=binary /conform /bin
+      COPY --from=binary {{ index .Variables "binaryPath" }} /bin
       ENTRYPOINT ["conform"]

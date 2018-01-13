@@ -16,6 +16,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/autonomy/conform/pkg/enforcer"
 	"github.com/autonomy/conform/pkg/utilities"
@@ -24,6 +25,7 @@ import (
 
 var (
 	skipArray []string
+	varArray  []string
 )
 
 // enforceCmd represents the enforce command
@@ -47,6 +49,13 @@ var enforceCmd = &cobra.Command{
 			fmt.Println(err)
 			os.Exit(1)
 		}
+		for _, variable := range varArray {
+			s := strings.Split(variable, "=")
+			if len(s) != 2 {
+				panic("interface{}")
+			}
+			e.Metadata.Variables[s[0]] = s[1]
+		}
 		for _, skip := range skipArray {
 			for i, stage := range e.Pipeline.Stages {
 				if stage == skip {
@@ -63,5 +72,6 @@ var enforceCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(enforceCmd)
-	enforceCmd.Flags().StringArrayVarP(&skipArray, "skip", "s", []string{}, "skip a stage in the pipeline")
+	enforceCmd.Flags().StringArrayVar(&skipArray, "skip", []string{}, "skip a stage in the pipeline")
+	enforceCmd.Flags().StringArrayVar(&varArray, "var", []string{}, "set a variable")
 }

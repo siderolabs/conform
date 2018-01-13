@@ -14,6 +14,7 @@ type Metadata struct {
 	Docker     *Docker
 	Git        *Git
 	Version    *Version
+	Variables  VariablesMap `yaml:"variables"`
 	Built      string
 }
 
@@ -45,16 +46,21 @@ type Version struct {
 	IsPrerelease bool
 }
 
+// VariablesMap is a map for user defined metadata.
+type VariablesMap = map[string]interface{}
+
 // UnmarshalYAML implements the yaml.UnmarshalYAML interface.
 func (m *Metadata) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var aux struct {
-		Repository string `yaml:"repository"`
+		Repository string       `yaml:"repository"`
+		Variables  VariablesMap `yaml:"variables"`
 	}
 	if err := unmarshal(&aux); err != nil {
 		return err
 	}
 
 	m.Repository = aux.Repository
+	m.Variables = aux.Variables
 	m.Built = time.Now().UTC().Format(time.RFC1123)
 
 	if err := addMetadataForGit(m); err != nil {

@@ -5,7 +5,7 @@ language: generic
 
 install:
   - mkdir -p $HOME/goroot
-  - curl -L https://storage.googleapis.com/golang/go1.8.3.linux-amd64.tar.gz | tar -xz --strip-components=1 -C $HOME/goroot
+  - curl -L https://storage.googleapis.com/golang/go1.9.2.linux-amd64.tar.gz | tar -xz --strip-components=1 -C $HOME/goroot
   - export GOROOT=$HOME/goroot
   - export GOPATH=$HOME/gopath
   - export PATH=$GOROOT/bin:$GOPATH/bin:$PATH

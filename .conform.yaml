@@ -17,6 +17,7 @@ policies:
         - "test"
       scopes:
         - "ci"
+        - "cli"
         - "docker"
         - "git"
         - "metadata"

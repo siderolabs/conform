@@ -52,7 +52,8 @@ var enforceCmd = &cobra.Command{
 		for _, variable := range varArray {
 			s := strings.Split(variable, "=")
 			if len(s) != 2 {
-				panic("interface{}")
+				fmt.Printf("Variable key and value must be delimited by a '=': [%s]", variable)
+				os.Exit(1)
 			}
 			e.Metadata.Variables[s[0]] = s[1]
 		}

@@ -1,6 +1,10 @@
 package git
 
 import (
+	"os"
+	"path"
+	"path/filepath"
+
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
@@ -11,9 +15,21 @@ type Git struct {
 	repo *git.Repository
 }
 
+func findDotGit(name string) (string, error) {
+	if _, err := os.Stat(name); os.IsNotExist(err) {
+		return findDotGit(path.Join("..", name))
+	}
+
+	return filepath.Abs(name)
+}
+
 // NewGit instantiates and returns a Git struct.
 func NewGit() (g *Git, err error) {
-	repo, err := git.PlainOpen("./")
+	p, err := findDotGit(".git")
+	if err != nil {
+		return
+	}
+	repo, err := git.PlainOpen(path.Dir(p))
 	if err != nil {
 		return
 	}

@@ -58,9 +58,9 @@ func (p *Pipeline) Build(metadata *metadata.Metadata, stages map[string]*stage.S
 
 			var image string
 			if i+1 == len(p.Stages) {
-				image = metadata.Docker.Image
+				image = metadata.Docker.Image.Name + ":" + metadata.Docker.Image.Tag
 			} else {
-				image = metadata.Repository + ":" + stageName
+				image = metadata.Docker.Image.Name + ":" + stageName
 			}
 
 			_err = build(image, s)

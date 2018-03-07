@@ -5,7 +5,6 @@ import (
 
 	"github.com/Masterminds/semver"
 	"github.com/autonomy/conform/pkg/git"
-	"github.com/autonomy/conform/pkg/utilities"
 )
 
 // Metadata contains metadata.
@@ -20,10 +19,16 @@ type Metadata struct {
 
 // Docker contains docker specific metadata.
 type Docker struct {
-	Image         string
+	Image         *Image
 	PreviousStage string
 	CurrentStage  string
 	NextStage     string
+}
+
+// Image contains information used to identity an image.
+type Image struct {
+	Name string
+	Tag  string
 }
 
 // Git contains git specific metadata.
@@ -97,12 +102,19 @@ func addMetadataForVersion(m *Metadata) error {
 }
 
 func addMetadataForDocker(m *Metadata) error {
-	image, err := utilities.ImageName(m.Repository, m.Git.SHA, m.Git.IsClean)
-	if err != nil {
-		return err
+	var name, tag string
+	if !m.Git.IsClean {
+		tag = "dirty"
+	} else {
+		tag = m.Git.SHA
 	}
+	name = m.Repository
+
 	dockerMetadata := &Docker{
-		Image: image,
+		Image: &Image{
+			Name: name,
+			Tag:  tag,
+		},
 	}
 	m.Docker = dockerMetadata
 

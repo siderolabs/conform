@@ -19,6 +19,7 @@ policies:
         - "ci"
         - "cli"
         - "docker"
+        - "fmt"
         - "git"
         - "metadata"
         - "pipeline"

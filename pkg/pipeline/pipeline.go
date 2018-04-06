@@ -22,6 +22,9 @@ type Pipeline struct {
 // Build executes a docker build.
 // nolint: gocyclo
 func (p *Pipeline) Build(metadata *metadata.Metadata, stages map[string]*stage.Stage, tasks map[string]*task.Task) (err error) {
+	if p == nil {
+		return
+	}
 	for i, stageName := range p.Stages {
 		if _, ok := stages[stageName]; !ok {
 			return fmt.Errorf("Stage %q is not defined in conform.yaml", stageName)

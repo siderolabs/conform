@@ -8,10 +8,12 @@ import (
 	"strings"
 
 	"github.com/autonomy/conform/pkg/metadata"
+	"github.com/autonomy/conform/pkg/release"
 	"github.com/autonomy/conform/pkg/renderer"
 	"github.com/autonomy/conform/pkg/service"
 	"github.com/autonomy/conform/pkg/stage"
 	"github.com/autonomy/conform/pkg/task"
+	"github.com/mitchellh/mapstructure"
 )
 
 // Pipeline defines the stages and artifacts.
@@ -88,6 +90,30 @@ func (p *Pipeline) Build(metadata *metadata.Metadata, stages map[string]*stage.S
 	return nil
 }
 
+// Release executes the requested releases.
+func (p *Pipeline) Release(metadata *metadata.Metadata, releases []*ReleaseDeclaration) (err error) {
+	for _, r := range releases {
+		if _, ok := releaseMap[r.Type]; !ok {
+			return fmt.Errorf("Release %q is not defined", r.Type)
+		}
+
+		release := releaseMap[r.Type]
+		err := mapstructure.Decode(r.Spec, release)
+		if err != nil {
+			return err
+		}
+
+		if err = release.Create(metadata); err != nil {
+			return err
+		}
+		if err = release.Upload(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // extract extracts an artifact from a docker image.
 func (p *Pipeline) extract(sha, image string, artifact *stage.Artifact) error {
 	argsSlice := [][]string{
@@ -154,4 +180,16 @@ func build(image, s string) error {
 	}
 
 	return command.Wait()
+}
+
+// ReleaseDeclaration allows a user to declare an arbitrary type along with a
+// spec that will be decoded into the appropriate concrete type.
+type ReleaseDeclaration struct {
+	Type string      `yaml:"type"`
+	Spec interface{} `yaml:"spec"`
+}
+
+// releaseMap defines the set of policies allowed within Conform.
+var releaseMap = map[string]release.Release{
+	"github": &release.GitHub{},
 }

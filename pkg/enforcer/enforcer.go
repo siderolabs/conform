@@ -20,12 +20,13 @@ import (
 
 // Conform is a struct that conform.yaml gets decoded into.
 type Conform struct {
-	Metadata *metadata.Metadata      `yaml:"metadata"`
-	Policies []*PolicyDeclaration    `yaml:"policies"`
-	Pipeline *pipeline.Pipeline      `yaml:"pipeline"`
-	Stages   map[string]*stage.Stage `yaml:"stages"`
-	Tasks    map[string]*task.Task   `yaml:"tasks"`
-	Script   *script.Script          `yaml:"script"`
+	Metadata *metadata.Metadata             `yaml:"metadata"`
+	Policies []*PolicyDeclaration           `yaml:"policies"`
+	Releases []*pipeline.ReleaseDeclaration `yaml:"releases"`
+	Pipeline *pipeline.Pipeline             `yaml:"pipeline"`
+	Stages   map[string]*stage.Stage        `yaml:"stages"`
+	Tasks    map[string]*task.Task          `yaml:"tasks"`
+	Script   *script.Script                 `yaml:"script"`
 }
 
 // PolicyDeclaration allows a user to declare an arbitrary type along with a

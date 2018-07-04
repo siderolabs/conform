@@ -26,6 +26,7 @@ import (
 var (
 	skipArray []string
 	varArray  []string
+	release   bool
 )
 
 // buildCmd represents the build command
@@ -76,6 +77,14 @@ var buildCmd = &cobra.Command{
 			fmt.Println(err)
 			os.Exit(1)
 		}
+
+		// if e.Metadata.Git.IsTag && release {
+		if release {
+			if err := e.Pipeline.Release(e.Metadata, e.Releases); err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+		}
 	},
 }
 
@@ -83,4 +92,5 @@ func init() {
 	RootCmd.AddCommand(buildCmd)
 	buildCmd.Flags().StringArrayVar(&skipArray, "skip", []string{}, "skip a stage in the pipeline")
 	buildCmd.Flags().StringArrayVar(&varArray, "var", []string{}, "set a variable")
+	buildCmd.Flags().BoolVar(&release, "release", false, "perform a release")
 }

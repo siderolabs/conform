@@ -25,6 +25,7 @@ policies:
     - pipeline
     - policy
     - readme
+    - release
     - renderer
     - service
     - '*'
@@ -74,6 +75,11 @@ pipeline:
   - test
   - build
   - image
+releases:
+  - type: github
+    spec:
+      repo: github.com/autonomy/conform
+      owner: autonomy
 stages:
   build:
     artifacts:

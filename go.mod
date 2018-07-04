@@ -17,6 +17,8 @@ require (
 	github.com/fsnotify/fsnotify v1.4.2 // indirect
 	github.com/gliderlabs/ssh v0.1.1 // indirect
 	github.com/google/go-cmp v0.2.0 // indirect
+	github.com/google/go-github v17.0.0+incompatible
+	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/hashicorp/hcl v0.0.0-20170509225359-392dba7d905e // indirect
 	github.com/huandu/xstrings v0.0.0-20151130125119-3959339b3335 // indirect
 	github.com/imdario/mergo v0.0.0-20160216103600-3e95a51e0639 // indirect
@@ -46,6 +48,7 @@ require (
 	github.com/xanzy/ssh-agent v0.1.0 // indirect
 	golang.org/x/crypto v0.0.0-20170703161049-69be088f8606 // indirect
 	golang.org/x/net v0.0.0-20170629171032-1f9224279e98 // indirect
+	golang.org/x/oauth2 v0.0.0-20181003184128-c57b0facaced
 	golang.org/x/sys v0.0.0-20170703210155-94b76065f2d2 // indirect
 	golang.org/x/text v0.0.0-20170630100924-2bf8f2a19ec0 // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect

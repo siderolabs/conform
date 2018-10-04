@@ -72,10 +72,14 @@ script:
 
 pipeline:
   stages:
+    - src
     - test
     - build
 
 stages:
+  src:
+    tasks:
+      - src
   test:
     artifacts:
       - source: /src/github.com/autonomy/conform/coverage.txt
@@ -90,10 +94,7 @@ stages:
 tasks:
   binary:
     template: |
-      FROM golang:1.11.1 AS {{ .Docker.CurrentStage }}
-      WORKDIR /src/{{ index .Variables "gitRepository" }}
-      COPY ./ ./
-      ENV CGO_ENABLED 0
+      FROM autonomy/conform:src AS {{ .Docker.CurrentStage }}
       {{ if and .Git.IsClean .Git.IsTag }}
       RUN go build -o {{ index .Variables "binaryPath" }} -ldflags "-X \"{{ index .Variables "gitRepository" }}/cmd.Tag={{ trimAll "v" .Git.Tag }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.SHA={{ .Git.SHA }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.Built={{ .Built }}\""
       {{ else if .Git.IsClean }}
@@ -103,23 +104,26 @@ tasks:
       {{ end }}
   test:
     template: |
-      FROM golang:1.11.1 AS {{ .Docker.CurrentStage }}
-      ENV GO111MODULE auto
+      FROM autonomy/conform:src AS {{ .Docker.CurrentStage }}
       RUN curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b $GOPATH/bin v1.10.1
-      WORKDIR /src/{{ index .Variables "gitRepository" }}
-      COPY ./ ./
-      RUN go mod download
-      RUN go mod verify
       RUN chmod +x ./hack/test.sh
       RUN ./hack/test.sh --lint ./hack/golangci-lint.yaml
       RUN ./hack/test.sh --unit
       RUN ./hack/test.sh --coverage
+  src:
+    template: |
+      FROM golang:1.11.1 AS {{ .Docker.CurrentStage }}
+      ENV GO111MODULE on
+      ENV CGO_ENABLED 0
+      WORKDIR /src/{{ index .Variables "gitRepository" }}
+      COPY ./ ./
+      RUN go mod download
+      RUN go mod verify
 
   image:
     template: |
-      FROM alpine:3.6 AS {{ .Docker.CurrentStage }}
+      FROM alpine:3.8 AS {{ .Docker.CurrentStage }}
       LABEL maintainer="{{ index .Variables "maintainer" }}"
-      RUN apk --update add bash \
-          && rm -rf /var/cache/apk/*
+      RUN apk --no-cache add bash
       COPY --from=binary {{ index .Variables "binaryPath" }} /bin
       ENTRYPOINT ["conform"]

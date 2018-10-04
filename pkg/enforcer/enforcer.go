@@ -89,7 +89,7 @@ func (c *Conform) enforce(p *PolicyDeclaration) error {
 	if !report.Valid() {
 		fmt.Printf("Violation of policy %q:\n", p.Type)
 		for i, err := range report.Errors {
-			fmt.Printf("\tViolation %d: %v\n", i, err)
+			fmt.Printf("\tViolation %d: %v\n", i+1, err)
 		}
 		os.Exit(1)
 	}

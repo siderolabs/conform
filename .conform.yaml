@@ -93,6 +93,7 @@ tasks:
       FROM golang:1.11.1 AS {{ .Docker.CurrentStage }}
       WORKDIR /src/{{ index .Variables "gitRepository" }}
       COPY ./ ./
+      ENV CGO_ENABLED 0
       {{ if and .Git.IsClean .Git.IsTag }}
       RUN go build -o {{ index .Variables "binaryPath" }} -ldflags "-X \"{{ index .Variables "gitRepository" }}/cmd.Tag={{ trimAll "v" .Git.Tag }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.SHA={{ .Git.SHA }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.Built={{ .Built }}\""
       {{ else if .Git.IsClean }}

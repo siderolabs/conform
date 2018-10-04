@@ -16,16 +16,9 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/autonomy/conform/pkg/enforcer"
-	"github.com/autonomy/conform/pkg/utilities"
 	"github.com/spf13/cobra"
-)
-
-var (
-	skipArray []string
-	varArray  []string
 )
 
 // enforceCmd represents the enforce command
@@ -40,29 +33,10 @@ var enforceCmd = &cobra.Command{
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		if err := utilities.CheckDockerVersion(); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
 		e, err := enforcer.New()
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
-		}
-		for _, variable := range varArray {
-			s := strings.Split(variable, "=")
-			if len(s) != 2 {
-				fmt.Printf("Variable key and value must be delimited by a '=': [%s]", variable)
-				os.Exit(1)
-			}
-			e.Metadata.Variables[s[0]] = s[1]
-		}
-		for _, skip := range skipArray {
-			for i, stage := range e.Pipeline.Stages {
-				if stage == skip {
-					e.Pipeline.Stages = append(e.Pipeline.Stages[:i], e.Pipeline.Stages[i+1:]...)
-				}
-			}
 		}
 		if err = e.Enforce(); err != nil {
 			fmt.Println(err)
@@ -73,6 +47,4 @@ var enforceCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(enforceCmd)
-	enforceCmd.Flags().StringArrayVar(&skipArray, "skip", []string{}, "skip a stage in the pipeline")
-	enforceCmd.Flags().StringArrayVar(&varArray, "var", []string{}, "set a variable")
 }

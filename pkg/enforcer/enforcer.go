@@ -66,14 +66,6 @@ func (c *Conform) Enforce() error {
 		}
 		fmt.Printf("passed\n")
 	}
-	err := c.Pipeline.Build(c.Metadata, c.Stages, c.Tasks)
-	if err != nil {
-		return err
-	}
-
-	if c.Script != nil {
-		return c.Script.Execute(c.Metadata)
-	}
 
 	return nil
 }

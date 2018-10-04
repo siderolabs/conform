@@ -24,6 +24,7 @@ install:
 
 script:
   - conform enforce
+  - conform build
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

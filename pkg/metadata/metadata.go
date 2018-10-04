@@ -102,13 +102,8 @@ func addMetadataForVersion(m *Metadata) error {
 }
 
 func addMetadataForDocker(m *Metadata) error {
-	var name, tag string
-	if !m.Git.IsClean {
-		tag = "dirty"
-	} else {
-		tag = m.Git.SHA
-	}
-	name = m.Repository
+	tag := m.Git.SHA
+	name := m.Repository
 
 	dockerMetadata := &Docker{
 		Image: &Image{
@@ -133,10 +128,10 @@ func addMetadataForGit(m *Metadata) error {
 	if err = addMessageMetadataForGit(g, m); err != nil {
 		return err
 	}
-	if err = addSHAMetadataForGit(g, m); err != nil {
+	if err = addStatusMetadataForGit(g, m); err != nil {
 		return err
 	}
-	if err = addStatusMetadataForGit(g, m); err != nil {
+	if err = addSHAMetadataForGit(g, m); err != nil {
 		return err
 	}
 	if err = addTagMetadataForGit(g, m); err != nil {
@@ -172,6 +167,11 @@ func addSHAMetadataForGit(g *git.Git, m *Metadata) error {
 	if err != nil {
 		return err
 	}
+
+	if !m.Git.IsClean {
+		sha = sha + "-dirty"
+	}
+
 	m.Git.SHA = sha
 
 	return nil

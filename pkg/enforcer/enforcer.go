@@ -58,10 +58,13 @@ func New() (*Conform, error) {
 // Enforce enforces all policies defined in the conform.yaml file.
 func (c *Conform) Enforce() error {
 	for _, p := range c.Policies {
+		fmt.Printf("Enforcing policy %q: ", p.Type)
 		err := c.enforce(p)
 		if err != nil {
+			fmt.Printf("failed\n")
 			return err
 		}
+		fmt.Printf("passed\n")
 	}
 	err := c.Pipeline.Build(c.Metadata, c.Stages, c.Tasks)
 	if err != nil {

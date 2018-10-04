@@ -24,7 +24,7 @@ const MaxNumberOfCommitCharacters = 72
 
 // HeaderRegex is the regular expression used for Conventional Commits
 // 1.0.0-beta.1.
-const HeaderRegex = `^(\w*)\(([^)]+)\):\s{1}(.*)($|\n{2})`
+const HeaderRegex = `^(\w*)(\(([^)]+)\))?:\s{1}(.*)($|\n{2})`
 
 // TypeFeat is a commit of the type fix patches a bug in your codebase
 // (this correlates with PATCH in semantic versioning).
@@ -41,7 +41,7 @@ func (c *Conventional) Compliance(metadata *metadata.Metadata, options ...policy
 		return
 	}
 	groups := parseHeader(metadata.Git.Message)
-	if len(groups) != 5 {
+	if len(groups) != 6 {
 		report.Errors = append(report.Errors, fmt.Errorf("Invalid commit format: %s", metadata.Git.Message))
 		return
 	}
@@ -83,20 +83,24 @@ func ValidateType(report *policy.Report, groups []string, types []string) {
 
 // ValidateScope returns the commit scope.
 func ValidateScope(report *policy.Report, groups []string, scopes []string) {
+	// Scope is optional.
+	if groups[3] == "" {
+		return
+	}
 	for _, scope := range scopes {
-		if scope == groups[2] {
+		if scope == groups[3] {
 			return
 		}
 	}
-	report.Errors = append(report.Errors, fmt.Errorf("Invalid scope: %s", groups[2]))
+	report.Errors = append(report.Errors, fmt.Errorf("Invalid scope: %s", groups[3]))
 }
 
 // ValidateDescription returns the commit description.
 func ValidateDescription(report *policy.Report, groups []string) {
-	if len(groups[3]) <= 72 && len(groups[3]) != 0 {
+	if len(groups[4]) <= 72 && len(groups[4]) != 0 {
 		return
 	}
-	report.Errors = append(report.Errors, fmt.Errorf("Invalid description: %s", groups[3]))
+	report.Errors = append(report.Errors, fmt.Errorf("Invalid description: %s", groups[4]))
 }
 
 func parseHeader(message string) []string {

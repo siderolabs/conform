@@ -1,6 +1,8 @@
 *
 !cmd
-!Gopkg*
+!go.mod
+!go.sum
+!hack
 !main.go
 !pkg
 !scripts

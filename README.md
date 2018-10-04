@@ -59,11 +59,8 @@ tasks:
 
 In the same directory, run:
 ```
-$ conform enforce
+$ conform build
 ```
-
-Developing Conform
-----------------
 
 ### License
 [![license](https://img.shields.io/github/license/autonomy/conform.svg?style=flat-square)](https://github.com/autonomy/conform/blob/master/LICENSE)

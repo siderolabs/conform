@@ -1,7 +1,8 @@
 metadata:
   repository: autonomy/conform
   variables:
-    binaryPath: /conform
+    linuxBinaryPath: /conform-linux-amd64
+    darwinBinaryPath: /conform-darwin-amd64
     gitRepository: github.com/autonomy/conform
     maintainer: Andrew Rynhard <andrew.rynhard@autonomy.io>
 policies:
@@ -72,10 +73,18 @@ pipeline:
   - src
   - test
   - build
+  - image
 stages:
   build:
+    artifacts:
+    - source: /conform-linux-amd64
+      destination: ./build/conform-linux-amd64
+    - source: /conform-darwin-amd64
+      destination: ./build/conform-darwin-amd64
     tasks:
-    - binary
+    - build
+  image:
+    tasks:
     - image
   src:
     tasks:
@@ -87,22 +96,25 @@ stages:
     tasks:
     - test
 tasks:
-  binary:
+  build:
     template: |
       FROM autonomy/conform:src AS {{ .Docker.CurrentStage }}
       {{ if and .Git.IsClean .Git.IsTag }}
-      RUN go build -o {{ index .Variables "binaryPath" }} -ldflags "-s -w -X \"{{ index .Variables "gitRepository" }}/cmd.Tag={{ trimAll "v" .Git.Tag }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.SHA={{ .Git.SHA }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.Built={{ .Built }}\""
+      RUN go build -o {{ index .Variables "linuxBinaryPath" }} -ldflags "-s -w -X \"{{ index .Variables "gitRepository" }}/cmd.Tag={{ trimAll "v" .Git.Tag }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.SHA={{ .Git.SHA }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.Built={{ .Built }}\""
+      RUN GOOS=darwin go build -o {{ index .Variables "darwinBinaryPath" }} -ldflags "-s -w -X \"{{ index .Variables "gitRepository" }}/cmd.Tag={{ trimAll "v" .Git.Tag }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.SHA={{ .Git.SHA }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.Built={{ .Built }}\""
       {{ else if .Git.IsClean }}
-      RUN go build -o {{ index .Variables "binaryPath" }} -ldflags "-s -w -X \"{{ index .Variables "gitRepository" }}/cmd.SHA={{ .Git.SHA }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.Built={{ .Built }}\""
+      RUN go build -o {{ index .Variables "linuxBinaryPath" }} -ldflags "-s -w -X \"{{ index .Variables "gitRepository" }}/cmd.SHA={{ .Git.SHA }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.Built={{ .Built }}\""
+      RUN GOOS=darwin go build -o {{ index .Variables "darwinBinaryPath" }} -ldflags "-s -w -X \"{{ index .Variables "gitRepository" }}/cmd.SHA={{ .Git.SHA }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.Built={{ .Built }}\""
       {{ else }}
-      RUN go build -o {{ index .Variables "binaryPath" }}
+      RUN go build -o {{ index .Variables "linuxBinaryPath" }}
+      RUN GOOS=darwin go build -o {{ index .Variables "darwinBinaryPath" }}
       {{ end }}
   image:
     template: |
       FROM alpine:3.8 AS {{ .Docker.CurrentStage }}
       LABEL maintainer="{{ index .Variables "maintainer" }}"
       RUN apk --no-cache add bash
-      COPY --from=binary {{ index .Variables "binaryPath" }} /bin
+      COPY --from={{ .Repository}}:build {{ index .Variables "linuxBinaryPath" }} /bin/conform
       ENTRYPOINT ["conform"]
   src:
     template: |

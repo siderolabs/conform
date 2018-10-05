@@ -47,7 +47,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.conform.yaml)")
+	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is .conform.yaml)")
 	RootCmd.Flags().BoolVar(&debug, "debug", false, "Debug rendering")
 }
 

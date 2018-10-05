@@ -4,31 +4,29 @@ metadata:
     binaryPath: /conform
     gitRepository: github.com/autonomy/conform
     maintainer: Andrew Rynhard <andrew.rynhard@autonomy.io>
-
 policies:
-  - type: conventionalCommit
-    spec:
-      types:
-        - "chore"
-        - "docs"
-        - "perf"
-        - "refactor"
-        - "style"
-        - "test"
-      scopes:
-        - "ci"
-        - "cli"
-        - "docker"
-        - "fmt"
-        - "git"
-        - "metadata"
-        - "pipeline"
-        - "policy"
-        - "readme"
-        - "renderer"
-        - "service"
-        - "*"
-
+- type: conventionalCommit
+  spec:
+    types:
+    - chore
+    - docs
+    - perf
+    - refactor
+    - style
+    - test
+    scopes:
+    - ci
+    - cli
+    - docker
+    - fmt
+    - git
+    - metadata
+    - pipeline
+    - policy
+    - readme
+    - renderer
+    - service
+    - '*'
 script:
   template: |
     #!/bin/bash
@@ -69,28 +67,25 @@ script:
             docker push {{ .Repository }}:{{ .Version.Major }}.{{ .Version.Minor }}.{{ .Version.Patch }}
         fi
     fi
-
 pipeline:
   stages:
-    - src
-    - test
-    - build
-
+  - src
+  - test
+  - build
 stages:
-  src:
-    tasks:
-      - src
-  test:
-    artifacts:
-      - source: /src/github.com/autonomy/conform/coverage.txt
-        destination: coverage.txt
-    tasks:
-      - test
   build:
     tasks:
-      - binary
-      - image
-
+    - binary
+    - image
+  src:
+    tasks:
+    - src
+  test:
+    artifacts:
+    - source: /src/github.com/autonomy/conform/coverage.txt
+      destination: coverage.txt
+    tasks:
+    - test
 tasks:
   binary:
     template: |
@@ -102,14 +97,13 @@ tasks:
       {{ else }}
       RUN go build -o {{ index .Variables "binaryPath" }}
       {{ end }}
-  test:
+  image:
     template: |
-      FROM autonomy/conform:src AS {{ .Docker.CurrentStage }}
-      RUN curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b $GOPATH/bin v1.10.1
-      RUN chmod +x ./hack/test.sh
-      RUN ./hack/test.sh --lint ./hack/golangci-lint.yaml
-      RUN ./hack/test.sh --unit
-      RUN ./hack/test.sh --coverage
+      FROM alpine:3.8 AS {{ .Docker.CurrentStage }}
+      LABEL maintainer="{{ index .Variables "maintainer" }}"
+      RUN apk --no-cache add bash
+      COPY --from=binary {{ index .Variables "binaryPath" }} /bin
+      ENTRYPOINT ["conform"]
   src:
     template: |
       FROM golang:1.11.1 AS {{ .Docker.CurrentStage }}
@@ -119,11 +113,11 @@ tasks:
       COPY ./ ./
       RUN go mod download
       RUN go mod verify
-
-  image:
+  test:
     template: |
-      FROM alpine:3.8 AS {{ .Docker.CurrentStage }}
-      LABEL maintainer="{{ index .Variables "maintainer" }}"
-      RUN apk --no-cache add bash
-      COPY --from=binary {{ index .Variables "binaryPath" }} /bin
-      ENTRYPOINT ["conform"]
+      FROM autonomy/conform:src AS {{ .Docker.CurrentStage }}
+      RUN curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b $GOPATH/bin v1.10.1
+      RUN chmod +x ./hack/test.sh
+      RUN ./hack/test.sh --lint ./hack/golangci-lint.yaml
+      RUN ./hack/test.sh --unit
+      RUN ./hack/test.sh --coverage

@@ -96,9 +96,9 @@ tasks:
     template: |
       FROM autonomy/conform:src AS {{ .Docker.CurrentStage }}
       {{ if and .Git.IsClean .Git.IsTag }}
-      RUN go build -o {{ index .Variables "binaryPath" }} -ldflags "-X \"{{ index .Variables "gitRepository" }}/cmd.Tag={{ trimAll "v" .Git.Tag }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.SHA={{ .Git.SHA }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.Built={{ .Built }}\""
+      RUN go build -o {{ index .Variables "binaryPath" }} -ldflags "-s -w -X \"{{ index .Variables "gitRepository" }}/cmd.Tag={{ trimAll "v" .Git.Tag }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.SHA={{ .Git.SHA }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.Built={{ .Built }}\""
       {{ else if .Git.IsClean }}
-      RUN go build -o {{ index .Variables "binaryPath" }} -ldflags "-X \"{{ index .Variables "gitRepository" }}/cmd.SHA={{ .Git.SHA }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.Built={{ .Built }}\""
+      RUN go build -o {{ index .Variables "binaryPath" }} -ldflags "-s -w -X \"{{ index .Variables "gitRepository" }}/cmd.SHA={{ .Git.SHA }}\" -X \"{{ index .Variables "gitRepository" }}/cmd.Built={{ .Built }}\""
       {{ else }}
       RUN go build -o {{ index .Variables "binaryPath" }}
       {{ end }}

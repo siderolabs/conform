@@ -23,6 +23,7 @@ install:
   - GO111MODULE=on go get github.com/autonomy/conform
 
 script:
+  - GO111MODULE=on go mod tidy -v
   - conform enforce
   - conform build
 

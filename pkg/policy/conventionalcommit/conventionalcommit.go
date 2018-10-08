@@ -2,9 +2,11 @@ package conventionalcommit
 
 import (
 	"fmt"
+	"io/ioutil"
 	"regexp"
 	"strings"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/autonomy/conform/pkg/metadata"
 	"github.com/autonomy/conform/pkg/pipeline"
 	"github.com/autonomy/conform/pkg/policy"
@@ -37,12 +39,21 @@ const TypeFix = "fix"
 // Compliance implements the policy.Policy.Compliance function.
 func (c *Conventional) Compliance(metadata *metadata.Metadata, options ...policy.Option) (report policy.Report) {
 	report = policy.Report{}
-	if !metadata.Git.IsClean {
-		return
+	var commitMsgFile string
+	if metadata.Flags != nil {
+		commitMsgFile = metadata.Flags.Lookup("commit-msg-file").Value.String()
 	}
-	groups := parseHeader(metadata.Git.Message)
+	msg := metadata.Git.Message // start with last commit message in log
+	if commitMsgFile != "" {
+		contents, err := ioutil.ReadFile(commitMsgFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		msg = string(contents)
+	}
+	groups := parseHeader(msg)
 	if len(groups) != 6 {
-		report.Errors = append(report.Errors, fmt.Errorf("Invalid commit format: %s", metadata.Git.Message))
+		report.Errors = append(report.Errors, fmt.Errorf("Invalid commit format: %s", msg))
 		return
 	}
 	ValidateHeaderLength(&report, groups)

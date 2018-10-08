@@ -33,7 +33,7 @@ var enforceCmd = &cobra.Command{
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		e, err := enforcer.New()
+		e, err := enforcer.New(cmd.Flags())
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -46,5 +46,6 @@ var enforceCmd = &cobra.Command{
 }
 
 func init() {
+	enforceCmd.Flags().String("commit-msg-file", "", "the path to the temporary commit message file")
 	RootCmd.AddCommand(enforceCmd)
 }

@@ -38,7 +38,7 @@ require (
 	github.com/spf13/cast v1.1.0 // indirect
 	github.com/spf13/cobra v0.0.0-20170629105234-8c6fa02d2225
 	github.com/spf13/jwalterweatherman v0.0.0-20170523133247-0efa5202c046 // indirect
-	github.com/spf13/pflag v1.0.0 // indirect
+	github.com/spf13/pflag v1.0.0
 	github.com/spf13/viper v0.0.0-20170619124313-c1de95864d73
 	github.com/src-d/gcfg v1.3.0 // indirect
 	github.com/stevvooe/resumable v0.0.0-20180830230917-22b14a53ba50 // indirect

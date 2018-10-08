@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/autonomy/conform/pkg/metadata"
 	"github.com/autonomy/conform/pkg/pipeline"
 	"github.com/autonomy/conform/pkg/policy"
@@ -47,7 +46,8 @@ func (c *Conventional) Compliance(metadata *metadata.Metadata, options ...policy
 	if commitMsgFile != "" {
 		contents, err := ioutil.ReadFile(commitMsgFile)
 		if err != nil {
-			log.Fatal(err)
+			report.Errors = append(report.Errors, fmt.Errorf("failed to read commit message file: %v", err))
+			return
 		}
 		msg = string(contents)
 	}

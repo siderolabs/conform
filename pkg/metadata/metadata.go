@@ -5,6 +5,7 @@ import (
 
 	"github.com/Masterminds/semver"
 	"github.com/autonomy/conform/pkg/git"
+	flag "github.com/spf13/pflag"
 )
 
 // Metadata contains metadata.
@@ -14,6 +15,7 @@ type Metadata struct {
 	Git        *Git
 	Version    *Version
 	Variables  VariablesMap `yaml:"variables"`
+	Flags      *flag.FlagSet
 	Built      string
 }
 

@@ -44,7 +44,7 @@ var buildCmd = &cobra.Command{
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		e, err := enforcer.New()
+		e, err := enforcer.New(cmd.Flags())
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)

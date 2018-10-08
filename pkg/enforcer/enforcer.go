@@ -13,6 +13,7 @@ import (
 	"github.com/autonomy/conform/pkg/stage"
 	"github.com/autonomy/conform/pkg/task"
 	"github.com/mitchellh/mapstructure"
+	flag "github.com/spf13/pflag"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -41,7 +42,7 @@ var policyMap = map[string]policy.Policy{
 }
 
 // New loads the conform.yaml file and unmarshals it into a Conform struct.
-func New() (*Conform, error) {
+func New(flags *flag.FlagSet) (*Conform, error) {
 	configBytes, err := ioutil.ReadFile(".conform.yaml")
 	if err != nil {
 		return nil, err
@@ -51,6 +52,8 @@ func New() (*Conform, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	c.Metadata.Flags = flags
 
 	return c, nil
 }

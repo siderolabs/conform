@@ -43,6 +43,7 @@ script:
         # Check if working tree is clean.
         if [[ "{{ .Git.IsClean }}" != "true" ]]; then
             echo "The working tree is dirty."
+            git status
             exit 1
         fi
 

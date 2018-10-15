@@ -1,6 +1,7 @@
 package conventionalcommit
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -76,11 +77,11 @@ func TestInvalidConventionalCommitPolicy(t *testing.T) {
 func runCompliance() (*policy.Report, error) {
 	g, err := git.NewGit()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open git: %v", err)
 	}
 	message, err := g.Message()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get commit message: %v", err)
 	}
 	c := &Conventional{}
 	c.Types = []string{"type"}
@@ -100,14 +101,6 @@ func initRepo() error {
 	if err != nil {
 		return err
 	}
-	_, err = exec.Command("git", "config", "--global", "user.email", "'test@autonomy.io'").Output()
-	if err != nil {
-		return err
-	}
-	_, err = exec.Command("git", "config", "--global", "user.name", "test").Output()
-	if err != nil {
-		return err
-	}
 	_, err = exec.Command("touch", "test").Output()
 	if err != nil {
 		return err
@@ -118,13 +111,13 @@ func initRepo() error {
 }
 
 func createValidCommit() error {
-	_, err := exec.Command("git", "commit", "-m", "type(scope): description").Output()
+	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@autonomy.io'", "commit", "-m", "type(scope): description").Output()
 
 	return err
 }
 
 func createInvalidCommit() error {
-	_, err := exec.Command("git", "commit", "-m", "invalid commit").Output()
+	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@autonomy.io'", "commit", "-m", "invalid commit").Output()
 
 	return err
 }

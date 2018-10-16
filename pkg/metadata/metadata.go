@@ -46,6 +46,7 @@ type Git struct {
 
 // Version contains version specific metadata.
 type Version struct {
+	Original     string
 	Major        int64
 	Minor        int64
 	Patch        int64
@@ -91,6 +92,7 @@ func addMetadataForVersion(m *Metadata) error {
 		if err != nil {
 			return err
 		}
+		m.Version.Original = ver.Original()
 		m.Version.Major = ver.Major()
 		m.Version.Minor = ver.Minor()
 		m.Version.Patch = ver.Patch()

@@ -89,7 +89,7 @@ func ValidateType(report *policy.Report, groups []string, types []string) {
 			return
 		}
 	}
-	report.Errors = append(report.Errors, fmt.Errorf("Invalid type: %s", groups[1]))
+	report.Errors = append(report.Errors, fmt.Errorf("Invalid type: %s, allowed types are: %v", groups[1], types))
 }
 
 // ValidateScope returns the commit scope.
@@ -103,7 +103,7 @@ func ValidateScope(report *policy.Report, groups []string, scopes []string) {
 			return
 		}
 	}
-	report.Errors = append(report.Errors, fmt.Errorf("Invalid scope: %s", groups[3]))
+	report.Errors = append(report.Errors, fmt.Errorf("Invalid scope: %s, allowed scopes are: %v", groups[3], scopes))
 }
 
 // ValidateDescription returns the commit description.

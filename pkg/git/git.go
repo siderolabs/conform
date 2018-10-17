@@ -5,7 +5,7 @@ import (
 	"path"
 	"path/filepath"
 
-	"gopkg.in/src-d/go-git.v4"
+	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
@@ -50,6 +50,18 @@ func (g *Git) Branch() (branch string, isBranch bool, err error) {
 	}
 
 	return branch, isBranch, err
+}
+
+// Ref returns the current git ref name.
+func (g *Git) Ref() (ref string, err error) {
+	r, err := g.repo.Head()
+	if err != nil {
+		return
+	}
+
+	ref = r.Name().String()
+
+	return ref, err
 }
 
 // SHA returns the sha of the current commit.

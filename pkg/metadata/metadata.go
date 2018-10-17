@@ -36,6 +36,7 @@ type Image struct {
 // Git contains git specific metadata.
 type Git struct {
 	Branch   string
+	Ref      string
 	Message  string
 	SHA      string
 	Tag      string
@@ -129,6 +130,9 @@ func addMetadataForGit(m *Metadata) error {
 	if err = addBranchMetadataForGit(g, m); err != nil {
 		return err
 	}
+	if err = addRefMetadataForGit(g, m); err != nil {
+		return err
+	}
 	if err = addMessageMetadataForGit(g, m); err != nil {
 		return err
 	}
@@ -152,6 +156,16 @@ func addBranchMetadataForGit(g *git.Git, m *Metadata) error {
 	}
 	m.Git.Branch = branch
 	m.Git.IsBranch = isBranch
+
+	return nil
+}
+
+func addRefMetadataForGit(g *git.Git, m *Metadata) error {
+	ref, err := g.Ref()
+	if err != nil {
+		return err
+	}
+	m.Git.Ref = ref
 
 	return nil
 }

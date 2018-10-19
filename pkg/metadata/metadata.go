@@ -89,7 +89,7 @@ func addMetadataForVersion(m *Metadata) error {
 	m.Version = &Version{}
 	if m.Git.IsTag {
 		var ver *semver.Version
-		ver, err := semver.NewVersion(m.Git.Tag[1:])
+		ver, err := semver.NewVersion(m.Git.Tag)
 		if err != nil {
 			return err
 		}

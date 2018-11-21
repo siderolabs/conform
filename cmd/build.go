@@ -64,6 +64,9 @@ var buildCmd = &cobra.Command{
 				}
 			}
 		}
+		if !e.Metadata.Git.IsClean {
+			fmt.Printf("Git status:\n%s\n", e.Metadata.Git.Status)
+		}
 		if err := e.Pipeline.Build(e.Metadata, e.Stages, e.Tasks); err != nil {
 			fmt.Println(err)
 			os.Exit(1)

@@ -40,6 +40,7 @@ type Git struct {
 	Message  string
 	SHA      string
 	Tag      string
+	Status   string
 	IsBranch bool
 	IsClean  bool
 	IsTag    bool
@@ -196,10 +197,11 @@ func addSHAMetadataForGit(g *git.Git, m *Metadata) error {
 }
 
 func addStatusMetadataForGit(g *git.Git, m *Metadata) error {
-	_, isClean, err := g.Status()
+	status, isClean, err := g.Status()
 	if err != nil {
 		return err
 	}
+	m.Git.Status = status
 	m.Git.IsClean = isClean
 
 	return nil

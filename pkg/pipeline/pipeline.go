@@ -90,6 +90,9 @@ func (p *Pipeline) Build(metadata *metadata.Metadata, stages map[string]*stage.S
 
 // extract extracts an artifact from a docker image.
 func (p *Pipeline) extract(sha, image string, artifact *stage.Artifact) error {
+	if err := os.RemoveAll(artifact.Destination); err != nil {
+		return fmt.Errorf("failed to clean artifact destination: %v", err)
+	}
 	argsSlice := [][]string{
 		{"create", "--name=" + sha, image},
 		{"cp", sha + ":" + artifact.Source, artifact.Destination},

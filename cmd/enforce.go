@@ -17,7 +17,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/autonomy/conform/pkg/enforcer"
+	"github.com/autonomy/conform/internal/enforcer"
+	"github.com/autonomy/conform/internal/policy"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -28,17 +30,24 @@ var enforceCmd = &cobra.Command{
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) != 0 {
-			err := fmt.Errorf("The enforce command does not take arguments")
+			err := errors.Errorf("The enforce command does not take arguments")
 
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		e, err := enforcer.New(cmd.Flags())
+		e, err := enforcer.New()
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		if err = e.Enforce(); err != nil {
+
+		opts := []policy.Option{}
+
+		if commitMsgFile := cmd.Flags().Lookup("commit-msg-file").Value.String(); commitMsgFile != "" {
+			opts = append(opts, policy.WithCommitMsgFile(&commitMsgFile))
+		}
+
+		if err = e.Enforce(opts...); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}

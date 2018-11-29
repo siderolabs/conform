@@ -1,16 +1,13 @@
 package conventionalcommit
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"testing"
 
-	"github.com/autonomy/conform/pkg/git"
-	"github.com/autonomy/conform/pkg/metadata"
-	"github.com/autonomy/conform/pkg/policy"
+	"github.com/autonomy/conform/internal/policy"
 )
 
 func RemoveAll(dir string) {
@@ -75,27 +72,15 @@ func TestInvalidConventionalCommitPolicy(t *testing.T) {
 }
 
 func runCompliance() (*policy.Report, error) {
-	g, err := git.NewGit()
-	if err != nil {
-		return nil, fmt.Errorf("failed to open git: %v", err)
-	}
-	message, err := g.Message()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get commit message: %v", err)
-	}
 	c := &Conventional{}
 	c.Types = []string{"type"}
 	c.Scopes = []string{"scope"}
-	m := &metadata.Metadata{
-		Git: &metadata.Git{
-			Message: message,
-			IsClean: true,
-		},
-	}
-	report := c.Compliance(m)
+
+	report := c.Compliance(&policy.Options{})
 
 	return &report, nil
 }
+
 func initRepo() error {
 	_, err := exec.Command("git", "init").Output()
 	if err != nil {

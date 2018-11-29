@@ -6,53 +6,74 @@ CGO_ENABLED=1
 GOPACKAGES=$(go list ./...)
 
 lint_packages() {
-  echo "Linting packages"
-  golangci-lint run --config ${1}
-}
-
-perform_unit_tests() {
-  echo "Performing unit tests"
-  go test -v -short ./...
-}
-
-perform_integration_tests() {
-  echo "Performing integration tests"
-  go test -v ./...
-}
-
-perform_coverage_tests() {
-  echo "Performing coverage tests"
-  local coverage_report="coverage.txt"
-  local profile="profile.out"
-  if [[ -f ${coverage_report} ]]; then
-    rm ${coverage_report}
+  if [ "${lint}" = true ]; then
+    echo "linting packages"
+    curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $GOPATH/bin v1.10.1
+    golangci-lint run --config "${BASH_SOURCE%/*}/golangci-lint.yaml"
   fi
-  touch ${coverage_report}
-  for package in ${GOPACKAGES[@]}; do
-    go test -v -short -race -coverprofile=${profile} -covermode=atomic $package
-    if [ -f ${profile} ]; then
-      cat ${profile} >> ${coverage_report}
-      rm ${profile}
-    fi
-  done
 }
+
+go_test() {
+  if [ "${short}" = true ]; then
+    echo "performing short tests"
+    go test -v -short ./...
+  fi
+
+  if [ "${tests}" = true ]; then
+    echo "performing tests"
+    go test -v ./...
+  fi
+}
+
+coverage_tests() {
+  if [ "${coverage}" = true ]; then
+    echo "performing coverage tests"
+    local coverage_report="../build/coverage.txt"
+    local profile="../build/profile.out"
+    if [[ -f ${coverage_report} ]]; then
+      rm ${coverage_report}
+    fi
+    touch ${coverage_report}
+    for package in ${GOPACKAGES[@]}; do
+      go test -v -short -race -coverprofile=${profile} -covermode=atomic $package
+      if [ -f ${profile} ]; then
+        cat ${profile} >> ${coverage_report}
+        rm ${profile}
+      fi
+    done
+  fi
+}
+
+lint=false
+short=false
+tests=false
+coverage=false
 
 case $1 in
   --lint)
-  lint_packages ${2}
+  lint=true
   ;;
-  --unit)
-  perform_unit_tests
+  --short)
+  short=true
   ;;
   --integration)
-  perform_integration_tests
+  tests=true
   ;;
   --coverage)
-  perform_coverage_tests
+  coverage=true
+  ;;
+  --all)
+  lint=true
+  short=true
+  tests=true
+  coverage=true
   ;;
   *)
-  exit 1
   ;;
 esac
+
+go_test
+coverage_tests
+lint_packages
 
 exit 0

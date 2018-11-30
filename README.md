@@ -25,12 +25,13 @@ Some of the policies included are:
 Create a file named `.conform.yaml` with the following contents:
 
 ```yaml:
-  - type: conventionalCommit
-    spec:
-      types:
-        - "type"
-      scopes:
-        - "scope"
+policies:
+- type: conventionalCommit
+  spec:
+    types:
+      - "type"
+    scopes:
+      - "scope"
 ```
 
 In the same directory, run:

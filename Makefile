@@ -1,8 +1,8 @@
 REPO ?= docker.io/autonomy
 EXECUTOR ?= gcr.io/kaniko-project/executor
-EXECUTOR_TAG ?= latest
+EXECUTOR_TAG ?= v0.6.0
 WARMER ?= gcr.io/kaniko-project/warmer
-WARMER_TAG ?= latest
+WARMER_TAG ?= v0.6.0
 GOLANG_IMAGE ?= golang:1.11.2
 AUTH_CONFIG ?= $(HOME)/.kaniko/config.json
 
@@ -51,7 +51,7 @@ debug:
 		$(EXECUTOR_VOLUMES) \
 		--volume $(PWD):/workspace \
 		--entrypoint=/busybox/sh \
-		$(EXECUTOR):debug
+		$(EXECUTOR):debug-${EXECUTOR_TAG}
 
 clean:
 	rm -rf ./build

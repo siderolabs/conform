@@ -31,7 +31,7 @@ var (
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "conform",
-	Short: "DRY, hygienic, fast builds.",
+	Short: "Policy enforcement for your pipelines.",
 	Long:  ``,
 }
 

@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/autonomy/conform/internal/git"
 	"github.com/autonomy/conform/internal/policy"
-	"github.com/autonomy/conform/internal/policy/conventionalcommit/internal/git"
 	"github.com/pkg/errors"
 )
 
@@ -23,7 +23,7 @@ const MaxNumberOfCommitCharacters = 72
 
 // HeaderRegex is the regular expression used for Conventional Commits
 // 1.0.0-beta.1.
-const HeaderRegex = `^(\w*)(\(([^)]+)\))?:\s{1}(.*)($|\n{2})`
+var HeaderRegex = regexp.MustCompile(`^(\w*)(\(([^)]+)\))?:\s{1}(.*)($|\n{2})`)
 
 // TypeFeat is a commit of the type fix patches a bug in your codebase
 // (this correlates with PATCH in semantic versioning).
@@ -110,16 +110,12 @@ func ValidateDescription(report *policy.Report, groups []string) {
 	report.Errors = append(report.Errors, errors.Errorf("Invalid description: %s", groups[4]))
 }
 
-func parseHeader(message string) []string {
-	re, err := regexp.Compile(HeaderRegex)
-	if err != nil {
-		return nil
-	}
+func parseHeader(msg string) []string {
 	// To circumvent any policy violation due to the leading \n that GitHub
 	// prefixes to the commit message on a squash merge, we remove it from the
 	// message.
-	header := strings.Split(strings.TrimPrefix(message, "\n"), "\n")[0]
-	groups := re.FindStringSubmatch(header)
+	header := strings.Split(strings.TrimPrefix(msg, "\n"), "\n")[0]
+	groups := HeaderRegex.FindStringSubmatch(header)
 
 	return groups
 }

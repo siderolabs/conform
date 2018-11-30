@@ -19,7 +19,7 @@ import (
 	"html/template"
 	"runtime"
 
-	"github.com/autonomy/conform/pkg/constants"
+	"github.com/autonomy/conform/internal/constants"
 	"github.com/spf13/cobra"
 )
 

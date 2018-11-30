@@ -1,15 +1,13 @@
 package conventionalcommit
 
 import (
-	"fmt"
 	"io/ioutil"
 	"regexp"
 	"strings"
 
-	"github.com/autonomy/conform/pkg/metadata"
-	"github.com/autonomy/conform/pkg/pipeline"
-	"github.com/autonomy/conform/pkg/policy"
-	"github.com/autonomy/conform/pkg/task"
+	"github.com/autonomy/conform/internal/policy"
+	"github.com/autonomy/conform/internal/policy/conventionalcommit/internal/git"
+	"github.com/pkg/errors"
 )
 
 // Conventional implements the policy.Policy interface and enforces commit
@@ -36,26 +34,34 @@ const TypeFeat = "feat"
 const TypeFix = "fix"
 
 // Compliance implements the policy.Policy.Compliance function.
-func (c *Conventional) Compliance(metadata *metadata.Metadata, options ...policy.Option) (report policy.Report) {
+func (c *Conventional) Compliance(options *policy.Options) (report policy.Report) {
 	report = policy.Report{}
-	var commitMsgFile string
-	if metadata.Flags != nil {
-		commitMsgFile = metadata.Flags.Lookup("commit-msg-file").Value.String()
-	}
-	msg := metadata.Git.Message // start with last commit message in log
-	if commitMsgFile != "" {
-		contents, err := ioutil.ReadFile(commitMsgFile)
+
+	var msg string
+	if options.CommitMsgFile != nil {
+		contents, err := ioutil.ReadFile(*options.CommitMsgFile)
 		if err != nil {
-			report.Errors = append(report.Errors, fmt.Errorf("failed to read commit message file: %v", err))
+			report.Errors = append(report.Errors, errors.Errorf("failed to read commit message file: %v", err))
 			return
 		}
 		msg = string(contents)
+	} else {
+		g, err := git.NewGit()
+		if err != nil {
+			report.Errors = append(report.Errors, errors.Errorf("failed to open git repo: %v", err))
+			return
+		}
+		if msg, err = g.Message(); err != nil {
+			report.Errors = append(report.Errors, errors.Errorf("failed to get commit message: %v", err))
+			return
+		}
 	}
 	groups := parseHeader(msg)
 	if len(groups) != 6 {
-		report.Errors = append(report.Errors, fmt.Errorf("Invalid commit format: %s", msg))
+		report.Errors = append(report.Errors, errors.Errorf("Invalid commit format: %s", msg))
 		return
 	}
+
 	ValidateHeaderLength(&report, groups)
 	ValidateType(&report, groups, c.Types)
 	ValidateScope(&report, groups, c.Scopes)
@@ -64,20 +70,10 @@ func (c *Conventional) Compliance(metadata *metadata.Metadata, options ...policy
 	return report
 }
 
-// Pipeline implements the policy.Policy.Pipeline function.
-func (c *Conventional) Pipeline(*pipeline.Pipeline) policy.Option {
-	return func(args *policy.Options) {}
-}
-
-// Tasks implements the policy.Policy.Tasks function.
-func (c *Conventional) Tasks(map[string]*task.Task) policy.Option {
-	return func(args *policy.Options) {}
-}
-
 // ValidateHeaderLength checks the header length.
 func ValidateHeaderLength(report *policy.Report, groups []string) {
 	if len(groups[0]) > MaxNumberOfCommitCharacters {
-		report.Errors = append(report.Errors, fmt.Errorf("Commit header is %d characters", len(groups[0])))
+		report.Errors = append(report.Errors, errors.Errorf("Commit header is %d characters", len(groups[0])))
 	}
 }
 
@@ -89,7 +85,7 @@ func ValidateType(report *policy.Report, groups []string, types []string) {
 			return
 		}
 	}
-	report.Errors = append(report.Errors, fmt.Errorf("Invalid type: %s, allowed types are: %v", groups[1], types))
+	report.Errors = append(report.Errors, errors.Errorf("Invalid type: %s, allowed types are: %v", groups[1], types))
 }
 
 // ValidateScope returns the commit scope.
@@ -103,7 +99,7 @@ func ValidateScope(report *policy.Report, groups []string, scopes []string) {
 			return
 		}
 	}
-	report.Errors = append(report.Errors, fmt.Errorf("Invalid scope: %s, allowed scopes are: %v", groups[3], scopes))
+	report.Errors = append(report.Errors, errors.Errorf("Invalid scope: %s, allowed scopes are: %v", groups[3], scopes))
 }
 
 // ValidateDescription returns the commit description.
@@ -111,7 +107,7 @@ func ValidateDescription(report *policy.Report, groups []string) {
 	if len(groups[4]) <= 72 && len(groups[4]) != 0 {
 		return
 	}
-	report.Errors = append(report.Errors, fmt.Errorf("Invalid description: %s", groups[4]))
+	report.Errors = append(report.Errors, errors.Errorf("Invalid description: %s", groups[4]))
 }
 
 func parseHeader(message string) []string {

@@ -14,52 +14,29 @@
 
 ---
 
-**Conform** is a tool for building projects in a flexible and reliabale manner.
+**Conform** is a tool for building enforcing policies on your build pipelines.
 
-The key features of Conform are:
--   **DRY**: Templatized multi-stage Docker builds.
--   **Hygienic**: Builds run in Docker.
--   **Fast**: Leverages Docker caching, building only what has changed.
+Some of the policies included are:
 
-Getting Started
----------------
+- **Convetion Commits**: Enforce [conventional commits](https://www.conventionalcommits.org) for all commit messages.
+
+## Getting Started
+
 Create a file named `.conform.yaml` with the following contents:
-```yaml
-metadata:
-  repository: hello/world
 
-policies:
+```yaml:
   - type: conventionalCommit
     spec:
       types:
         - "type"
       scopes:
         - "scope"
-
-script:
-  template: |
-    #!/bin/bash
-
-    echo "Hello, world!"
-
-pipeline:
-  stages:
-    - example
-
-stages:
-  example:
-    tasks:
-      - task
-
-tasks:
-  task:
-    template: |
-      FROM scratch
 ```
 
 In the same directory, run:
-```
-$ conform build
+
+```bash
+conform enforce
 ```
 
 ### License

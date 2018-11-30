@@ -1,8 +1,0 @@
-*
-!cmd
-!go.mod
-!go.sum
-!hack
-!main.go
-!pkg
-!scripts

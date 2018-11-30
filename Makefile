@@ -9,6 +9,7 @@ AUTH_CONFIG ?= $(HOME)/.kaniko/config.json
 SHA := $(shell gitmeta git sha)
 TAG := $(shell gitmeta image tag)
 BUILT := $(shell gitmeta built)
+PUSH := $(shell gitmeta image pushable --negate)
 
 EXECUTOR_ARGS := --context=/workspace --cache=true --cache-dir=/cache --cleanup
 EXECUTOR_VOLUMES := --volume $(AUTH_CONFIG):/kaniko/.docker/config.json:ro --volume $(PWD)/cache:/cache --volume $(PWD)/build:/build
@@ -28,8 +29,9 @@ conform: cache
 			--dockerfile=Dockerfile \
 			--cache-repo=$(REPO)/$@ \
 			--destination=$(REPO)/$@:$(TAG) \
+			--destination=$(REPO)/$@:latest \
 			--single-snapshot \
-			--no-push \
+			--no-push=$(PUSH) \
 			--build-arg GOLANG_IMAGE=$(GOLANG_IMAGE) \
 			--build-arg SHA=$(SHA) \
 			--build-arg TAG=$(TAG) \

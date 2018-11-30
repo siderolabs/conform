@@ -1,6 +1,6 @@
 <p align="center">
   <h1 align="center">Conform</h1>
-  <p align="center">DRY, hygienic, fast builds.</p>
+  <p align="center">Policy enforcment for your pipelines.</p>
   <p align="center">
     <a href="https://gitter.im/autonomy/conform"><img alt="Gitter" src="https://img.shields.io/gitter/room/autonomy/conform.svg?style=flat-square"></a>
     <a href="https://godoc.org/github.com/autonomy/conform"><img alt="GoDoc" src="http://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square"></a>
@@ -14,11 +14,11 @@
 
 ---
 
-**Conform** is a tool for building enforcing policies on your build pipelines.
+**Conform** is a tool for enforcing policies on your build pipelines.
 
 Some of the policies included are:
 
-- **Convetion Commits**: Enforce [conventional commits](https://www.conventionalcommits.org) for all commit messages.
+- **Conventional Commits**: Enforce [conventional commits](https://www.conventionalcommits.org) for all commit messages.
 
 ## Getting Started
 

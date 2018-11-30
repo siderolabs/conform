@@ -1,6 +1,6 @@
 <p align="center">
   <h1 align="center">Conform</h1>
-  <p align="center">Policy enforcment for your pipelines.</p>
+  <p align="center">Policy enforcement for your pipelines.</p>
   <p align="center">
     <a href="https://gitter.im/autonomy/conform"><img alt="Gitter" src="https://img.shields.io/gitter/room/autonomy/conform.svg?style=flat-square"></a>
     <a href="https://godoc.org/github.com/autonomy/conform"><img alt="GoDoc" src="http://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square"></a>

@@ -1,3 +1,13 @@
+<a name="0.1.0-alpha.8"></a>
+# [0.1.0-alpha.8](https://github.com/autonomy/conform/compare/v0.1.0-alpha.7...v0.1.0-alpha.8) (2019-01-13)
+
+
+### Bug Fixes
+
+* **policy:** remove commit header length from conventional commit policy ([#102](https://github.com/autonomy/conform/issues/102)) ([116a3bf](https://github.com/autonomy/conform/commit/116a3bf))
+
+
+
 <a name="0.1.0-alpha.7"></a>
 # [0.1.0-alpha.7](https://github.com/autonomy/conform/compare/v0.1.0-alpha.6...v0.1.0-alpha.7) (2019-01-13)
 

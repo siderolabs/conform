@@ -47,10 +47,7 @@ var enforceCmd = &cobra.Command{
 			opts = append(opts, policy.WithCommitMsgFile(&commitMsgFile))
 		}
 
-		if err = e.Enforce(opts...); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+		e.Enforce(opts...)
 	},
 }
 

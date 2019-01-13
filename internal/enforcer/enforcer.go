@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"text/tabwriter"
 
 	"github.com/autonomy/conform/internal/policy"
 	"github.com/autonomy/conform/internal/policy/commit"
@@ -49,40 +50,48 @@ func New() (*Conform, error) {
 }
 
 // Enforce enforces all policies defined in the conform.yaml file.
-func (c *Conform) Enforce(setters ...policy.Option) error {
+func (c *Conform) Enforce(setters ...policy.Option) {
 	opts := policy.NewDefaultOptions(setters...)
 
+	const padding = 8
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', 0)
+	fmt.Fprintln(w, "POLICY\tSTATUS\tMESSAGE\t")
+
+	var failed bool
 	for _, p := range c.Policies {
-		fmt.Printf("Enforcing policy %q ... ", p.Type)
-		err := c.enforce(p, opts)
-		if err != nil {
-			fmt.Printf("FAILED\n")
-			return err
+		if errs := c.enforce(p, opts); errs != nil {
+			failed = true
+			for _, err := range errs {
+				fmt.Fprintf(w, "%s\t%s\t%v\t\n", p.Type, "FAILED", err)
+			}
+		} else {
+			fmt.Fprintf(w, "%s\t%s\t%s\t\n", p.Type, "PASS", "<none>")
 		}
-		fmt.Printf("PASS\n")
 	}
 
-	return nil
+	w.Flush()
+
+	if failed {
+		os.Exit(1)
+	}
 }
 
-func (c *Conform) enforce(declaration *PolicyDeclaration, opts *policy.Options) error {
+func (c *Conform) enforce(declaration *PolicyDeclaration, opts *policy.Options) []error {
 	if _, ok := policyMap[declaration.Type]; !ok {
-		return errors.Errorf("Policy %q is not defined", declaration.Type)
+		return []error{errors.Errorf("Policy %q is not defined", declaration.Type)}
 	}
+
 	p := policyMap[declaration.Type]
+
 	err := mapstructure.Decode(declaration.Spec, p)
 	if err != nil {
-		return err
+		return []error{errors.Errorf("Internal error: %v", err)}
 	}
 
 	report := p.Compliance(opts)
 
 	if !report.Valid() {
-		fmt.Printf("Violation of policy %q:\n", declaration.Type)
-		for i, err := range report.Errors {
-			fmt.Printf("\tViolation %d: %v\n", i+1, err)
-		}
-		os.Exit(1)
+		return report.Errors
 	}
 
 	return nil

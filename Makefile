@@ -1,59 +1,47 @@
-REPO ?= docker.io/autonomy
-EXECUTOR ?= gcr.io/kaniko-project/executor
-EXECUTOR_TAG ?= v0.6.0
-WARMER ?= gcr.io/kaniko-project/warmer
-WARMER_TAG ?= v0.6.0
-GOLANG_IMAGE ?= golang:1.11.2
-AUTH_CONFIG ?= $(HOME)/.kaniko/config.json
-
 SHA := $(shell gitmeta git sha)
 TAG := $(shell gitmeta image tag)
 BUILT := $(shell gitmeta built)
-PUSH := $(shell gitmeta image pushable --negate)
 
-EXECUTOR_ARGS := --context=/workspace --cache=true --cache-dir=/cache --cleanup
-EXECUTOR_VOLUMES := --volume $(AUTH_CONFIG):/kaniko/.docker/config.json:ro --volume $(PWD)/cache:/cache --volume $(PWD)/build:/build
+GOLANG_IMAGE ?= golang:1.11.4
 
-all: enforce clean conform
+COMMON_ARGS := -f ./Dockerfile --build-arg GOLANG_IMAGE=$(GOLANG_IMAGE) --build-arg SHA=$(SHA) --build-arg TAG=$(TAG) --build-arg BUILT="$(BUILT)" .
+
+export DOCKER_BUILDKIT := 1
+
+all: enforce build test image
 
 enforce:
-	conform enforce
+	@conform enforce
 
-conform: cache
-	docker run \
-		--rm \
-		$(EXECUTOR_VOLUMES) \
-		--volume $(PWD):/workspace \
-		$(EXECUTOR):$(EXECUTOR_TAG) \
-			$(EXECUTOR_ARGS) \
-			--dockerfile=Dockerfile \
-			--cache-repo=$(REPO)/$@ \
-			--destination=$(REPO)/$@:$(TAG) \
-			--destination=$(REPO)/$@:latest \
-			--single-snapshot \
-			--no-push=$(PUSH) \
-			--build-arg GOLANG_IMAGE=$(GOLANG_IMAGE) \
-			--build-arg SHA=$(SHA) \
-			--build-arg TAG=$(TAG) \
-			--build-arg BUILT="$(BUILT)"
+.PHONY: build
+build:
+	@docker build \
+		-t conform/$@:$(SHA) \
+		--target=$@ \
+		$(COMMON_ARGS)
+	@docker run --rm -it -v $(PWD)/build:/build conform/$@:$(SHA) cp /conform-linux-amd64 /build
+	@docker run --rm -it -v $(PWD)/build:/build conform/$@:$(SHA) cp /conform-darwin-amd64 /build
 
-.PHONY: cache
-cache:
-	docker run \
-		--rm \
-		$(EXECUTOR_VOLUMES) \
-		$(WARMER):$(WARMER_TAG) \
-			--cache-dir=/cache \
-			--image=$(GOLANG_IMAGE)
+test:
+	@docker build \
+		-t conform/$@:$(SHA) \
+		--target=$@ \
+		$(COMMON_ARGS)
+	@docker run --rm -it -v $(PWD)/build:/build conform/$@:$(SHA) cp /coverage.txt /build
 
-debug:
-	docker run \
-		--rm \
-		-it \
-		$(EXECUTOR_VOLUMES) \
-		--volume $(PWD):/workspace \
-		--entrypoint=/busybox/sh \
-		$(EXECUTOR):debug-${EXECUTOR_TAG}
+image: build
+	@docker build \
+		-t autonomy/conform:$(SHA) \
+		--target=$@ \
+		$(COMMON_ARGS)
+
+push: image
+	@docker push autonomy/conform:$(SHA)
+
+deps:
+	@GO111MODULES=on CGO_ENABLED=0 go get -u github.com/autonomy/gitmeta
+	@GO111MODULES=on CGO_ENABLED=0 go get -u github.com/autonomy/conform
 
 clean:
-	rm -rf ./build
+	go clean -modcache
+	rm -rf build vendor

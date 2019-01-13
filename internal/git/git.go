@@ -66,3 +66,20 @@ func (g *Git) Message() (message string, err error) {
 
 	return message, err
 }
+
+// HasGPGSignature returns the commit message. In the case that a commit has multiple
+// parents, the message of the last parent is returned.
+func (g *Git) HasGPGSignature() (ok bool, err error) {
+	ref, err := g.repo.Head()
+	if err != nil {
+		return
+	}
+	commit, err := g.repo.CommitObject(ref.Hash())
+	if err != nil {
+		return
+	}
+
+	ok = commit.PGPSignature != ""
+
+	return ok, err
+}

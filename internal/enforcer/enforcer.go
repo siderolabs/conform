@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/autonomy/conform/internal/policy"
+	"github.com/autonomy/conform/internal/policy/commit"
 	"github.com/autonomy/conform/internal/policy/conventionalcommit"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
@@ -27,6 +28,7 @@ type PolicyDeclaration struct {
 
 // policyMap defines the set of policies allowed within Conform.
 var policyMap = map[string]policy.Policy{
+	"commit":             &commit.Commit{},
 	"conventionalCommit": &conventionalcommit.Conventional{},
 	// "version":    &version.Version{},
 }
@@ -51,13 +53,13 @@ func (c *Conform) Enforce(setters ...policy.Option) error {
 	opts := policy.NewDefaultOptions(setters...)
 
 	for _, p := range c.Policies {
-		fmt.Printf("Enforcing policy %q: ", p.Type)
+		fmt.Printf("Enforcing policy %q ... ", p.Type)
 		err := c.enforce(p, opts)
 		if err != nil {
-			fmt.Printf("failed\n")
+			fmt.Printf("FAILED\n")
 			return err
 		}
-		fmt.Printf("pass\n")
+		fmt.Printf("PASS\n")
 	}
 
 	return nil

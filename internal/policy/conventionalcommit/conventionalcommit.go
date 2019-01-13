@@ -17,10 +17,6 @@ type Conventional struct {
 	Scopes []string `mapstructure:"scopes"`
 }
 
-// MaxNumberOfCommitCharacters is the maximium number of characters allowed in
-// a commit header.
-const MaxNumberOfCommitCharacters = 72
-
 // HeaderRegex is the regular expression used for Conventional Commits
 // 1.0.0-beta.1.
 var HeaderRegex = regexp.MustCompile(`^(\w*)(\(([^)]+)\))?:\s{1}(.*)($|\n{2})`)
@@ -62,19 +58,11 @@ func (c *Conventional) Compliance(options *policy.Options) (report policy.Report
 		return
 	}
 
-	ValidateHeaderLength(&report, groups)
 	ValidateType(&report, groups, c.Types)
 	ValidateScope(&report, groups, c.Scopes)
 	ValidateDescription(&report, groups)
 
 	return report
-}
-
-// ValidateHeaderLength checks the header length.
-func ValidateHeaderLength(report *policy.Report, groups []string) {
-	if len(groups[0]) > MaxNumberOfCommitCharacters {
-		report.Errors = append(report.Errors, errors.Errorf("Commit header is %d characters", len(groups[0])))
-	}
 }
 
 // ValidateType returns the commit type.

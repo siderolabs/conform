@@ -20,4 +20,4 @@ policies:
   spec:
     includeSuffixes:
     - .go
-    headerFile: ./hack/LICENSE_HEADER.txt
+    headerFile: LICENSE_HEADER

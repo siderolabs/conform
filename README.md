@@ -48,7 +48,7 @@ policies:
     - .ext
     excludeSuffixes:
     - .exclude-ext-prefix.ext
-    headerFile: ./hack/LICENSE_HEADER.txt
+    headerFile: LICENSE_HEADER
 ```
 
 In the same directory, run:

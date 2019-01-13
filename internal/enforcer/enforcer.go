@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 package enforcer
 
 import (
@@ -9,6 +13,7 @@ import (
 	"github.com/autonomy/conform/internal/policy"
 	"github.com/autonomy/conform/internal/policy/commit"
 	"github.com/autonomy/conform/internal/policy/conventionalcommit"
+	"github.com/autonomy/conform/internal/policy/license"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 
@@ -31,6 +36,7 @@ type PolicyDeclaration struct {
 var policyMap = map[string]policy.Policy{
 	"commit":             &commit.Commit{},
 	"conventionalCommit": &conventionalcommit.Conventional{},
+	"license":            &license.License{},
 	// "version":    &version.Version{},
 }
 

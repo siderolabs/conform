@@ -23,6 +23,7 @@ Some of the policies included are:
   - Developer Certificate of Origin
   - GPG signature
 - **Conventional Commits**: Enforce [conventional commits](https://www.conventionalcommits.org) for all commit messages.
+- **License Headers**: Enforce license headers on source code files.
 
 ## Getting Started
 
@@ -41,12 +42,23 @@ policies:
       - "type"
     scopes:
       - "scope"
+- type: license
+  spec:
+    includeSuffixes:
+    - .ext
+    excludeSuffixes:
+    - .exclude-ext-prefix.ext
+    headerFile: ./hack/LICENSE_HEADER.txt
 ```
 
 In the same directory, run:
 
 ```bash
-conform enforce
+$ conform enforce
+POLICY                    STATUS        MESSAGE
+commit                    PASS          <none>
+conventionalCommit        PASS          <none>
+license                   PASS          <none>
 ```
 
 ### License

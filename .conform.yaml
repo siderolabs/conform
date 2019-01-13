@@ -16,3 +16,8 @@ policies:
     scopes:
     - policy
     - '*'
+- type: license
+  spec:
+    includeSuffixes:
+    - .go
+    headerFile: ./hack/LICENSE_HEADER.txt

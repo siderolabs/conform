@@ -69,6 +69,7 @@ func (c *Conform) Enforce(setters ...policy.Option) {
 		}
 	}
 
+	// nolint: errcheck
 	w.Flush()
 
 	if failed {

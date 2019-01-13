@@ -18,6 +18,10 @@
 
 Some of the policies included are:
 
+- **Commits**: Enforce basic commit policies including:
+  - Commit message header length
+  - Developer Certificate of Origin
+  - GPG signature
 - **Conventional Commits**: Enforce [conventional commits](https://www.conventionalcommits.org) for all commit messages.
 
 ## Getting Started
@@ -26,6 +30,11 @@ Create a file named `.conform.yaml` with the following contents:
 
 ```yaml:
 policies:
+- type: commit
+  spec:
+    headerLength: 89
+    dco: true
+    gpg: true
 - type: conventionalCommit
   spec:
     types:

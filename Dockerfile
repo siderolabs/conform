@@ -32,6 +32,7 @@ COPY ./hack ./hack
 RUN chmod +x ./hack/test.sh
 RUN ./hack/test.sh --all
 
-FROM alpine:3.8 AS image
-COPY --from=build /conform-linux-amd64 /bin/conform
-ENTRYPOINT [ "conform" ]
+FROM scratch AS image
+COPY --from=build /conform-linux-amd64 /conform
+ENTRYPOINT [ "/conform" ]
+CMD [ "enforce" ]

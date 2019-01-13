@@ -36,7 +36,9 @@ image: build
 		$(COMMON_ARGS)
 
 push: image
+	@docker tag autonomy/conform:$(SHA) autonomy/conform:latest
 	@docker push autonomy/conform:$(SHA)
+	@docker push autonomy/conform:latest
 
 deps:
 	@GO111MODULES=on CGO_ENABLED=0 go get -u github.com/autonomy/gitmeta

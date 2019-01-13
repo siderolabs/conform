@@ -28,8 +28,8 @@ go_test() {
 coverage_tests() {
   if [ "${coverage}" = true ]; then
     echo "performing coverage tests"
-    local coverage_report="../build/coverage.txt"
-    local profile="../build/profile.out"
+    local coverage_report="/coverage.txt"
+    local profile="/profile.out"
     if [[ -f ${coverage_report} ]]; then
       rm ${coverage_report}
     fi

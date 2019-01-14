@@ -29,7 +29,7 @@ Some of the policies included are:
 
 Create a file named `.conform.yaml` with the following contents:
 
-```yaml:
+```yaml
 policies:
 - type: commit
   spec:

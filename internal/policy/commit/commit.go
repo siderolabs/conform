@@ -11,8 +11,8 @@ import (
 
 	"github.com/autonomy/conform/internal/git"
 	"github.com/autonomy/conform/internal/policy"
-	"github.com/kljensen/snowball"
 	"github.com/pkg/errors"
+	prose "gopkg.in/jdkato/prose.v2"
 )
 
 // Commit implements the policy.Policy interface and enforces commit
@@ -159,23 +159,21 @@ func ValidateGPGSign(report *policy.Report, g *git.Git) {
 
 // ValidateImperative checks the commit message for a GPG signature.
 func ValidateImperative(report *policy.Report, word string) {
-	word = strings.ToLower(word)
-	for _, good := range WhiteList {
-		stemmed, err := snowball.Stem(good, "english", true)
-		if err != nil {
-			report.Errors = append(report.Errors, errors.Errorf("Error checking for imperative mood: %v", err))
-		}
-		if word == stemmed {
-			return
+	doc, err := prose.NewDocument("I " + word)
+	if err != nil {
+		report.Errors = append(report.Errors, errors.Errorf("Failed to create document: %v", err))
+	}
+	if len(doc.Tokens()) != 2 {
+		report.Errors = append(report.Errors, errors.Errorf("Expected 2 tokens, got %d", len(doc.Tokens())))
+		return
+	}
+	tokens := doc.Tokens()
+	tok := tokens[1]
+	for _, tag := range []string{"VBD", "VBG", "VBZ"} {
+		if tok.Tag == tag {
+			report.Errors = append(report.Errors, errors.Errorf("First word of commit must be an imperative verb: %q", word))
 		}
 	}
-	for _, bad := range BlackList {
-		if word == bad {
-			report.Errors = append(report.Errors, errors.Errorf("Use of blacklisted imperative verb: %s", word))
-			return
-		}
-	}
-	report.Errors = append(report.Errors, errors.Errorf("Commit does not have imperative mood"))
 }
 
 // ValidateType returns the commit type.

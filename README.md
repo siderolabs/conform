@@ -58,7 +58,6 @@ In the same directory, run:
 $ conform enforce
 POLICY                    STATUS        MESSAGE
 commit                    PASS          <none>
-conventionalCommit        PASS          <none>
 license                   PASS          <none>
 ```
 

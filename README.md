@@ -18,11 +18,12 @@
 
 Some of the policies included are:
 
-- **Commits**: Enforce basic commit policies including:
+- **Commits**: Enforce commit policies including:
   - Commit message header length
   - Developer Certificate of Origin
   - GPG signature
-- **Conventional Commits**: Enforce [conventional commits](https://www.conventionalcommits.org) for all commit messages.
+  - [Conventional Commits](https://www.conventionalcommits.org)
+  - Imperative verb
 - **License Headers**: Enforce license headers on source code files.
 
 ## Getting Started
@@ -36,12 +37,12 @@ policies:
     headerLength: 89
     dco: true
     gpg: true
-- type: conventionalCommit
-  spec:
-    types:
-      - "type"
-    scopes:
-      - "scope"
+    imperative: true
+    conventional:
+      types:
+        - "type"
+      scopes:
+        - "scope"
 - type: license
   spec:
     includeSuffixes:

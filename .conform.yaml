@@ -4,18 +4,17 @@ policies:
     headerLength: 89
     dco: true
     gpg: true
-- type: conventionalCommit
-  spec:
-    types:
-    - chore
-    - docs
-    - perf
-    - refactor
-    - style
-    - test
-    scopes:
-    - policy
-    - '*'
+    imperative: true
+    conventional:
+      types:
+      - chore
+      - docs
+      - perf
+      - refactor
+      - style
+      - test
+      scopes:
+      - policy
 - type: license
   spec:
     includeSuffixes:

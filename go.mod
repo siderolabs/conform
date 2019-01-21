@@ -12,6 +12,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/kevinburke/ssh_config v0.0.0-20170525151105-fa48d7ff1cfb // indirect
+	github.com/kljensen/snowball v0.6.0
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/magiconair/properties v1.7.2 // indirect
 	github.com/mitchellh/go-homedir v0.0.0-20161203194507-b8bc1bf76747

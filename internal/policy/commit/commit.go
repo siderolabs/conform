@@ -11,6 +11,7 @@ import (
 
 	"github.com/autonomy/conform/internal/git"
 	"github.com/autonomy/conform/internal/policy"
+	"github.com/kljensen/snowball"
 	"github.com/pkg/errors"
 )
 
@@ -23,6 +24,18 @@ type Commit struct {
 	DCO bool `mapstructure:"dco"`
 	// GPG enables the GPG signature check.
 	GPG bool `mapstructure:"gpg"`
+	// Imperative enforces the use of imperative verbs as the first word of a
+	// commit message.
+	Imperative bool `mapstructure:"imperative"`
+	// Conventional is the user specified settings for conventional commits.
+	Conventional *Conventional `mapstructure:"conventional"`
+}
+
+// Conventional implements the policy.Policy interface and enforces commit
+// messages to conform the Conventional Commit standard.
+type Conventional struct {
+	Types  []string `mapstructure:"types"`
+	Scopes []string `mapstructure:"scopes"`
 }
 
 // MaxNumberOfCommitCharacters is the default maximium number of characters
@@ -32,7 +45,26 @@ var MaxNumberOfCommitCharacters = 89
 // DCORegex is the regular expression used for Developer Certificate of Origin.
 var DCORegex = regexp.MustCompile(`^Signed-off-by: ([^<]+) <([^<>@]+@[^<>]+)>$`)
 
+// FirstWordRegex is theregular expression used to find the first word in a
+// commit.
+var FirstWordRegex = regexp.MustCompile(`^\s*([a-zA-Z0-9]+)`)
+
+// HeaderRegex is the regular expression used for Conventional Commits
+// 1.0.0-beta.1.
+var HeaderRegex = regexp.MustCompile(`^(\w*)(\(([^)]+)\))?:\s{1}(.*)($|\n{2})`)
+
+const (
+	// TypeFeat is a commit of the type fix patches a bug in your codebase
+	// (this correlates with PATCH in semantic versioning).
+	TypeFeat = "feat"
+
+	// TypeFix is a commit of the type feat introduces a new feature to the
+	// codebase (this correlates with MINOR in semantic versioning).
+	TypeFix = "fix"
+)
+
 // Compliance implements the policy.Policy.Compliance function.
+// nolint: gocyclo
 func (c *Commit) Compliance(options *policy.Options) (report policy.Report) {
 	var err error
 
@@ -72,6 +104,25 @@ func (c *Commit) Compliance(options *policy.Options) (report policy.Report) {
 		ValidateGPGSign(&report, g)
 	}
 
+	word := firstWord(msg)
+
+	if c.Conventional != nil {
+		groups := parseHeader(msg)
+		if len(groups) != 6 {
+			report.Errors = append(report.Errors, errors.Errorf("Invalid conventional commits format: %s", msg))
+			return
+		}
+		word = firstWord(groups[4])
+
+		ValidateType(&report, groups, c.Conventional.Types)
+		ValidateScope(&report, groups, c.Conventional.Scopes)
+		ValidateDescription(&report, groups)
+	}
+
+	if c.Imperative {
+		ValidateImperative(&report, word)
+	}
+
 	return report
 }
 
@@ -104,4 +155,74 @@ func ValidateGPGSign(report *policy.Report, g *git.Git) {
 		}
 		report.Errors = append(report.Errors, errors.Errorf("Commit does not have a GPG signature"))
 	}
+}
+
+// ValidateImperative checks the commit message for a GPG signature.
+func ValidateImperative(report *policy.Report, word string) {
+	word = strings.ToLower(word)
+	for _, good := range WhiteList {
+		stemmed, err := snowball.Stem(good, "english", true)
+		if err != nil {
+			report.Errors = append(report.Errors, errors.Errorf("Error checking for imperative mood: %v", err))
+		}
+		if word == stemmed {
+			return
+		}
+	}
+	for _, bad := range BlackList {
+		if word == bad {
+			report.Errors = append(report.Errors, errors.Errorf("Use of blacklisted imperative verb: %s", word))
+			return
+		}
+	}
+	report.Errors = append(report.Errors, errors.Errorf("Commit does not have imperative mood"))
+}
+
+// ValidateType returns the commit type.
+func ValidateType(report *policy.Report, groups []string, types []string) {
+	types = append(types, TypeFeat, TypeFix)
+	for _, t := range types {
+		if t == groups[1] {
+			return
+		}
+	}
+	report.Errors = append(report.Errors, errors.Errorf("Invalid type: %s, allowed types are: %v", groups[1], types))
+}
+
+// ValidateScope returns the commit scope.
+func ValidateScope(report *policy.Report, groups []string, scopes []string) {
+	// Scope is optional.
+	if groups[3] == "" {
+		return
+	}
+	for _, scope := range scopes {
+		if scope == groups[3] {
+			return
+		}
+	}
+	report.Errors = append(report.Errors, errors.Errorf("Invalid scope: %s, allowed scopes are: %v", groups[3], scopes))
+}
+
+// ValidateDescription returns the commit description.
+func ValidateDescription(report *policy.Report, groups []string) {
+	if len(groups[4]) <= 72 && len(groups[4]) != 0 {
+		return
+	}
+	report.Errors = append(report.Errors, errors.Errorf("Invalid description: %s", groups[4]))
+}
+
+func firstWord(msg string) string {
+	header := strings.Split(strings.TrimPrefix(msg, "\n"), "\n")[0]
+	groups := FirstWordRegex.FindStringSubmatch(header)
+	return groups[0]
+}
+
+func parseHeader(msg string) []string {
+	// To circumvent any policy violation due to the leading \n that GitHub
+	// prefixes to the commit message on a squash merge, we remove it from the
+	// message.
+	header := strings.Split(strings.TrimPrefix(msg, "\n"), "\n")[0]
+	groups := HeaderRegex.FindStringSubmatch(header)
+
+	return groups
 }

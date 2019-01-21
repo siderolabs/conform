@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package conventionalcommit
+package commit
 
 import (
 	"io/ioutil"
@@ -76,9 +76,12 @@ func TestInvalidConventionalCommitPolicy(t *testing.T) {
 }
 
 func runCompliance() (*policy.Report, error) {
-	c := &Conventional{}
-	c.Types = []string{"type"}
-	c.Scopes = []string{"scope"}
+	c := &Commit{
+		Conventional: &Conventional{
+			Types:  []string{"type"},
+			Scopes: []string{"scope"},
+		},
+	}
 
 	report := c.Compliance(&policy.Options{})
 

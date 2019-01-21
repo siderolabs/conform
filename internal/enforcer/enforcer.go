@@ -12,7 +12,6 @@ import (
 
 	"github.com/autonomy/conform/internal/policy"
 	"github.com/autonomy/conform/internal/policy/commit"
-	"github.com/autonomy/conform/internal/policy/conventionalcommit"
 	"github.com/autonomy/conform/internal/policy/license"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
@@ -34,9 +33,8 @@ type PolicyDeclaration struct {
 
 // policyMap defines the set of policies allowed within Conform.
 var policyMap = map[string]policy.Policy{
-	"commit":             &commit.Commit{},
-	"conventionalCommit": &conventionalcommit.Conventional{},
-	"license":            &license.License{},
+	"commit":  &commit.Commit{},
+	"license": &license.License{},
 	// "version":    &version.Version{},
 }
 

@@ -1,3 +1,19 @@
+<a name="0.1.0-alpha.9"></a>
+# [0.1.0-alpha.9](https://github.com/autonomy/conform/compare/v0.1.0-alpha.8...v0.1.0-alpha.9) (2019-01-21)
+
+
+### Bug Fixes
+
+* **policy:** use natural language processing for imperative check ([#109](https://github.com/autonomy/conform/issues/109)) ([3f75846](https://github.com/autonomy/conform/commit/3f75846))
+
+
+### Features
+
+* add license header policy ([#105](https://github.com/autonomy/conform/issues/105)) ([f5ed717](https://github.com/autonomy/conform/commit/f5ed717))
+* **policy:** add imperative mood check ([#108](https://github.com/autonomy/conform/issues/108)) ([5c6620a](https://github.com/autonomy/conform/commit/5c6620a))
+
+
+
 <a name="0.1.0-alpha.8"></a>
 # [0.1.0-alpha.8](https://github.com/autonomy/conform/compare/v0.1.0-alpha.7...v0.1.0-alpha.8) (2019-01-13)
 

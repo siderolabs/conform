@@ -159,7 +159,7 @@ func ValidateGPGSign(report *policy.Report, g *git.Git) {
 
 // ValidateImperative checks the commit message for a GPG signature.
 func ValidateImperative(report *policy.Report, word string) {
-	doc, err := prose.NewDocument("I " + word)
+	doc, err := prose.NewDocument("I " + strings.ToLower(word))
 	if err != nil {
 		report.Errors = append(report.Errors, errors.Errorf("Failed to create document: %v", err))
 	}

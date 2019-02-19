@@ -1,3 +1,13 @@
+# [v0.1.0-alpha.10](https://github.com/autonomy/conform/compare/v0.1.0-alpha.9...v0.1.0-alpha.10) (2019-02-19)
+
+
+### Bug Fixes
+
+* ensure the imperative check is against lowercase word ([#112](https://github.com/autonomy/conform/issues/112)) ([6ac7c2f](https://github.com/autonomy/conform/commit/6ac7c2f))
+* use mood instead of verb ([#114](https://github.com/autonomy/conform/issues/114)) ([bd039e4](https://github.com/autonomy/conform/commit/bd039e4))
+
+
+
 <a name="0.1.0-alpha.9"></a>
 # [0.1.0-alpha.9](https://github.com/autonomy/conform/compare/v0.1.0-alpha.8...v0.1.0-alpha.9) (2019-01-21)
 

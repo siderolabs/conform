@@ -23,7 +23,7 @@ Some of the policies included are:
   - Developer Certificate of Origin
   - GPG signature
   - [Conventional Commits](https://www.conventionalcommits.org)
-  - Imperative verb
+  - Imperative mood
 - **License Headers**: Enforce license headers on source code files.
 
 ## Getting Started

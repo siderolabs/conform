@@ -24,8 +24,8 @@ type License struct {
 	// ExcludeSuffixes is the Suffixes used to find files that the license policy
 	// should not be applied to.
 	ExcludeSuffixes []string `mapstructure:"excludeSuffixes"`
-	// LicenseHeaderFile is the path to the license header file.
-	LicenseHeaderFile string `mapstructure:"headerFile"`
+	// Header is the contents of the license header.
+	Header string `mapstructure:"header"`
 }
 
 // Compliance implements the policy.Policy.Compliance function.
@@ -33,12 +33,10 @@ func (l *License) Compliance(options *policy.Options) (report policy.Report) {
 	var err error
 
 	report = policy.Report{}
-
-	var value []byte
-	if value, err = ioutil.ReadFile(l.LicenseHeaderFile); err != nil {
-		report.Errors = append(report.Errors, errors.Errorf("Failed to open %s", l.LicenseHeaderFile))
+	if l.Header == "" {
+		report.Errors = append(report.Errors, errors.New("Header is not defined"))
+		return report
 	}
-
 	err = filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -58,7 +56,7 @@ func (l *License) Compliance(options *policy.Options) (report policy.Report) {
 						report.Errors = append(report.Errors, errors.Errorf("Failed to open %s", path))
 						return nil
 					}
-					ValidateLicenseHeader(&report, info.Name(), contents, value)
+					ValidateLicenseHeader(&report, info.Name(), contents, []byte(l.Header))
 				}
 			}
 		}

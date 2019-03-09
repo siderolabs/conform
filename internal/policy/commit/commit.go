@@ -104,7 +104,10 @@ func (c *Commit) Compliance(options *policy.Options) (report policy.Report) {
 		ValidateGPGSign(&report, g)
 	}
 
-	word := firstWord(msg)
+	var word string
+	if word, err = firstWord(msg, &report); err != nil {
+		return
+	}
 
 	if c.Conventional != nil {
 		groups := parseHeader(msg)
@@ -112,7 +115,9 @@ func (c *Commit) Compliance(options *policy.Options) (report policy.Report) {
 			report.Errors = append(report.Errors, errors.Errorf("Invalid conventional commits format: %s", msg))
 			return
 		}
-		word = firstWord(groups[4])
+		if word, err = firstWord(groups[4], &report); err != nil {
+			return
+		}
 
 		ValidateType(&report, groups, c.Conventional.Types)
 		ValidateScope(&report, groups, c.Conventional.Scopes)
@@ -209,10 +214,17 @@ func ValidateDescription(report *policy.Report, groups []string) {
 	report.Errors = append(report.Errors, errors.Errorf("Invalid description: %s", groups[4]))
 }
 
-func firstWord(msg string) string {
-	header := strings.Split(strings.TrimPrefix(msg, "\n"), "\n")[0]
-	groups := FirstWordRegex.FindStringSubmatch(header)
-	return groups[0]
+func firstWord(msg string, report *policy.Report) (string, error) {
+	var header string
+	var groups []string
+	if header = strings.Split(strings.TrimPrefix(msg, "\n"), "\n")[0]; header == "" {
+		report.Errors = append(report.Errors, errors.Errorf("Invalid conventional commits (empty)"))
+		return "", errors.Errorf("Invalid msg: %s", msg)
+	}
+	if groups = FirstWordRegex.FindStringSubmatch(header); groups == nil {
+		return "", errors.Errorf("Invalid msg: %s", msg)
+	}
+	return groups[0], nil
 }
 
 func parseHeader(msg string) []string {

@@ -75,6 +75,33 @@ func TestInvalidConventionalCommitPolicy(t *testing.T) {
 	}
 }
 
+func TestEmptyConventionalCommitPolicy(t *testing.T) {
+	dir, err := ioutil.TempDir("", "test")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer RemoveAll(dir)
+	err = os.Chdir(dir)
+	if err != nil {
+		t.Error(err)
+	}
+	err = initRepo()
+	if err != nil {
+		t.Error(err)
+	}
+	err = createEmptyCommit()
+	if err != nil {
+		t.Error(err)
+	}
+	report, err := runCompliance()
+	if err != nil {
+		t.Error(err)
+	}
+	if report.Valid() {
+		t.Error("Report is valid with invalid conventional commit")
+	}
+}
+
 func runCompliance() (*policy.Report, error) {
 	c := &Commit{
 		Conventional: &Conventional{
@@ -110,6 +137,12 @@ func createValidCommit() error {
 
 func createInvalidCommit() error {
 	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@autonomy.io'", "commit", "-m", "invalid commit").Output()
+
+	return err
+}
+
+func createEmptyCommit() error {
+	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@autonomy.io'", "commit", "--allow-empty-message", "-m", "").Output()
 
 	return err
 }

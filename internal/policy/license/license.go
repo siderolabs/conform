@@ -45,7 +45,7 @@ func (l *License) Compliance(options *policy.Options) (report policy.Report) {
 			// Skip excluded suffixes.
 			for _, suffix := range l.ExcludeSuffixes {
 				if strings.HasSuffix(info.Name(), suffix) {
-					continue
+					return nil
 				}
 			}
 			// Check files matching the included suffixes.
@@ -57,6 +57,7 @@ func (l *License) Compliance(options *policy.Options) (report policy.Report) {
 						return nil
 					}
 					ValidateLicenseHeader(&report, info.Name(), contents, []byte(l.Header))
+					return nil
 				}
 			}
 		}

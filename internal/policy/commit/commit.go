@@ -84,11 +84,9 @@ func (c *Commit) Compliance(options *policy.Options) (report policy.Report) {
 			return
 		}
 		msg = string(contents)
-	} else {
-		if msg, err = g.Message(); err != nil {
-			report.Errors = append(report.Errors, errors.Errorf("failed to get commit message: %v", err))
-			return
-		}
+	} else if msg, err = g.Message(); err != nil {
+		report.Errors = append(report.Errors, errors.Errorf("failed to get commit message: %v", err))
+		return
 	}
 
 	if c.HeaderLength != 0 {

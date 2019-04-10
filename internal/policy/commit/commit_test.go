@@ -21,88 +21,67 @@ func RemoveAll(dir string) {
 	}
 }
 
-func TestValidConventionalCommitPolicy(t *testing.T) {
-	dir, err := ioutil.TempDir("", "test")
-	if err != nil {
-		log.Fatal(err)
+func TestConventionalCommitPolicy(t *testing.T) {
+	type testDesc struct {
+		Name         string
+		CreateCommit func() error
+		ExpectValid  bool
 	}
-	defer RemoveAll(dir)
-	err = os.Chdir(dir)
-	if err != nil {
-		t.Error(err)
-	}
-	err = initRepo()
-	if err != nil {
-		t.Error(err)
-	}
-	err = createValidCommit()
-	if err != nil {
-		t.Error(err)
-	}
-	report, err := runCompliance()
-	if err != nil {
-		t.Error(err)
-	}
-	if !report.Valid() {
-		t.Error("Report is invalid with valid conventional commit")
+
+	for _, test := range []testDesc{
+		{
+			Name:         "Valid",
+			CreateCommit: createValidCommit,
+			ExpectValid:  true,
+		},
+		{
+			Name:         "Invalid",
+			CreateCommit: createInvalidCommit,
+			ExpectValid:  false,
+		},
+		{
+			Name:         "Empty",
+			CreateCommit: createEmptyCommit,
+			ExpectValid:  false,
+		},
+	} {
+		func(test testDesc) {
+			t.Run(test.Name, func(tt *testing.T) {
+				dir, err := ioutil.TempDir("", "test")
+				if err != nil {
+					log.Fatal(err)
+				}
+				defer RemoveAll(dir)
+				err = os.Chdir(dir)
+				if err != nil {
+					tt.Error(err)
+				}
+				err = initRepo()
+				if err != nil {
+					tt.Error(err)
+				}
+
+				err = test.CreateCommit()
+				if err != nil {
+					tt.Error(err)
+				}
+				report := runCompliance()
+
+				if test.ExpectValid {
+					if !report.Valid() {
+						tt.Error("Report is invalid with valid conventional commit")
+					}
+				} else {
+					if report.Valid() {
+						tt.Error("Report is valid with invalid conventional commit")
+					}
+				}
+			})
+		}(test)
 	}
 }
 
-func TestInvalidConventionalCommitPolicy(t *testing.T) {
-	dir, err := ioutil.TempDir("", "test")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer RemoveAll(dir)
-	err = os.Chdir(dir)
-	if err != nil {
-		t.Error(err)
-	}
-	err = initRepo()
-	if err != nil {
-		t.Error(err)
-	}
-	err = createInvalidCommit()
-	if err != nil {
-		t.Error(err)
-	}
-	report, err := runCompliance()
-	if err != nil {
-		t.Error(err)
-	}
-	if report.Valid() {
-		t.Error("Report is valid with invalid conventional commit")
-	}
-}
-
-func TestEmptyConventionalCommitPolicy(t *testing.T) {
-	dir, err := ioutil.TempDir("", "test")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer RemoveAll(dir)
-	err = os.Chdir(dir)
-	if err != nil {
-		t.Error(err)
-	}
-	err = initRepo()
-	if err != nil {
-		t.Error(err)
-	}
-	err = createEmptyCommit()
-	if err != nil {
-		t.Error(err)
-	}
-	report, err := runCompliance()
-	if err != nil {
-		t.Error(err)
-	}
-	if report.Valid() {
-		t.Error("Report is valid with invalid conventional commit")
-	}
-}
-
-func runCompliance() (*policy.Report, error) {
+func runCompliance() *policy.Report {
 	c := &Commit{
 		Conventional: &Conventional{
 			Types:  []string{"type"},
@@ -112,7 +91,7 @@ func runCompliance() (*policy.Report, error) {
 
 	report := c.Compliance(&policy.Options{})
 
-	return &report, nil
+	return &report
 }
 
 func initRepo() error {

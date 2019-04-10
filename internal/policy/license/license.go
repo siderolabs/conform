@@ -18,6 +18,9 @@ import (
 // License implements the policy.Policy interface and enforces source code
 // license headers.
 type License struct {
+	// SkipPaths applies fnmatch-style patterns to file paths to skip completely
+	// parts of the tree which shouldn't be scanned (e.g. .git/)
+	SkipPaths []string `mapstructure:"skipPaths"`
 	// IncludeSuffixes is the regex used to find files that the license policy
 	// should be applied to.
 	IncludeSuffixes []string `mapstructure:"includeSuffixes"`
@@ -29,6 +32,7 @@ type License struct {
 }
 
 // Compliance implements the policy.Policy.Compliance function.
+// nolint: gocyclo
 func (l *License) Compliance(options *policy.Options) (report policy.Report) {
 	var err error
 
@@ -41,6 +45,28 @@ func (l *License) Compliance(options *policy.Options) (report policy.Report) {
 		if err != nil {
 			return err
 		}
+
+		matchPath := path
+		if info.IsDir() {
+			// for directories, match against "dir/
+			matchPath += "/"
+		}
+		for _, pattern := range l.SkipPaths {
+			var matches bool
+			matches, err = filepath.Match(pattern, matchPath)
+			if err != nil {
+				return err
+			}
+			if matches {
+				if info.IsDir() {
+					// skip whole directory tree
+					return filepath.SkipDir
+				}
+				// skip single file
+				return nil
+			}
+		}
+
 		if info.Mode().IsRegular() {
 			// Skip excluded suffixes.
 			for _, suffix := range l.ExcludeSuffixes {

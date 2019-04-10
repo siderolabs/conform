@@ -1,9 +1,0 @@
-exclude:
-- /vendor/.*
-- /docs/.*
-- /website/.*
-- brigade.js
-component_depth: 1
-languages:
-- go
-- script

@@ -37,7 +37,7 @@ image: build
 
 .PHONY: login
 login:
-	@docker login --username $(DOCKER_USERNAME) --password $(DOCKER_PASSWORD)
+	@docker login --username "$(DOCKER_USERNAME)" --password "$(DOCKER_PASSWORD)"
 
 push: image
 	@docker tag autonomy/conform:$(TAG) autonomy/conform:latest

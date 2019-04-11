@@ -1,0 +1,63 @@
+kind: pipeline
+name: default
+
+services:
+- name: docker
+  image: docker:dind
+  privileged: true
+  volumes:
+  - name: dockersock
+    path: /var/run
+
+steps:
+  - name: enforce
+    image: autonomy/build-container:latest
+    pull: always
+    commands:
+      - make build
+      - build/conform-linux-amd64 enforce
+    volumes:
+      - name: dockersock
+        path: /var/run
+
+  - name: test
+    image: autonomy/build-container:latest
+    pull: always
+    commands:
+      - make test
+    volumes:
+      - name: dockersock
+        path: /var/run
+
+  - name: image
+    image: autonomy/build-container:latest
+    pull: always
+    commands:
+      - make image
+    volumes:
+      - name: dockersock
+        path: /var/run
+
+  - name: push
+    image: autonomy/build-container:latest
+    pull: always
+    environment:
+      DOCKER_USERNAME:
+        from_secret: docker_username
+      DOCKER_PASSWORD:
+        from_secret: docker_password
+    commands:
+      - make login
+      - make push
+    volumes:
+      - name: dockersock
+        path: /var/run
+    when:
+      branch:
+        - master
+      event:
+        - push
+
+volumes:
+- name: dockersock
+  temp: {}

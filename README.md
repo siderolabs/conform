@@ -45,6 +45,9 @@ policies:
         - "scope"
 - type: license
   spec:
+    skipPaths:
+    - .git/
+    - .build*/
     includeSuffixes:
     - .ext
     excludeSuffixes:

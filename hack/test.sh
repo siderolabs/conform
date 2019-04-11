@@ -3,12 +3,11 @@
 set -e
 
 CGO_ENABLED=1
-GOPACKAGES=$(go list ./...)
 
 lint_packages() {
   if [ "${lint}" = true ]; then
     echo "linting packages"
-    curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $GOPATH/bin v1.10.1
+    curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $GOPATH/bin v1.16.0
     golangci-lint run --config "${BASH_SOURCE%/*}/golangci-lint.yaml"
   fi
 }
@@ -21,33 +20,13 @@ go_test() {
 
   if [ "${tests}" = true ]; then
     echo "performing tests"
-    go test -v ./...
-  fi
-}
-
-coverage_tests() {
-  if [ "${coverage}" = true ]; then
-    echo "performing coverage tests"
-    local coverage_report="/coverage.txt"
-    local profile="/profile.out"
-    if [[ -f ${coverage_report} ]]; then
-      rm ${coverage_report}
-    fi
-    touch ${coverage_report}
-    for package in ${GOPACKAGES[@]}; do
-      go test -v -short -race -coverprofile=${profile} -covermode=atomic $package
-      if [ -f ${profile} ]; then
-        cat ${profile} >> ${coverage_report}
-        rm ${profile}
-      fi
-    done
+    go test -v -race -covermode=atomic -coverprofile=/coverage.txt ./...
   fi
 }
 
 lint=false
 short=false
 tests=false
-coverage=false
 
 case $1 in
   --lint)
@@ -59,21 +38,16 @@ case $1 in
   --integration)
   tests=true
   ;;
-  --coverage)
-  coverage=true
-  ;;
   --all)
   lint=true
   short=true
   tests=true
-  coverage=true
   ;;
   *)
   ;;
 esac
 
 go_test
-coverage_tests
 lint_packages
 
 exit 0

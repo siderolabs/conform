@@ -99,6 +99,8 @@ linters:
   disable:
     - gas
     - typecheck
+    - gochecknoglobals
+    - gochecknoinits
   disable-all: false
   fast: false
 

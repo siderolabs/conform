@@ -5,10 +5,12 @@ ENV CGO_ENABLED 0
 ENV GO111MODULES on
 
 WORKDIR /conform
-COPY ./ ./
+COPY go.mod ./
+COPY go.sum ./
 RUN go mod download
 RUN go mod verify
-RUN go mod tidy
+COPY ./ ./
+RUN go list -mod=readonly all
 
 FROM common AS build
 ARG TAG

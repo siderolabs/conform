@@ -38,6 +38,7 @@ policies:
     dco: true
     gpg: true
     imperative: true
+    anyScope: false
     conventional:
       types:
         - "type"

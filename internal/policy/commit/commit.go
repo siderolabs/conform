@@ -27,6 +27,10 @@ type Commit struct {
 	// Imperative enforces the use of imperative verbs as the first word of a
 	// commit message.
 	Imperative bool `mapstructure:"imperative"`
+	// AnyScope allows any scope and ignores Commit.Conventional.Scopes. This
+	// is useful if you have a very large repository with too many scopes than
+	// can be kept track of.
+	AnyScope bool `mapstructure:"anyScope"`
 	// Conventional is the user specified settings for conventional commits.
 	Conventional *Conventional `mapstructure:"conventional"`
 }
@@ -118,7 +122,9 @@ func (c *Commit) Compliance(options *policy.Options) (report policy.Report) {
 		}
 
 		ValidateType(&report, groups, c.Conventional.Types)
-		ValidateScope(&report, groups, c.Conventional.Scopes)
+		if !c.AnyScope {
+			ValidateScope(&report, groups, c.Conventional.Scopes)
+		}
 		ValidateDescription(&report, groups)
 	}
 

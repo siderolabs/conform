@@ -81,6 +81,48 @@ func TestConventionalCommitPolicy(t *testing.T) {
 	}
 }
 
+func TestValidateDCO(t *testing.T) {
+	type testDesc struct {
+		Name          string
+		CommitMessage string
+		ExpectValid   bool
+	}
+
+	for _, test := range []testDesc{
+		{
+			Name:          "Valid DCO",
+			CommitMessage: "something nice\n\nSigned-off-by: Foo Bar <foobar@example.org>\n\n",
+			ExpectValid:   true,
+		},
+		{
+			Name:          "Valid DCO with CRLF",
+			CommitMessage: "something nice\r\n\r\nSigned-off-by: Foo Bar <foobar@example.org>\r\n\r\n",
+			ExpectValid:   true,
+		},
+		{
+			Name:          "No DCO",
+			CommitMessage: "something nice\n\nnot signed\n",
+			ExpectValid:   false,
+		},
+	} {
+		t.Run(test.Name, func(tt *testing.T) {
+			var report policy.Report
+
+			ValidateDCO(&report, test.CommitMessage)
+
+			if test.ExpectValid {
+				if !report.Valid() {
+					tt.Error("Report is invalid with valid DCP")
+				}
+			} else {
+				if report.Valid() {
+					tt.Error("Report is valid with invalid DCO")
+				}
+			}
+		})
+	}
+}
+
 func runCompliance() *policy.Report {
 	c := &Commit{
 		Conventional: &Conventional{

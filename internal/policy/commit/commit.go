@@ -140,7 +140,7 @@ func ValidateHeaderLength(report *policy.Report, msg string) {
 // ValidateDCO checks the commit message for a Developer Certificate of Origin.
 func ValidateDCO(report *policy.Report, msg string) {
 	for _, line := range strings.Split(msg, "\n") {
-		if DCORegex.MatchString(line) {
+		if DCORegex.MatchString(strings.TrimSpace(line)) {
 			return
 		}
 	}

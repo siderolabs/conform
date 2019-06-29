@@ -5,15 +5,20 @@
 package enforcer
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
+	"path"
+	"strings"
 	"text/tabwriter"
 
 	"github.com/autonomy/conform/internal/policy"
 	"github.com/autonomy/conform/internal/policy/commit"
 	"github.com/autonomy/conform/internal/policy/license"
+	"github.com/google/go-github/github"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 
@@ -23,6 +28,8 @@ import (
 // Conform is a struct that conform.yaml gets decoded into.
 type Conform struct {
 	Policies []*PolicyDeclaration `yaml:"policies"`
+
+	token string
 }
 
 // PolicyDeclaration allows a user to declare an arbitrary type along with a
@@ -51,6 +58,11 @@ func New() (*Conform, error) {
 		return nil, err
 	}
 
+	token, ok := os.LookupEnv("GITHUB_TOKEN")
+	if ok {
+		c.token = token
+	}
+
 	return c, nil
 }
 
@@ -73,8 +85,10 @@ func (c *Conform) Enforce(setters ...policy.Option) {
 				for _, err := range check.Errors() {
 					fmt.Fprintf(w, "%s\t%s\t%s\t%v\t\n", p.Type, check.Name(), "FAILED", err)
 				}
+				c.SetStatus("failure", p.Type, check.Name(), check.Message())
 			} else {
 				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t\n", p.Type, check.Name(), "PASS", "<none>")
+				c.SetStatus("success", p.Type, check.Name(), check.Message())
 			}
 		}
 	}
@@ -85,6 +99,39 @@ func (c *Conform) Enforce(setters ...policy.Option) {
 	if !pass {
 		os.Exit(1)
 	}
+}
+
+// SetStatus sets the status of a GitHub check.
+// Valid statuses are "error", "failure", "pending", "success"
+func (c *Conform) SetStatus(state, policy, check, message string) {
+	if c.token == "" {
+		return
+	}
+	statusCheckContext := strings.ReplaceAll(strings.ToLower(path.Join("conform", policy, check)), " ", "-")
+	description := message
+	repoStatus := &github.RepoStatus{}
+	repoStatus.Context = &statusCheckContext
+	repoStatus.Description = &description
+	repoStatus.State = &state
+
+	http.DefaultClient.Transport = roundTripper{c.token}
+	githubClient := github.NewClient(http.DefaultClient)
+
+	parts := strings.Split(os.Getenv("GITHUB_REPOSITORY"), "/")
+
+	_, _, err := githubClient.Repositories.CreateStatus(context.Background(), parts[0], parts[1], os.Getenv("GITHUB_SHA"), repoStatus)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+type roundTripper struct {
+	accessToken string
+}
+
+func (rt roundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
+	r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", rt.accessToken))
+	return http.DefaultTransport.RoundTrip(r)
 }
 
 func (c *Conform) enforce(declaration *PolicyDeclaration, opts *policy.Options) (*policy.Report, error) {

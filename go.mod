@@ -9,6 +9,8 @@ require (
 	github.com/fsnotify/fsnotify v1.4.2 // indirect
 	github.com/gliderlabs/ssh v0.1.1 // indirect
 	github.com/google/go-cmp v0.2.0 // indirect
+	github.com/google/go-github v17.0.0+incompatible
+	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/hashicorp/hcl v0.0.0-20170509225359-392dba7d905e // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect

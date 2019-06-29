@@ -1,9 +1,7 @@
 ARG GOLANG_IMAGE
 FROM ${GOLANG_IMAGE} AS common
-
 ENV CGO_ENABLED 0
 ENV GO111MODULES on
-
 WORKDIR /conform
 COPY go.mod ./
 COPY go.sum ./
@@ -34,7 +32,15 @@ COPY ./hack ./hack
 RUN chmod +x ./hack/test.sh
 RUN ./hack/test.sh --all
 
+FROM alpine:3.9 as ca-certificates
+RUN apk add --update --no-cache ca-certificates
+
 FROM scratch AS image
+LABEL com.github.actions.name="Conform"
+LABEL com.github.actions.description="Policy enforcement for your pipelines."
+LABEL com.github.actions.icon="shield"
+LABEL com.github.actions.color="yellow"
+COPY --from=ca-certificates /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /conform-linux-amd64 /conform
 ENTRYPOINT [ "/conform" ]
 CMD [ "enforce" ]

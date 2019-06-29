@@ -2,19 +2,27 @@ kind: pipeline
 name: default
 
 services:
-- name: docker
-  image: docker:dind
-  privileged: true
-  volumes:
-  - name: dockersock
-    path: /var/run
+  - name: docker
+    image: docker:dind
+    privileged: true
+    volumes:
+      - name: dockersock
+        path: /var/run
 
 steps:
-  - name: enforce
+  - name: build
     image: autonomy/build-container:latest
     pull: always
     commands:
       - make build
+    volumes:
+      - name: dockersock
+        path: /var/run
+
+  - name: conform
+    image: autonomy/build-container:latest
+    pull: always
+    commands:
       - build/conform-linux-amd64 enforce
     volumes:
       - name: dockersock
@@ -59,5 +67,5 @@ steps:
         - push
 
 volumes:
-- name: dockersock
-  temp: {}
+  - name: dockersock
+    temp: {}

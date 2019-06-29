@@ -7,6 +7,7 @@ package enforcer
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"text/tabwriter"
 
@@ -59,45 +60,44 @@ func (c *Conform) Enforce(setters ...policy.Option) {
 
 	const padding = 8
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', 0)
-	fmt.Fprintln(w, "POLICY\tSTATUS\tMESSAGE\t")
+	fmt.Fprintln(w, "POLICY\tCHECK\tSTATUS\tMESSAGE\t")
 
-	var failed bool
+	pass := true
 	for _, p := range c.Policies {
-		if errs := c.enforce(p, opts); errs != nil {
-			failed = true
-			for _, err := range errs {
-				fmt.Fprintf(w, "%s\t%s\t%v\t\n", p.Type, "FAILED", err)
+		report, err := c.enforce(p, opts)
+		if err != nil {
+			log.Fatal(err)
+		}
+		for _, check := range report.Checks() {
+			if len(check.Errors()) != 0 {
+				for _, err := range check.Errors() {
+					fmt.Fprintf(w, "%s\t%s\t%s\t%v\t\n", p.Type, check.Name(), "FAILED", err)
+				}
+			} else {
+				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t\n", p.Type, check.Name(), "PASS", "<none>")
 			}
-		} else {
-			fmt.Fprintf(w, "%s\t%s\t%s\t\n", p.Type, "PASS", "<none>")
 		}
 	}
 
 	// nolint: errcheck
 	w.Flush()
 
-	if failed {
+	if !pass {
 		os.Exit(1)
 	}
 }
 
-func (c *Conform) enforce(declaration *PolicyDeclaration, opts *policy.Options) []error {
+func (c *Conform) enforce(declaration *PolicyDeclaration, opts *policy.Options) (*policy.Report, error) {
 	if _, ok := policyMap[declaration.Type]; !ok {
-		return []error{errors.Errorf("Policy %q is not defined", declaration.Type)}
+		return nil, errors.Errorf("Policy %q is not defined", declaration.Type)
 	}
 
 	p := policyMap[declaration.Type]
 
 	err := mapstructure.Decode(declaration.Spec, p)
 	if err != nil {
-		return []error{errors.Errorf("Internal error: %v", err)}
+		return nil, errors.Errorf("Internal error: %v", err)
 	}
 
-	report := p.Compliance(opts)
-
-	if !report.Valid() {
-		return report.Errors
-	}
-
-	return nil
+	return p.Compliance(opts)
 }

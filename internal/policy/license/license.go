@@ -6,6 +6,7 @@ package license
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -32,16 +33,45 @@ type License struct {
 }
 
 // Compliance implements the policy.Policy.Compliance function.
-// nolint: gocyclo
-func (l *License) Compliance(options *policy.Options) (report policy.Report) {
-	var err error
+func (l *License) Compliance(options *policy.Options) (*policy.Report, error) {
+	report := &policy.Report{}
 
-	report = policy.Report{}
-	if l.Header == "" {
-		report.Errors = append(report.Errors, errors.New("Header is not defined"))
-		return report
+	return report, nil
+}
+
+// HeaderCheck enforces a license header on source code files.
+type HeaderCheck struct {
+	errors []error
+}
+
+// Name returns the name of the check.
+func (l HeaderCheck) Name() string {
+	return "file license header"
+}
+
+// Message returns to check message.
+func (l HeaderCheck) Message() string {
+	if len(l.errors) != 0 {
+		return fmt.Sprintf("Found %d files without license header", len(l.errors))
 	}
-	err = filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+	return "All files have a valid license header"
+}
+
+// Errors returns any violations of the check.
+func (l HeaderCheck) Errors() []error {
+	return l.errors
+}
+
+// ValidateLicenseHeader checks the header of a file and ensures it contains the
+// provided value.
+// nolint: gocyclo
+func (l License) ValidateLicenseHeader(report *policy.Report, name string, contents, value []byte) policy.Check {
+	check := HeaderCheck{}
+	if l.Header == "" {
+		check.errors = append(check.errors, errors.New("Header is not defined"))
+		return check
+	}
+	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -79,28 +109,22 @@ func (l *License) Compliance(options *policy.Options) (report policy.Report) {
 				if strings.HasSuffix(info.Name(), suffix) {
 					var contents []byte
 					if contents, err = ioutil.ReadFile(path); err != nil {
-						report.Errors = append(report.Errors, errors.Errorf("Failed to open %s", path))
+						check.errors = append(check.errors, errors.Errorf("Failed to open %s", path))
 						return nil
 					}
-					ValidateLicenseHeader(&report, info.Name(), contents, []byte(l.Header))
-					return nil
+					// ValidateLicenseHeader(&report, info.Name(), contents, []byte(l.Header))
+					if bytes.HasPrefix(contents, value) {
+						continue
+					}
+					check.errors = append(check.errors, errors.Errorf("File %s does not contain a license header", name))
 				}
 			}
 		}
 		return nil
 	})
 	if err != nil {
-		report.Errors = append(report.Errors, errors.Errorf("Failed to walk directory: %v", err))
+		check.errors = append(check.errors, errors.Errorf("Failed to walk directory: %v", err))
 	}
 
-	return report
-}
-
-// ValidateLicenseHeader checks the header of a file and ensures it contains the
-// provided value.
-func ValidateLicenseHeader(report *policy.Report, name string, contents, value []byte) {
-	if bytes.HasPrefix(contents, value) {
-		return
-	}
-	report.Errors = append(report.Errors, errors.Errorf("File %s does not contain a license header", name))
+	return check
 }

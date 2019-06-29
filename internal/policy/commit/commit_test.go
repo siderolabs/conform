@@ -65,7 +65,10 @@ func TestConventionalCommitPolicy(t *testing.T) {
 				if err != nil {
 					tt.Error(err)
 				}
-				report := runCompliance()
+				report, err := runCompliance()
+				if err != nil {
+					t.Error(err)
+				}
 
 				if test.ExpectValid {
 					if !report.Valid() {
@@ -105,10 +108,12 @@ func TestValidateDCO(t *testing.T) {
 			ExpectValid:   false,
 		},
 	} {
+		// Fixes scopelint error.
+		test := test
 		t.Run(test.Name, func(tt *testing.T) {
 			var report policy.Report
-
-			ValidateDCO(&report, test.CommitMessage)
+			c := Commit{msg: test.CommitMessage}
+			report.AddCheck(c.ValidateDCO())
 
 			if test.ExpectValid {
 				if !report.Valid() {
@@ -123,7 +128,90 @@ func TestValidateDCO(t *testing.T) {
 	}
 }
 
-func runCompliance() *policy.Report {
+func TestValidConventionalCommitPolicy(t *testing.T) {
+	dir, err := ioutil.TempDir("", "test")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer RemoveAll(dir)
+	err = os.Chdir(dir)
+	if err != nil {
+		t.Error(err)
+	}
+	err = initRepo()
+	if err != nil {
+		t.Error(err)
+	}
+	err = createValidCommit()
+	if err != nil {
+		t.Error(err)
+	}
+	report, err := runCompliance()
+	if err != nil {
+		t.Error(err)
+	}
+	if !report.Valid() {
+		t.Errorf("Report is invalid with valid conventional commit")
+	}
+}
+
+// nolint: dupl
+func TestInvalidConventionalCommitPolicy(t *testing.T) {
+	dir, err := ioutil.TempDir("", "test")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer RemoveAll(dir)
+	err = os.Chdir(dir)
+	if err != nil {
+		t.Error(err)
+	}
+	err = initRepo()
+	if err != nil {
+		t.Error(err)
+	}
+	err = createInvalidCommit()
+	if err != nil {
+		t.Error(err)
+	}
+	report, err := runCompliance()
+	if err != nil {
+		t.Error(err)
+	}
+	if report.Valid() {
+		t.Errorf("Report is valid with invalid conventional commit")
+	}
+}
+
+// nolint: dupl
+func TestEmptyConventionalCommitPolicy(t *testing.T) {
+	dir, err := ioutil.TempDir("", "test")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer RemoveAll(dir)
+	err = os.Chdir(dir)
+	if err != nil {
+		t.Error(err)
+	}
+	err = initRepo()
+	if err != nil {
+		t.Error(err)
+	}
+	err = createEmptyCommit()
+	if err != nil {
+		t.Error(err)
+	}
+	report, err := runCompliance()
+	if err != nil {
+		t.Error(err)
+	}
+	if report.Valid() {
+		t.Error("Report is valid with invalid conventional commit")
+	}
+}
+
+func runCompliance() (*policy.Report, error) {
 	c := &Commit{
 		Conventional: &Conventional{
 			Types:  []string{"type"},
@@ -131,9 +219,7 @@ func runCompliance() *policy.Report {
 		},
 	}
 
-	report := c.Compliance(&policy.Options{})
-
-	return &report
+	return c.Compliance(&policy.Options{})
 }
 
 func initRepo() error {

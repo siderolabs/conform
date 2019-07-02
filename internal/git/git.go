@@ -5,11 +5,14 @@
 package git
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
 
 	git "gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/config"
+	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
@@ -76,14 +79,58 @@ func (g *Git) Message() (message string, err error) {
 func (g *Git) HasGPGSignature() (ok bool, err error) {
 	ref, err := g.repo.Head()
 	if err != nil {
-		return
+		return false, err
 	}
 	commit, err := g.repo.CommitObject(ref.Hash())
 	if err != nil {
-		return
+		return false, err
 	}
 
 	ok = commit.PGPSignature != ""
 
 	return ok, err
+}
+
+// FetchPullRequest fetches a remote PR.
+func (g *Git) FetchPullRequest(remote string, number int) (err error) {
+	opts := &git.FetchOptions{
+		RemoteName: remote,
+		RefSpecs: []config.RefSpec{
+			config.RefSpec(fmt.Sprintf("refs/pull/%d/head:pr/%d", number, number)),
+		},
+	}
+	if err = g.repo.Fetch(opts); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// CheckoutPullRequest checks out pull request.
+func (g *Git) CheckoutPullRequest(number int) (err error) {
+	w, err := g.repo.Worktree()
+	if err != nil {
+		return err
+	}
+
+	opts := &git.CheckoutOptions{
+		Branch: plumbing.ReferenceName(fmt.Sprintf("pr/%d", number)),
+	}
+
+	if err := w.Checkout(opts); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SHA returns the sha of the current commit.
+func (g *Git) SHA() (sha string, err error) {
+	ref, err := g.repo.Head()
+	if err != nil {
+		return sha, err
+	}
+	sha = ref.Hash().String()
+
+	return sha, nil
 }

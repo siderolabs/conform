@@ -5,6 +5,7 @@ services:
   - name: docker
     image: docker:dind
     privileged: true
+    network_mode: host
     volumes:
       - name: dockersock
         path: /var/run
@@ -65,6 +66,20 @@ steps:
         - master
       event:
         - push
+
+  - name: release
+    image: plugins/github-release
+    settings:
+      api_key:
+        from_secret: github_token
+      draft: true
+      files:
+        - build/conform-*
+      checksum:
+        - sha256
+        - sha512
+    when:
+      event: tag
 
 volumes:
   - name: dockersock

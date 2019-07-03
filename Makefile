@@ -31,6 +31,7 @@ test:
 
 image: build
 	@docker build \
+		--network=host \
 		-t autonomy/conform:$(TAG) \
 		--target=$@ \
 		$(COMMON_ARGS)

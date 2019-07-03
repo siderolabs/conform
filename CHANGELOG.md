@@ -1,4 +1,22 @@
-# [v0.1.0-alpha.12](https://github.com/talos-systems/conform/compare/v0.1.0-alpha.11...v0.1.0-alpha.12) (2019-06-29)
+# [v0.1.0-alpha.14](https://github.com/talos-systems/conform/compare/v0.1.0-alpha.13...v0.1.0-alpha.14) (2019-07-03)
+
+
+### Bug Fixes
+
+* add file header check ([#131](https://github.com/talos-systems/conform/issues/131)) ([ef30db9](https://github.com/talos-systems/conform/commit/ef30db9))
+
+
+
+# [0.1.0-alpha.13](https://github.com/talos-systems/conform/compare/v0.1.0-alpha.12...v0.1.0-alpha.13) (2019-07-02)
+
+
+### Features
+
+* add support for GH actions on forked repo PRs ([#130](https://github.com/talos-systems/conform/issues/130)) ([cc97536](https://github.com/talos-systems/conform/commit/cc97536))
+
+
+
+# [0.1.0-alpha.12](https://github.com/talos-systems/conform/compare/v0.1.0-alpha.11...v0.1.0-alpha.12) (2019-06-29)
 
 
 ### Bug Fixes
@@ -15,7 +33,21 @@
 
 
 
-# [v0.1.0-alpha.10](https://github.com/talos-systems/conform/compare/v0.1.0-alpha.9...v0.1.0-alpha.10) (2019-02-19)
+# [0.1.0-alpha.11](https://github.com/talos-systems/conform/compare/v0.1.0-alpha.10...v0.1.0-alpha.11) (2019-03-12)
+
+
+### Bug Fixes
+
+* check empty commit-msg prior to parsing ([#118](https://github.com/talos-systems/conform/issues/118)) ([37e0e69](https://github.com/talos-systems/conform/commit/37e0e69))
+
+
+### Features
+
+* change the license header to a string ([#116](https://github.com/talos-systems/conform/issues/116)) ([1473b44](https://github.com/talos-systems/conform/commit/1473b44))
+
+
+
+# [0.1.0-alpha.10](https://github.com/talos-systems/conform/compare/v0.1.0-alpha.9...v0.1.0-alpha.10) (2019-02-19)
 
 
 ### Bug Fixes
@@ -25,8 +57,7 @@
 
 
 
-<a name="0.1.0-alpha.9"></a>
-# [0.1.0-alpha.9](https://github.com/talos-systems/conform/compare/v0.1.0-alpha.8...v0.1.0-alpha.9) (2019-01-21)
+# [0.1.0-alpha.9](https://github.com/talos-systems/conform/compare/v0.1.0-alpha.8...v0.1.0-alpha.9) (2019-01-23)
 
 
 ### Bug Fixes
@@ -41,7 +72,6 @@
 
 
 
-<a name="0.1.0-alpha.8"></a>
 # [0.1.0-alpha.8](https://github.com/talos-systems/conform/compare/v0.1.0-alpha.7...v0.1.0-alpha.8) (2019-01-13)
 
 
@@ -51,7 +81,6 @@
 
 
 
-<a name="0.1.0-alpha.7"></a>
 # [0.1.0-alpha.7](https://github.com/talos-systems/conform/compare/v0.1.0-alpha.6...v0.1.0-alpha.7) (2019-01-13)
 
 
@@ -74,7 +103,6 @@
 
 
 
-<a name="0.1.0-alpha.6"></a>
 # [0.1.0-alpha.6](https://github.com/talos-systems/conform/compare/v0.1.0-alpha.5...v0.1.0-alpha.6) (2018-10-08)
 
 
@@ -90,7 +118,6 @@
 
 
 
-<a name="0.1.0-alpha.5"></a>
 # [0.1.0-alpha.5](https://github.com/talos-systems/conform/compare/v0.1.0-alpha.4...v0.1.0-alpha.5) (2018-10-04)
 
 
@@ -107,7 +134,6 @@
 
 
 
-<a name="0.1.0-alpha.4"></a>
 # [0.1.0-alpha.4](https://github.com/talos-systems/conform/compare/v0.1.0-alpha.3...v0.1.0-alpha.4) (2018-03-07)
 
 
@@ -125,7 +151,6 @@
 
 
 
-<a name="0.1.0-alpha.3"></a>
 # [0.1.0-alpha.3](https://github.com/talos-systems/conform/compare/v0.1.0-alpha.2...v0.1.0-alpha.3) (2018-01-11)
 
 
@@ -144,7 +169,6 @@
 
 
 
-<a name="0.1.0-alpha.2"></a>
 # [0.1.0-alpha.2](https://github.com/talos-systems/conform/compare/v0.1.0-alpha.1...v0.1.0-alpha.2) (2017-07-22)
 
 
@@ -159,10 +183,8 @@
 
 
 
-<a name="0.1.0-alpha.1"></a>
 # [0.1.0-alpha.1](https://github.com/talos-systems/conform/compare/v0.1.0-alpha.0...v0.1.0-alpha.1) (2017-07-04)
 
 
 
-<a name="0.1.0-alpha.0"></a>
 # 0.1.0-alpha.0 (2017-06-05)

@@ -36,6 +36,8 @@ type License struct {
 func (l *License) Compliance(options *policy.Options) (*policy.Report, error) {
 	report := &policy.Report{}
 
+	report.AddCheck(l.ValidateLicenseHeader())
+
 	return report, nil
 }
 
@@ -46,7 +48,7 @@ type HeaderCheck struct {
 
 // Name returns the name of the check.
 func (l HeaderCheck) Name() string {
-	return "file license header"
+	return "File Header"
 }
 
 // Message returns to check message.
@@ -65,12 +67,13 @@ func (l HeaderCheck) Errors() []error {
 // ValidateLicenseHeader checks the header of a file and ensures it contains the
 // provided value.
 // nolint: gocyclo
-func (l License) ValidateLicenseHeader(report *policy.Report, name string, contents, value []byte) policy.Check {
+func (l License) ValidateLicenseHeader() policy.Check {
 	check := HeaderCheck{}
 	if l.Header == "" {
 		check.errors = append(check.errors, errors.New("Header is not defined"))
 		return check
 	}
+	value := []byte(l.Header)
 	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -116,7 +119,7 @@ func (l License) ValidateLicenseHeader(report *policy.Report, name string, conte
 					if bytes.HasPrefix(contents, value) {
 						continue
 					}
-					check.errors = append(check.errors, errors.Errorf("File %s does not contain a license header", name))
+					check.errors = append(check.errors, errors.Errorf("File %s does not contain a license header", info.Name()))
 				}
 			}
 		}

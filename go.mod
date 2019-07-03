@@ -6,9 +6,9 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deckarep/golang-set v1.7.1 // indirect
 	github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
-	github.com/fsnotify/fsnotify v1.4.2 // indirect
+	github.com/fsnotify/fsnotify v1.4.7 // indirect
 	github.com/gliderlabs/ssh v0.1.1 // indirect
-	github.com/google/go-cmp v0.2.0 // indirect
+	github.com/google/go-cmp v0.3.0 // indirect
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/hashicorp/hcl v0.0.0-20170509225359-392dba7d905e // indirect
@@ -24,22 +24,22 @@ require (
 	github.com/neurosnap/sentences v1.0.6 // indirect
 	github.com/pelletier/go-buffruneio v0.2.0 // indirect
 	github.com/pelletier/go-toml v1.0.0 // indirect
-	github.com/pkg/errors v0.8.0
-	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/pkg/errors v0.8.1
 	github.com/sergi/go-diff v0.0.0-20170409071739-feef008d51ad // indirect
-	github.com/spf13/afero v0.0.0-20170217164146-9be650865eab // indirect
+	github.com/spf13/afero v1.2.0 // indirect
 	github.com/spf13/cast v1.1.0 // indirect
-	github.com/spf13/cobra v0.0.0-20170629105234-8c6fa02d2225
+	github.com/spf13/cobra v0.0.3
 	github.com/spf13/jwalterweatherman v0.0.0-20170523133247-0efa5202c046 // indirect
-	github.com/spf13/pflag v1.0.0 // indirect
+	github.com/spf13/pflag v1.0.3 // indirect
 	github.com/spf13/viper v0.0.0-20170619124313-c1de95864d73
 	github.com/src-d/gcfg v1.3.0 // indirect
-	github.com/stretchr/testify v1.2.2 // indirect
+	github.com/stretchr/testify v1.3.0 // indirect
 	github.com/xanzy/ssh-agent v0.1.0 // indirect
-	golang.org/x/crypto v0.0.0-20170703161049-69be088f8606 // indirect
-	golang.org/x/net v0.0.0-20170629171032-1f9224279e98 // indirect
-	golang.org/x/sys v0.0.0-20170703210155-94b76065f2d2 // indirect
-	golang.org/x/text v0.0.0-20170630100924-2bf8f2a19ec0 // indirect
+	golang.org/x/crypto v0.0.0-20190506204251-e1dfcc566284 // indirect
+	golang.org/x/exp v0.0.0-20190121172915-509febef88a4 // indirect
+	golang.org/x/net v0.0.0-20190503192946-f4e77d36d62c // indirect
+	golang.org/x/sys v0.0.0-20190508220229-2d0786266e9c // indirect
+	golang.org/x/text v0.3.2 // indirect
 	gonum.org/v1/gonum v0.0.0-20190119014124-d54847ab4dca // indirect
 	gonum.org/v1/netlib v0.0.0-20190119082159-9be13e02fd56 // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
@@ -49,5 +49,5 @@ require (
 	gopkg.in/src-d/go-git-fixtures.v3 v3.1.1 // indirect
 	gopkg.in/src-d/go-git.v4 v4.0.0
 	gopkg.in/warnings.v0 v0.1.1 // indirect
-	gopkg.in/yaml.v2 v2.0.0-20170407172122-cd8b52f8269e
+	gopkg.in/yaml.v2 v2.2.2
 )

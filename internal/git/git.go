@@ -14,6 +14,7 @@ import (
 	"gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
+	"gopkg.in/src-d/go-git.v4/plumbing/storer"
 )
 
 // Git is a helper for git.
@@ -133,4 +134,39 @@ func (g *Git) SHA() (sha string, err error) {
 	sha = ref.Hash().String()
 
 	return sha, nil
+}
+
+// AheadBehind returns the number of commits that HEAD is ahead and behind
+// relative to the specified ref.
+func (g *Git) AheadBehind(ref string) (ahead int, behind int, err error) {
+	ref1, err := g.repo.Reference(plumbing.ReferenceName(ref), false)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	ref2, err := g.repo.Head()
+	if err != nil {
+		return 0, 0, err
+	}
+
+	commit2, err := object.GetCommit(g.repo.Storer, ref2.Hash())
+	if err != nil {
+		return 0, 0, nil
+	}
+
+	var count int
+	iter := object.NewCommitPreorderIter(commit2, nil, nil)
+	err = iter.ForEach(func(comm *object.Commit) error {
+		if comm.Hash != ref1.Hash() {
+			count++
+			return nil
+		}
+
+		return storer.ErrStop
+	})
+	if err != nil {
+		return 0, 0, nil
+	}
+
+	return count, 0, nil
 }

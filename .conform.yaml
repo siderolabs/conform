@@ -1,25 +1,26 @@
 policies:
-- type: commit
-  spec:
-    headerLength: 89
-    dco: true
-    gpg: false
-    imperative: true
-    conventional:
-      types:
-      - chore
-      - docs
-      - perf
-      - refactor
-      - style
-      - test
-      scopes:
-      - policy
-- type: license
-  spec:
-    includeSuffixes:
-    - .go
-    header: |
-      /* This Source Code Form is subject to the terms of the Mozilla Public
-       * License, v. 2.0. If a copy of the MPL was not distributed with this
-       * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+  - type: commit
+    spec:
+      headerLength: 89
+      dco: true
+      gpg: false
+      imperative: true
+      maximumOfOneCommit: true
+      conventional:
+        types:
+          - chore
+          - docs
+          - perf
+          - refactor
+          - style
+          - test
+        scopes:
+          - policy
+  - type: license
+    spec:
+      includeSuffixes:
+        - .go
+      header: |
+        /* This Source Code Form is subject to the terms of the Mozilla Public
+         * License, v. 2.0. If a copy of the MPL was not distributed with this
+         * file, You can obtain one at http://mozilla.org/MPL/2.0/. */

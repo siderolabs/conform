@@ -26,6 +26,9 @@ type Commit struct {
 	// Imperative enforces the use of imperative verbs as the first word of a
 	// commit message.
 	Imperative bool `mapstructure:"imperative"`
+	// MaximumOfOneCommit enforces that the current commit is only one commit
+	// ahead of a specified ref.
+	MaximumOfOneCommit bool `mapstructure:"maximumOfOneCommit"`
 	// Conventional is the user specified settings for conventional commits.
 	Conventional *Conventional `mapstructure:"conventional"`
 
@@ -73,12 +76,17 @@ func (c *Commit) Compliance(options *policy.Options) (*policy.Report, error) {
 	if c.GPG {
 		report.AddCheck(c.ValidateGPGSign(g))
 	}
+
 	if c.Imperative {
 		report.AddCheck(c.ValidateImperative())
 	}
 
 	if c.Conventional != nil {
 		report.AddCheck(c.ValidateConventionalCommit())
+	}
+
+	if c.MaximumOfOneCommit {
+		report.AddCheck(c.ValidateNumberOfCommits(g, "refs/heads/master"))
 	}
 
 	return report, nil

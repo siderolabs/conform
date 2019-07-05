@@ -28,6 +28,9 @@ func (h Body) Name() string {
 
 // Message returns to check message.
 func (h Body) Message() string {
+	if len(h.errors) != 0 {
+		return h.errors[0].Error()
+	}
 	return "Commit body is valid"
 }
 

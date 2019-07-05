@@ -27,6 +27,9 @@ func (h NumberOfCommits) Name() string {
 
 // Message returns to check message.
 func (h NumberOfCommits) Message() string {
+	if len(h.errors) != 0 {
+		return h.errors[0].Error()
+	}
 	return fmt.Sprintf("HEAD is %d commit(s) ahead of %s", h.ahead, h.ref)
 }
 

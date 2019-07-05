@@ -6,6 +6,7 @@ policies:
       gpg: false
       imperative: true
       maximumOfOneCommit: true
+      requireCommitBody: true
       conventional:
         types:
           - chore

@@ -24,6 +24,8 @@ Some of the policies included are:
   - GPG signature
   - [Conventional Commits](https://www.conventionalcommits.org)
   - Imperative mood
+  - Maximum of one commit ahead of `master`
+  - Require a commit body
 - **License Headers**: Enforce license headers on source code files.
 
 ## Getting Started
@@ -32,36 +34,44 @@ Create a file named `.conform.yaml` with the following contents:
 
 ```yaml
 policies:
-- type: commit
-  spec:
-    headerLength: 89
-    dco: true
-    gpg: true
-    imperative: true
-    conventional:
-      types:
-        - "type"
-      scopes:
-        - "scope"
-- type: license
-  spec:
-    skipPaths:
-    - .git/
-    - .build*/
-    includeSuffixes:
-    - .ext
-    excludeSuffixes:
-    - .exclude-ext-prefix.ext
-    headerFile: LICENSE_HEADER
+  - type: commit
+    spec:
+      headerLength: 89
+      dco: true
+      gpg: false
+      imperative: true
+      maximumOfOneCommit: true
+      requireCommitBody: true
+      conventional:
+        types:
+          - "type"
+        scopes:
+          - "scope"
+  - type: license
+    spec:
+      skipPaths:
+      - .git/
+      - .build*/
+      includeSuffixes:
+      - .ext
+      excludeSuffixes:
+      - .exclude-ext-prefix.ext
+      header: |
+        This is the contents of a license header.
 ```
 
 In the same directory, run:
 
 ```bash
 $ conform enforce
-POLICY                    STATUS        MESSAGE
-commit                    PASS          <none>
-license                   PASS          <none>
+POLICY         CHECK                      STATUS        MESSAGE
+commit         Header Length              PASS          <none>
+commit         DCO                        PASS          <none>
+commit         Imperative Mood            PASS          <none>
+commit         Conventional Commit        PASS          <none>
+commit         Number of Commits          PASS          <none>
+commit         Commit Body                PASS          <none>
+license        File Header                PASS          <none>
 ```
 
 ### License

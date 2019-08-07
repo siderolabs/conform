@@ -89,6 +89,7 @@ func (c *Conform) Enforce(setters ...policy.Option) {
 				if err := c.summarizer.SetStatus("failure", p.Type, check.Name(), check.Message()); err != nil {
 					log.Printf("WARNING: summary failed: %+v", err)
 				}
+				pass = false
 			} else {
 				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t\n", p.Type, check.Name(), "PASS", "<none>")
 				if err := c.summarizer.SetStatus("success", p.Type, check.Name(), check.Message()); err != nil {

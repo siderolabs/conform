@@ -3,7 +3,8 @@ name: default
 
 services:
   - name: docker
-    image: docker:dind
+    image: docker:19.03-dind
+    entrypoint: [dockerd]
     privileged: true
     volumes:
       - name: dockersock

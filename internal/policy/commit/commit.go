@@ -104,6 +104,9 @@ func (c Commit) firstWord() (string, error) {
 	var msg string
 	if c.Conventional != nil {
 		groups = parseHeader(c.msg)
+		if len(groups) != 6 {
+			return "", errors.Errorf("Invalid conventional commit format")
+		}
 		msg = groups[4]
 	} else {
 		msg = c.msg

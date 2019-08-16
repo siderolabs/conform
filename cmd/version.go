@@ -10,8 +10,8 @@ import (
 	"html/template"
 	"runtime"
 
-	"github.com/autonomy/conform/internal/constants"
 	"github.com/spf13/cobra"
+	"github.com/talos-systems/conform/internal/constants"
 )
 
 var (

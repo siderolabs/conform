@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/autonomy/conform/internal/enforcer"
-	"github.com/autonomy/conform/internal/policy"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/talos-systems/conform/internal/enforcer"
+	"github.com/talos-systems/conform/internal/policy"
 )
 
 // enforceCmd represents the enforce command

@@ -11,7 +11,7 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/autonomy/conform/internal/policy"
+	"github.com/talos-systems/conform/internal/policy"
 )
 
 func RemoveAll(dir string) {
@@ -237,19 +237,19 @@ func initRepo() error {
 }
 
 func createValidCommit() error {
-	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@autonomy.io'", "commit", "-m", "type(scope): description").Output()
+	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "-m", "type(scope): description").Output()
 
 	return err
 }
 
 func createInvalidCommit() error {
-	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@autonomy.io'", "commit", "-m", "invalid commit").Output()
+	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "-m", "invalid commit").Output()
 
 	return err
 }
 
 func createEmptyCommit() error {
-	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@autonomy.io'", "commit", "--allow-empty-message", "-m", "").Output()
+	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "--allow-empty-message", "-m", "").Output()
 
 	return err
 }

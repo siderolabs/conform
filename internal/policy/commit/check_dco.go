@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/autonomy/conform/internal/policy"
 	"github.com/pkg/errors"
+	"github.com/talos-systems/conform/internal/policy"
 )
 
 // DCORegex is the regular expression used for Developer Certificate of Origin.

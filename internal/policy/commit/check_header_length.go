@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/autonomy/conform/internal/policy"
 	"github.com/pkg/errors"
+	"github.com/talos-systems/conform/internal/policy"
 )
 
 // MaxNumberOfCommitCharacters is the default maximium number of characters

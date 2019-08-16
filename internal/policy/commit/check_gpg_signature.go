@@ -5,9 +5,9 @@
 package commit
 
 import (
-	"github.com/autonomy/conform/internal/git"
-	"github.com/autonomy/conform/internal/policy"
 	"github.com/pkg/errors"
+	"github.com/talos-systems/conform/internal/git"
+	"github.com/talos-systems/conform/internal/policy"
 )
 
 // GPGCheck ensures that the commit is cryptographically signed using GPG.

@@ -7,9 +7,9 @@ package commit
 import (
 	"fmt"
 
-	"github.com/autonomy/conform/internal/git"
-	"github.com/autonomy/conform/internal/policy"
 	"github.com/pkg/errors"
+	"github.com/talos-systems/conform/internal/git"
+	"github.com/talos-systems/conform/internal/policy"
 )
 
 // NumberOfCommits enforces a maximum number of charcters on the commit

@@ -7,8 +7,8 @@ package commit
 import (
 	"strings"
 
-	"github.com/autonomy/conform/internal/policy"
 	"github.com/pkg/errors"
+	"github.com/talos-systems/conform/internal/policy"
 	"gopkg.in/jdkato/prose.v2"
 )
 

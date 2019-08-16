@@ -16,8 +16,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/autonomy/conform/internal/git"
 	"github.com/google/go-github/github"
+	"github.com/talos-systems/conform/internal/git"
 )
 
 // Summarizer describes a hook for send summarized results to a remote API.

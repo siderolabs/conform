@@ -9,9 +9,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/autonomy/conform/internal/git"
-	"github.com/autonomy/conform/internal/policy"
 	"github.com/pkg/errors"
+	"github.com/talos-systems/conform/internal/git"
+	"github.com/talos-systems/conform/internal/policy"
 )
 
 // Commit implements the policy.Policy interface and enforces commit

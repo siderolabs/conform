@@ -11,12 +11,12 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"github.com/autonomy/conform/internal/policy"
-	"github.com/autonomy/conform/internal/policy/commit"
-	"github.com/autonomy/conform/internal/policy/license"
-	"github.com/autonomy/conform/internal/summarizer"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
+	"github.com/talos-systems/conform/internal/policy"
+	"github.com/talos-systems/conform/internal/policy/commit"
+	"github.com/talos-systems/conform/internal/policy/license"
+	"github.com/talos-systems/conform/internal/summarizer"
 
 	yaml "gopkg.in/yaml.v2"
 )

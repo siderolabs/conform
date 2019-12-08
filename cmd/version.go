@@ -58,7 +58,7 @@ var versionCmd = &cobra.Command{
 
 func init() {
 	versionCmd.Flags().BoolVar(&shortVersion, "short", false, "Print the short version")
-	RootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(versionCmd)
 }
 
 // PrintLongVersion prints verbose version information.

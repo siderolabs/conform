@@ -42,33 +42,34 @@ var policyMap = map[string]policy.Policy{
 }
 
 // New loads the conform.yaml file and unmarshals it into a Conform struct.
-func New() (*Conform, error) {
-	configBytes, err := ioutil.ReadFile(".conform.yaml")
-	if err != nil {
-		return nil, err
-	}
+func New(s string) (*Conform, error) {
 	c := &Conform{}
-	err = yaml.Unmarshal(configBytes, c)
-	if err != nil {
-		return nil, err
-	}
 
-	token, ok := os.LookupEnv("GITHUB_TOKEN")
-	if ok {
-		s, err := summarizer.NewGitHubSummarizer(token)
+	switch s {
+	case "github":
+		s, err := summarizer.NewGitHubSummarizer()
 		if err != nil {
 			return nil, err
 		}
 		c.summarizer = s
-	} else {
+	default:
 		c.summarizer = &summarizer.Noop{}
+	}
+
+	configBytes, err := ioutil.ReadFile(".conform.yaml")
+	if err != nil {
+		return nil, err
+	}
+	err = yaml.Unmarshal(configBytes, c)
+	if err != nil {
+		return nil, err
 	}
 
 	return c, nil
 }
 
 // Enforce enforces all policies defined in the conform.yaml file.
-func (c *Conform) Enforce(setters ...policy.Option) {
+func (c *Conform) Enforce(setters ...policy.Option) error {
 	opts := policy.NewDefaultOptions(setters...)
 
 	const padding = 8
@@ -103,8 +104,10 @@ func (c *Conform) Enforce(setters ...policy.Option) {
 	w.Flush()
 
 	if !pass {
-		os.Exit(1)
+		return errors.New("1 or more policy failed")
 	}
+
+	return nil
 }
 
 func (c *Conform) enforce(declaration *PolicyDeclaration, opts *policy.Options) (*policy.Report, error) {

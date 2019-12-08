@@ -6,9 +6,11 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 
-	"github.com/pkg/errors"
+	"github.com/autonomy/conform/internal/enforcer"
+	"github.com/autonomy/conform/internal/policy"
 	"github.com/spf13/cobra"
 	"github.com/talos-systems/conform/internal/enforcer"
 	"github.com/talos-systems/conform/internal/policy"
@@ -21,14 +23,13 @@ var enforceCmd = &cobra.Command{
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) != 0 {
-			err := errors.Errorf("The enforce command does not take arguments")
-
-			fmt.Println(err)
+			fmt.Println("The enforce command does not take arguments")
 			os.Exit(1)
 		}
-		e, err := enforcer.New()
+		summarizer := cmd.Flags().Lookup("summary").Value.String()
+		e, err := enforcer.New(summarizer)
 		if err != nil {
-			fmt.Println(err)
+			log.Printf("failed to create enforcer: %+v\n", err)
 			os.Exit(1)
 		}
 
@@ -38,11 +39,15 @@ var enforceCmd = &cobra.Command{
 			opts = append(opts, policy.WithCommitMsgFile(&commitMsgFile))
 		}
 
-		e.Enforce(opts...)
+		if err := e.Enforce(opts...); err != nil {
+			log.Printf("%+v\n", err)
+			os.Exit(1)
+		}
 	},
 }
 
 func init() {
 	enforceCmd.Flags().String("commit-msg-file", "", "the path to the temporary commit message file")
-	RootCmd.AddCommand(enforceCmd)
+	enforceCmd.Flags().String("summary", "none", "the summary method to use")
+	rootCmd.AddCommand(enforceCmd)
 }

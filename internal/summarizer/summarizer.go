@@ -25,7 +25,7 @@ type Summarizer interface {
 	SetStatus(string, string, string, string) error
 }
 
-// GitHub is a summarizer that can be used with GitHub.
+// GitHub is a summarizer that summarizes policies statuses as GitHub statuses.
 type GitHub struct {
 	token string
 	owner string
@@ -42,9 +42,13 @@ func (n *Noop) SetStatus(state, policy, check, message string) error {
 	return nil
 }
 
-// NewGitHubSummarizer returns a summarizer that posts policy checks as status
-// checks on a pull request.
-func NewGitHubSummarizer(token string) (*GitHub, error) {
+// NewGitHubSummarizer returns a summarizer that posts policy checks as
+// status checks on a pull request.
+func NewGitHubSummarizer() (*GitHub, error) {
+	token, ok := os.LookupEnv("GITHUB_TOKEN")
+	if !ok {
+		return nil, errors.New("missing GITHUB_TOKEN")
+	}
 	eventPath, ok := os.LookupEnv("GITHUB_EVENT_PATH")
 	if !ok {
 		return nil, errors.New("GITHUB_EVENT_PATH is not set")

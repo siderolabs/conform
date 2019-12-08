@@ -9,8 +9,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/autonomy/conform/internal/enforcer"
-	"github.com/autonomy/conform/internal/policy"
 	"github.com/spf13/cobra"
 	"github.com/talos-systems/conform/internal/enforcer"
 	"github.com/talos-systems/conform/internal/policy"

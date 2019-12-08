@@ -50,11 +50,11 @@ var serveCmd = &cobra.Command{
 				// nolint: errcheck
 				defer os.RemoveAll(dir)
 
-				if err := os.MkdirAll(filepath.Join(dir, "github"), 0700); err != nil {
+				if err = os.MkdirAll(filepath.Join(dir, "github"), 0700); err != nil {
 					log.Printf("failed to create github directory: %+v\n", err)
 					return
 				}
-				if err := os.MkdirAll(filepath.Join(dir, "repo"), 0700); err != nil {
+				if err = os.MkdirAll(filepath.Join(dir, "repo"), 0700); err != nil {
 					log.Printf("failed to create repo directory: %+v\n", err)
 					return
 				}
@@ -71,8 +71,7 @@ var serveCmd = &cobra.Command{
 					URL:      pullRequestEvent.GetRepo().GetCloneURL(),
 					Progress: os.Stdout,
 				})
-
-				if err = ioutil.WriteFile(event, payload, 0600); err != nil {
+				if err != nil {
 					log.Printf("failed to clone repo: %+v\n", err)
 					return
 				}
@@ -102,7 +101,7 @@ var serveCmd = &cobra.Command{
 			w.WriteHeader(http.StatusOK)
 		})
 
-		http.ListenAndServe(":3000", nil)
+		log.Fatal(http.ListenAndServe(":3000", nil))
 	},
 }
 

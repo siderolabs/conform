@@ -11,6 +11,11 @@ services:
         path: /var/run
 
 steps:
+  - name: git-fetch-tags
+    image: docker:git
+    commands:
+      - git fetch --tags
+
   - name: build
     image: autonomy/build-container:latest
     pull: always

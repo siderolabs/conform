@@ -1,0 +1,12 @@
+name: "Conform Action"
+description: "Policy enforcement for your pipelines."
+branding:
+  icon: "check-circle"
+  color: "gray-dark"
+inputs:
+  token:
+    description: "The GitHub token. Must have repo:status access. Can be specified by using {{ secrets.GITHUB_TOKEN }}"
+    required: true
+runs:
+  using: "docker"
+  image: "docker://autonomy/conform:v0.1.0-alpha.17"

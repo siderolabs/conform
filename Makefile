@@ -11,7 +11,7 @@ export DOCKER_BUILDKIT := 1
 all: enforce build test image
 
 enforce:
-	@conform enforce
+	@go run main.go enforce
 
 .PHONY: build
 build:
@@ -47,7 +47,7 @@ push: image
 
 deps:
 	@GO111MODULE=on CGO_ENABLED=0 go get -u github.com/autonomy/gitmeta
-	@GO111MODULE=on CGO_ENABLED=0 go get -u github.com/autonomy/conform
+	@GO111MODULE=on CGO_ENABLED=0 go get -u github.com/talos-systems/conform
 
 clean:
 	go clean -modcache

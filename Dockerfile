@@ -16,14 +16,14 @@ ARG SHA
 ARG BUILT
 ENV GOOS linux
 ENV GOARCH amd64
-RUN go build -o /conform-${GOOS}-${GOARCH} -ldflags "-s -w -X \"github.com/autonomy/conform/cmd.Tag=${TAG}\" -X \"github.com/autonomy/conform/cmd.SHA=${SHA}\" -X \"github.com/autonomy/conform/cmd.Built=${BUILT}\"" .
+RUN go build -o /conform-${GOOS}-${GOARCH} -ldflags "-s -w -X \"github.com/talos-systems/conform/cmd.Tag=${TAG}\" -X \"github.com/talos-systems/conform/cmd.SHA=${SHA}\" -X \"github.com/talos-systems/conform/cmd.Built=${BUILT}\"" .
 
 ARG TAG
 ARG SHA
 ARG BUILT
 ENV GOOS darwin
 ENV GOARCH amd64
-RUN go build -o /conform-${GOOS}-${GOARCH} -ldflags "-s -w -X \"github.com/autonomy/conform/cmd.Tag=${TAG}\" -X \"github.com/autonomy/conform/cmd.SHA=${SHA}\" -X \"github.com/autonomy/conform/cmd.Built=${BUILT}\"" .
+RUN go build -o /conform-${GOOS}-${GOARCH} -ldflags "-s -w -X \"github.com/talos-systems/conform/cmd.Tag=${TAG}\" -X \"github.com/talos-systems/conform/cmd.SHA=${SHA}\" -X \"github.com/talos-systems/conform/cmd.Built=${BUILT}\"" .
 
 FROM common AS test
 ENV GOOS linux

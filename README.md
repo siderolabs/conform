@@ -3,12 +3,12 @@
   <p align="center">Policy enforcement for your pipelines.</p>
   <p align="center">
     <a href="https://conventionalcommits.org"><img alt="Conventional Commits" src="https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=flat-square"></a>
-    <a href="https://godoc.org/github.com/autonomy/conform"><img alt="GoDoc" src="http://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square"></a>
-    <a href="https://travis-ci.org/autonomy/conform"><img alt="Travis" src="https://img.shields.io/travis/autonomy/conform.svg?style=flat-square"></a>
-    <a href="https://codecov.io/gh/autonomy/conform"><img alt="Codecov" src="https://img.shields.io/codecov/c/github/autonomy/conform.svg?style=flat-square"></a>
-    <a href="https://goreportcard.com/report/github.com/autonomy/conform"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/autonomy/conform?style=flat-square"></a>
-    <a href="https://github.com/autonomy/conform/releases/latest"><img alt="Release" src="https://img.shields.io/github/release/autonomy/conform.svg?style=flat-square"></a>
-    <a href="https://github.com/autonomy/conform/releases/latest"><img alt="GitHub (pre-)release" src="https://img.shields.io/github/release/autonomy/conform/all.svg?style=flat-square"></a>
+    <a href="https://godoc.org/github.com/talos-systems/conform"><img alt="GoDoc" src="http://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square"></a>
+    <a href="https://travis-ci.org/talos-systems/conform"><img alt="Travis" src="https://img.shields.io/travis/talos-systems/conform.svg?style=flat-square"></a>
+    <a href="https://codecov.io/gh/talos-systems/conform"><img alt="Codecov" src="https://img.shields.io/codecov/c/github/talos-systems/conform.svg?style=flat-square"></a>
+    <a href="https://goreportcard.com/report/github.com/talos-systems/conform"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/talos-systems/conform?style=flat-square"></a>
+    <a href="https://github.com/talos-systems/conform/releases/latest"><img alt="Release" src="https://img.shields.io/github/release/talos-systems/conform.svg?style=flat-square"></a>
+    <a href="https://github.com/talos-systems/conform/releases/latest"><img alt="GitHub (pre-)release" src="https://img.shields.io/github/release/talos-systems/conform/all.svg?style=flat-square"></a>
   </p>
 </p>
 
@@ -50,12 +50,12 @@ policies:
   - type: license
     spec:
       skipPaths:
-      - .git/
-      - .build*/
+        - .git/
+        - .build*/
       includeSuffixes:
-      - .ext
+        - .ext
       excludeSuffixes:
-      - .exclude-ext-prefix.ext
+        - .exclude-ext-prefix.ext
       header: |
         This is the contents of a license header.
 ```
@@ -75,4 +75,5 @@ license        File Header                PASS          <none>
 ```
 
 ### License
-[![license](https://img.shields.io/github/license/autonomy/conform.svg?style=flat-square)](https://github.com/autonomy/conform/blob/master/LICENSE)
+
+[![license](https://img.shields.io/github/license/talos-systems/conform.svg?style=flat-square)](https://github.com/talos-systems/conform/blob/master/LICENSE)

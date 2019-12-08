@@ -45,9 +45,9 @@ func (n *Noop) SetStatus(state, policy, check, message string) error {
 // NewGitHubSummarizer returns a summarizer that posts policy checks as
 // status checks on a pull request.
 func NewGitHubSummarizer() (*GitHub, error) {
-	token, ok := os.LookupEnv("GITHUB_TOKEN")
+	token, ok := os.LookupEnv("INPUT_TOKEN")
 	if !ok {
-		return nil, errors.New("missing GITHUB_TOKEN")
+		return nil, errors.New("missing INPUT_TOKEN")
 	}
 	eventPath, ok := os.LookupEnv("GITHUB_EVENT_PATH")
 	if !ok {

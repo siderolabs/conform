@@ -85,7 +85,7 @@ var serveCmd = &cobra.Command{
 				cmd.Stdout = os.Stdout
 				cmd.Stderr = os.Stdout
 				cmd.Dir = cloneRepo
-				cmd.Env = []string{fmt.Sprintf("GITHUB_TOKEN=%s", os.Getenv("GITHUB_TOKEN")), fmt.Sprintf("GITHUB_EVENT_PATH=%s", event)}
+				cmd.Env = []string{fmt.Sprintf("INPUT_TOKEN=%s", os.Getenv("INPUT_TOKEN")), fmt.Sprintf("GITHUB_EVENT_PATH=%s", event)}
 				err = cmd.Start()
 				if err != nil {
 					log.Printf("failed to start command: %+v\n", err)

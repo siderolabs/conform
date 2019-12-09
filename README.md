@@ -30,7 +30,13 @@ Some of the policies included are:
 
 ## Getting Started
 
-Create a file named `.conform.yaml` with the following contents:
+To install conform you can download a [release](https://github.com/talos-systems/conform/releases), or build it locally (go must be installed):
+
+```bash
+go get github.com/talos-systems/conform
+```
+
+Now, create a file named `.conform.yaml` with the following contents:
 
 ```yaml
 policies:
@@ -72,6 +78,17 @@ commit         Conventional Commit        PASS          <none>
 commit         Number of Commits          PASS          <none>
 commit         Commit Body                PASS          <none>
 license        File Header                PASS          <none>
+```
+
+To setup a `commit-msg` hook:
+
+```bash
+cat <<EOF | tee .git/hooks/commit-msg
+#!/bin/sh
+
+conform enforce --commit-msg-file \$1
+EOF
+chmod +x .git/hooks/commit-msg
 ```
 
 ### License

@@ -5,9 +5,8 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
-	"log"
-	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/talos-systems/conform/internal/enforcer"
@@ -19,16 +18,18 @@ var enforceCmd = &cobra.Command{
 	Use:   "enforce",
 	Short: "",
 	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 0 {
-			fmt.Println("The enforce command does not take arguments")
-			os.Exit(1)
+			return errors.New("the enforce command does not take arguments")
 		}
+		// Done validating the arguments, do not print usage for errors
+		// after this point
+		cmd.SilenceUsage = true
+
 		summarizer := cmd.Flags().Lookup("summary").Value.String()
 		e, err := enforcer.New(summarizer)
 		if err != nil {
-			log.Printf("failed to create enforcer: %+v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("failed to create enforcer: %+v", err)
 		}
 
 		opts := []policy.Option{}
@@ -38,9 +39,10 @@ var enforceCmd = &cobra.Command{
 		}
 
 		if err := e.Enforce(opts...); err != nil {
-			log.Printf("%+v\n", err)
-			os.Exit(1)
+			return err
 		}
+
+		return nil
 	},
 }
 

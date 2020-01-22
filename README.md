@@ -53,6 +53,7 @@ policies:
           - "type"
         scopes:
           - "scope"
+        descriptionLength: 72
   - type: license
     spec:
       skipPaths:

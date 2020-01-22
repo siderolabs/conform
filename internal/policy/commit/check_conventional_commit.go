@@ -15,8 +15,9 @@ import (
 // Conventional implements the policy.Policy interface and enforces commit
 // messages to conform the Conventional Commit standard.
 type Conventional struct {
-	Types  []string `mapstructure:"types"`
-	Scopes []string `mapstructure:"scopes"`
+	Types             []string `mapstructure:"types"`
+	Scopes            []string `mapstructure:"scopes"`
+	DescriptionLength int      `mapstructure:"descriptionLength"`
 }
 
 // HeaderRegex is the regular expression used for Conventional Commits
@@ -94,7 +95,11 @@ func (c Commit) ValidateConventionalCommit() policy.Check {
 		}
 	}
 
-	if len(groups[4]) <= 72 && len(groups[4]) != 0 {
+	// Provide a good default value for DescriptionLength
+	if c.Conventional.DescriptionLength == 0 {
+		c.Conventional.DescriptionLength = 72
+	}
+	if len(groups[4]) <= c.Conventional.DescriptionLength && len(groups[4]) != 0 {
 		return check
 	}
 	check.errors = append(check.errors, errors.Errorf("Invalid description: %s", groups[4]))

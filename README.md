@@ -92,6 +92,19 @@ EOF
 chmod +x .git/hooks/commit-msg
 ```
 
+We also provide a [Pre-Commit](https://pre-commit.com) hook that you can use as follows:
+
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/talos-systems/conform
+    rev: master
+    hooks:
+      - id: conform
+        stages:
+          - commit-msg
+```
+
 ### License
 
 [![license](https://img.shields.io/github/license/talos-systems/conform.svg?style=flat-square)](https://github.com/talos-systems/conform/blob/master/LICENSE)

@@ -1,0 +1,9 @@
+---
+# install with `pre-commit install -t commit-msg`
+repos:
+  - repo: https://github.com/talos-systems/conform
+    rev: master
+    hooks:
+      - id: conform
+        stages:
+          - commit-msg

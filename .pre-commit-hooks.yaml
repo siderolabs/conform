@@ -1,0 +1,7 @@
+---
+- id: conform
+  name: Conform
+  description: Run 'conform enforce' for policy enforcement
+  entry: conform enforce --commit-msg-file
+  language: golang
+  stages: [commit-msg]

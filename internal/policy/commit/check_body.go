@@ -43,10 +43,6 @@ func (h Body) Errors() []error {
 func (c Commit) ValidateBody() policy.Check {
 	check := &Body{}
 
-	if c.HeaderLength != 0 {
-		MaxNumberOfCommitCharacters = c.HeaderLength
-	}
-
 	lines := strings.Split(strings.TrimPrefix(c.msg, "\n"), "\n")
 	valid := false
 	for _, line := range lines[1:] {

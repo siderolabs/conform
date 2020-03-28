@@ -42,10 +42,13 @@ Now, create a file named `.conform.yaml` with the following contents:
 policies:
   - type: commit
     spec:
-      headerLength: 89
+      header:
+        length: 89
+        imperative: true
+        case: lower
+        invalidLastCharacters: .
       dco: true
       gpg: false
-      imperative: true
       maximumOfOneCommit: true
       requireCommitBody: true
       conventional:
@@ -71,14 +74,16 @@ In the same directory, run:
 
 ```bash
 $ conform enforce
-POLICY         CHECK                      STATUS        MESSAGE
-commit         Header Length              PASS          <none>
-commit         DCO                        PASS          <none>
-commit         Imperative Mood            PASS          <none>
-commit         Conventional Commit        PASS          <none>
-commit         Number of Commits          PASS          <none>
-commit         Commit Body                PASS          <none>
-license        File Header                PASS          <none>
+POLICY         CHECK                        STATUS        MESSAGE
+commit         Header Length                PASS          <none>
+commit         Imperative Mood              PASS          <none>
+commit         Header Case                  PASS          <none>
+commit         Header Last Character        PASS          <none>
+commit         DCO                          PASS          <none>
+commit         Conventional Commit          PASS          <none>
+commit         Number of Commits            PASS          <none>
+commit         Commit Body                  PASS          <none>
+license        File Header                  PASS          <none>
 ```
 
 To setup a `commit-msg` hook:

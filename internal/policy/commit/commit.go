@@ -14,18 +14,26 @@ import (
 	"github.com/talos-systems/conform/internal/policy"
 )
 
+// HeaderChecks is the configuration for checks on the header of a commit.
+type HeaderChecks struct {
+	// Length is the maximum length of the commit subject.
+	Length int `mapstructure:"length"`
+	// Imperative enforces the use of imperative verbs as the first word of a
+	// commit message.
+	Imperative bool `mapstructure:"imperative"`
+	// HeaderCase is the case that the first word of the header must have ("upper" or "lower").
+	Case string `mapstructure:"case"`
+	// HeaderInvalidLastCharacters is a string containing all invalid last characters for the header.
+	InvalidLastCharacters string `mapstructure:"invalidLastCharacters"`
+}
+
 // Commit implements the policy.Policy interface and enforces commit
 // messages to conform the Conventional Commit standard.
 type Commit struct {
-	// HeaderLength is the maximum length of the commit subject.
-	HeaderLength int `mapstructure:"headerLength"`
 	// DCO enables the Developer Certificate of Origin check.
 	DCO bool `mapstructure:"dco"`
 	// GPG enables the GPG signature check.
 	GPG bool `mapstructure:"gpg"`
-	// Imperative enforces the use of imperative verbs as the first word of a
-	// commit message.
-	Imperative bool `mapstructure:"imperative"`
 	// MaximumOfOneCommit enforces that the current commit is only one commit
 	// ahead of a specified ref.
 	MaximumOfOneCommit bool `mapstructure:"maximumOfOneCommit"`
@@ -33,6 +41,8 @@ type Commit struct {
 	RequireCommitBody bool `mapstructure:"requireCommitBody"`
 	// Conventional is the user specified settings for conventional commits.
 	Conventional *Conventional `mapstructure:"conventional"`
+	// Header is the user specified settings for the header of each commit.
+	Header *HeaderChecks `mapstructure:"header"`
 
 	msg string
 }
@@ -67,8 +77,22 @@ func (c *Commit) Compliance(options *policy.Options) (*policy.Report, error) {
 	}
 	c.msg = msg
 
-	if c.HeaderLength != 0 {
-		report.AddCheck(c.ValidateHeaderLength())
+	if c.Header != nil {
+		if c.Header.Length != 0 {
+			report.AddCheck(c.ValidateHeaderLength())
+		}
+
+		if c.Header.Imperative {
+			report.AddCheck(c.ValidateImperative())
+		}
+
+		if c.Header.Case != "" {
+			report.AddCheck(c.ValidateHeaderCase())
+		}
+
+		if c.Header.InvalidLastCharacters != "" {
+			report.AddCheck(c.ValidateHeaderLastCharacter())
+		}
 	}
 
 	if c.DCO {
@@ -77,10 +101,6 @@ func (c *Commit) Compliance(options *policy.Options) (*policy.Report, error) {
 
 	if c.GPG {
 		report.AddCheck(c.ValidateGPGSign(g))
-	}
-
-	if c.Imperative {
-		report.AddCheck(c.ValidateImperative())
 	}
 
 	if c.Conventional != nil {
@@ -99,7 +119,6 @@ func (c *Commit) Compliance(options *policy.Options) (*policy.Report, error) {
 }
 
 func (c Commit) firstWord() (string, error) {
-	var header string
 	var groups []string
 	var msg string
 	if c.Conventional != nil {
@@ -111,11 +130,15 @@ func (c Commit) firstWord() (string, error) {
 	} else {
 		msg = c.msg
 	}
-	if header = strings.Split(strings.TrimPrefix(msg, "\n"), "\n")[0]; header == "" {
+	if msg == "" {
 		return "", errors.Errorf("Invalid msg: %s", msg)
 	}
-	if groups = FirstWordRegex.FindStringSubmatch(header); groups == nil {
+	if groups = FirstWordRegex.FindStringSubmatch(msg); groups == nil {
 		return "", errors.Errorf("Invalid msg: %s", msg)
 	}
 	return groups[0], nil
+}
+
+func (c Commit) header() string {
+	return strings.Split(strings.TrimPrefix(c.msg, "\n"), "\n")[0]
 }

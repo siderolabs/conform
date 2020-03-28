@@ -6,7 +6,6 @@ package commit
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/talos-systems/conform/internal/policy"
@@ -42,14 +41,13 @@ func (h HeaderLengthCheck) Errors() []error {
 func (c Commit) ValidateHeaderLength() policy.Check {
 	check := &HeaderLengthCheck{}
 
-	if c.HeaderLength != 0 {
-		MaxNumberOfCommitCharacters = c.HeaderLength
+	if c.Header.Length != 0 {
+		MaxNumberOfCommitCharacters = c.Header.Length
 	}
 
-	header := strings.Split(strings.TrimPrefix(c.msg, "\n"), "\n")[0]
-	check.headerLength = len(header)
+	check.headerLength = len(c.header())
 	if check.headerLength > MaxNumberOfCommitCharacters {
-		check.errors = append(check.errors, errors.Errorf("Commit header is %d characters", len(header)))
+		check.errors = append(check.errors, errors.Errorf("Commit header is %d characters", check.headerLength))
 	}
 
 	return check

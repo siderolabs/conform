@@ -1,10 +1,13 @@
 policies:
   - type: commit
     spec:
-      headerLength: 89
+      header:
+        length: 89
+        imperative: true
+        case: lower
+        invalidLastCharacters: .
       dco: true
       gpg: false
-      imperative: true
       maximumOfOneCommit: true
       requireCommitBody: true
       conventional:

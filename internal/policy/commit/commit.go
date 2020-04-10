@@ -27,6 +27,12 @@ type HeaderChecks struct {
 	InvalidLastCharacters string `mapstructure:"invalidLastCharacters"`
 }
 
+// BodyChecks is the configuration for checks on the body of a commit.
+type BodyChecks struct {
+	// Required enforces that the current commit has a body.
+	Required bool `mapstructure:"required"`
+}
+
 // Commit implements the policy.Policy interface and enforces commit
 // messages to conform the Conventional Commit standard.
 type Commit struct {
@@ -37,12 +43,12 @@ type Commit struct {
 	// MaximumOfOneCommit enforces that the current commit is only one commit
 	// ahead of a specified ref.
 	MaximumOfOneCommit bool `mapstructure:"maximumOfOneCommit"`
-	// RequireCommitBody enforces that the current commit has a body.
-	RequireCommitBody bool `mapstructure:"requireCommitBody"`
 	// Conventional is the user specified settings for conventional commits.
 	Conventional *Conventional `mapstructure:"conventional"`
 	// Header is the user specified settings for the header of each commit.
 	Header *HeaderChecks `mapstructure:"header"`
+	// Header is the user specified settings for the body of each commit.
+	Body *BodyChecks `mapstructure:"body"`
 
 	msg string
 }
@@ -111,8 +117,10 @@ func (c *Commit) Compliance(options *policy.Options) (*policy.Report, error) {
 		report.AddCheck(c.ValidateNumberOfCommits(g, "refs/heads/master"))
 	}
 
-	if c.RequireCommitBody {
-		report.AddCheck(c.ValidateBody())
+	if c.Body != nil {
+		if c.Body.Required {
+			report.AddCheck(c.ValidateBody())
+		}
 	}
 
 	return report, nil

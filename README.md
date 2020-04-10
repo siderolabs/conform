@@ -47,10 +47,11 @@ policies:
         imperative: true
         case: lower
         invalidLastCharacters: .
+      body:
+        required: true
       dco: true
       gpg: false
       maximumOfOneCommit: true
-      requireCommitBody: true
       conventional:
         types:
           - "type"

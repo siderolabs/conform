@@ -26,8 +26,8 @@ var enforceCmd = &cobra.Command{
 		// after this point
 		cmd.SilenceUsage = true
 
-		summarizer := cmd.Flags().Lookup("summary").Value.String()
-		e, err := enforcer.New(summarizer)
+		reporter := cmd.Flags().Lookup("reporter").Value.String()
+		e, err := enforcer.New(reporter)
 		if err != nil {
 			return fmt.Errorf("failed to create enforcer: %+v", err)
 		}
@@ -48,6 +48,6 @@ var enforceCmd = &cobra.Command{
 
 func init() {
 	enforceCmd.Flags().String("commit-msg-file", "", "the path to the temporary commit message file")
-	enforceCmd.Flags().String("summary", "none", "the summary method to use")
+	enforceCmd.Flags().String("reporter", "none", "the reporter method to use")
 	rootCmd.AddCommand(enforceCmd)
 }

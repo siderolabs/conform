@@ -16,15 +16,15 @@ import (
 	"github.com/talos-systems/conform/internal/policy"
 	"github.com/talos-systems/conform/internal/policy/commit"
 	"github.com/talos-systems/conform/internal/policy/license"
-	"github.com/talos-systems/conform/internal/summarizer"
+	"github.com/talos-systems/conform/internal/reporter"
 
 	yaml "gopkg.in/yaml.v2"
 )
 
 // Conform is a struct that conform.yaml gets decoded into.
 type Conform struct {
-	Policies   []*PolicyDeclaration `yaml:"policies"`
-	summarizer summarizer.Summarizer
+	Policies []*PolicyDeclaration `yaml:"policies"`
+	reporter reporter.Reporter
 }
 
 // PolicyDeclaration allows a user to declare an arbitrary type along with a
@@ -42,18 +42,18 @@ var policyMap = map[string]policy.Policy{
 }
 
 // New loads the conform.yaml file and unmarshals it into a Conform struct.
-func New(s string) (*Conform, error) {
+func New(r string) (*Conform, error) {
 	c := &Conform{}
 
-	switch s {
+	switch r {
 	case "github":
-		s, err := summarizer.NewGitHubSummarizer()
+		s, err := reporter.NewGitHubReporter()
 		if err != nil {
 			return nil, err
 		}
-		c.summarizer = s
+		c.reporter = s
 	default:
-		c.summarizer = &summarizer.Noop{}
+		c.reporter = &reporter.Noop{}
 	}
 
 	configBytes, err := ioutil.ReadFile(".conform.yaml")
@@ -87,14 +87,14 @@ func (c *Conform) Enforce(setters ...policy.Option) error {
 				for _, err := range check.Errors() {
 					fmt.Fprintf(w, "%s\t%s\t%s\t%v\t\n", p.Type, check.Name(), "FAILED", err)
 				}
-				if err := c.summarizer.SetStatus("failure", p.Type, check.Name(), check.Message()); err != nil {
-					log.Printf("WARNING: summary failed: %+v", err)
+				if err := c.reporter.SetStatus("failure", p.Type, check.Name(), check.Message()); err != nil {
+					log.Printf("WARNING: report failed: %+v", err)
 				}
 				pass = false
 			} else {
 				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t\n", p.Type, check.Name(), "PASS", "<none>")
-				if err := c.summarizer.SetStatus("success", p.Type, check.Name(), check.Message()); err != nil {
-					log.Printf("WARNING: summary failed: %+v", err)
+				if err := c.reporter.SetStatus("success", p.Type, check.Name(), check.Message()); err != nil {
+					log.Printf("WARNING: report failed: %+v", err)
 				}
 			}
 		}

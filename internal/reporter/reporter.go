@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package summarizer
+package reporter
 
 import (
 	"context"
@@ -20,12 +20,12 @@ import (
 	"github.com/talos-systems/conform/internal/git"
 )
 
-// Summarizer describes a hook for send summarized results to a remote API.
-type Summarizer interface {
+// Reporter describes a hook for sending summarized results to a remote API.
+type Reporter interface {
 	SetStatus(string, string, string, string) error
 }
 
-// GitHub is a summarizer that summarizes policies statuses as GitHub statuses.
+// GitHub is a reporter that summarizes policy statuses as GitHub statuses.
 type GitHub struct {
 	token string
 	owner string
@@ -33,7 +33,7 @@ type GitHub struct {
 	sha   string
 }
 
-// Noop is a summarizer that does nothing.
+// Noop is a reporter that does nothing.
 type Noop struct {
 }
 
@@ -42,9 +42,9 @@ func (n *Noop) SetStatus(state, policy, check, message string) error {
 	return nil
 }
 
-// NewGitHubSummarizer returns a summarizer that posts policy checks as
+// NewGitHubReporter returns a reporter that posts policy checks as
 // status checks on a pull request.
-func NewGitHubSummarizer() (*GitHub, error) {
+func NewGitHubReporter() (*GitHub, error) {
 	token, ok := os.LookupEnv("INPUT_TOKEN")
 	if !ok {
 		return nil, errors.New("missing INPUT_TOKEN")

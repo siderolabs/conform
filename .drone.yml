@@ -11,9 +11,10 @@ services:
         path: /var/run
 
 steps:
-  - name: git-fetch-tags
+  - name: git-fetch
     image: docker:git
     commands:
+      - git fetch origin +refs/heads/master:refs/heads/master
       - git fetch --tags
 
   - name: build

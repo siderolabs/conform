@@ -81,7 +81,7 @@ var serveCmd = &cobra.Command{
 					log.Printf("failed to write event to disk: %+v\n", err)
 					return
 				}
-				cmd := exec.Command("/proc/self/exe", "enforce", "--summary=github")
+				cmd := exec.Command("/proc/self/exe", "enforce", "--reporter=github")
 				cmd.Stdout = os.Stdout
 				cmd.Stderr = os.Stdout
 				cmd.Dir = cloneRepo

@@ -4,7 +4,7 @@
 
 package policy
 
-// Report summarizes the compliance of a policy.
+// Report reports the compliance of a policy.
 type Report struct {
 	checks []Check
 }

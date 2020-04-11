@@ -3,6 +3,7 @@ module github.com/talos-systems/conform
 require (
 	github.com/deckarep/golang-set v1.7.1 // indirect
 	github.com/go-git/go-git/v5 v5.0.0
+	github.com/golangci/misspell v0.3.4
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect

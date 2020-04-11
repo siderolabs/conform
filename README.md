@@ -24,6 +24,7 @@ Some of the policies included are:
   - GPG signature
   - [Conventional Commits](https://www.conventionalcommits.org)
   - Imperative mood
+  - Spell check
   - Maximum of one commit ahead of `master`
   - Require a commit body
 - **License Headers**: Enforce license headers on source code files.
@@ -51,6 +52,8 @@ policies:
         required: true
       dco: true
       gpg: false
+      spellcheck:
+        locale: US
       maximumOfOneCommit: true
       conventional:
         types:

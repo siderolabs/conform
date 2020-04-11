@@ -36,6 +36,14 @@ type BodyChecks struct {
 // Commit implements the policy.Policy interface and enforces commit
 // messages to conform the Conventional Commit standard.
 type Commit struct {
+	// SpellCheck enforces correct spelling.
+	SpellCheck *SpellCheck `mapstructure:"spellcheck"`
+	// Conventional is the user specified settings for conventional commits.
+	Conventional *Conventional `mapstructure:"conventional"`
+	// Header is the user specified settings for the header of each commit.
+	Header *HeaderChecks `mapstructure:"header"`
+	// Header is the user specified settings for the body of each commit.
+	Body *BodyChecks `mapstructure:"body"`
 	// DCO enables the Developer Certificate of Origin check.
 	DCO bool `mapstructure:"dco"`
 	// GPG enables the GPG signature check.
@@ -43,12 +51,6 @@ type Commit struct {
 	// MaximumOfOneCommit enforces that the current commit is only one commit
 	// ahead of a specified ref.
 	MaximumOfOneCommit bool `mapstructure:"maximumOfOneCommit"`
-	// Conventional is the user specified settings for conventional commits.
-	Conventional *Conventional `mapstructure:"conventional"`
-	// Header is the user specified settings for the header of each commit.
-	Header *HeaderChecks `mapstructure:"header"`
-	// Header is the user specified settings for the body of each commit.
-	Body *BodyChecks `mapstructure:"body"`
 
 	msg string
 }
@@ -111,6 +113,10 @@ func (c *Commit) Compliance(options *policy.Options) (*policy.Report, error) {
 
 	if c.Conventional != nil {
 		report.AddCheck(c.ValidateConventionalCommit())
+	}
+
+	if c.SpellCheck != nil {
+		report.AddCheck(c.ValidateSpelling())
 	}
 
 	if c.MaximumOfOneCommit {

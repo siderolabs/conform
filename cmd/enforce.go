@@ -38,6 +38,10 @@ var enforceCmd = &cobra.Command{
 			opts = append(opts, policy.WithCommitMsgFile(&commitMsgFile))
 		}
 
+		if commitRef := cmd.Flags().Lookup("commit-ref").Value.String(); commitRef != "" {
+			opts = append(opts, policy.WithCommitRef(commitRef))
+		}
+
 		if err := e.Enforce(opts...); err != nil {
 			return err
 		}
@@ -48,6 +52,7 @@ var enforceCmd = &cobra.Command{
 
 func init() {
 	enforceCmd.Flags().String("commit-msg-file", "", "the path to the temporary commit message file")
+	enforceCmd.Flags().String("commit-ref", "", "the ref to compare git policies against")
 	enforceCmd.Flags().String("reporter", "none", "the reporter method to use")
 	rootCmd.AddCommand(enforceCmd)
 }

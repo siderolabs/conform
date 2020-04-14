@@ -18,6 +18,8 @@ import (
 	"github.com/spf13/cobra"
 
 	git "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing"
 )
 
 const (
@@ -67,21 +69,60 @@ var serveCmd = &cobra.Command{
 				}
 
 				cloneRepo := filepath.Join(dir, "repo")
-				_, err = git.PlainClone(cloneRepo, false, &git.CloneOptions{
-					URL:      pullRequestEvent.GetRepo().GetCloneURL(),
-					Progress: os.Stdout,
+				cloneURL := pullRequestEvent.GetPullRequest().GetBase().GetRepo().GetCloneURL()
+
+				log.Printf("Cloning %s", cloneURL)
+
+				repo, err := git.PlainClone(cloneRepo, false, &git.CloneOptions{
+					SingleBranch: false,
+					URL:          cloneURL,
+					Progress:     os.Stdout,
 				})
 				if err != nil {
 					log.Printf("failed to clone repo: %+v\n", err)
 					return
 				}
 
+				id := pullRequestEvent.GetPullRequest().GetNumber()
+
+				ref := plumbing.ReferenceName(pullRequestEvent.GetPullRequest().GetHead().GetRef())
+
+				refSpec := fmt.Sprintf("refs/pull/%d/head:%s", id, ref)
+
+				err = repo.Fetch(&git.FetchOptions{
+					RefSpecs: []config.RefSpec{
+						config.RefSpec("refs/heads/*:refs/heads/*"),
+						config.RefSpec(refSpec),
+					},
+					Progress: os.Stdout,
+				})
+				if err != nil {
+					log.Printf("failed to fetch %q: %v", refSpec, err)
+					return
+				}
+
+				worktree, err := repo.Worktree()
+				if err != nil {
+					log.Printf("failed to get working tree: %v", err)
+					return
+				}
+
+				err = worktree.Checkout(&git.CheckoutOptions{
+					Branch: ref,
+				})
+
+				if err != nil {
+					log.Printf("failed to checkout %q: %v", ref, err)
+					return
+				}
+
 				log.Printf("writing %s to disk", event)
+
 				if err = ioutil.WriteFile(event, payload, 0600); err != nil {
 					log.Printf("failed to write event to disk: %+v\n", err)
 					return
 				}
-				cmd := exec.Command("/proc/self/exe", "enforce", "--reporter=github")
+				cmd := exec.Command("/proc/self/exe", "enforce", "--reporter=github", "--commit-ref=refs/heads/"+pullRequestEvent.GetPullRequest().GetBase().GetRef())
 				cmd.Stdout = os.Stdout
 				cmd.Stderr = os.Stdout
 				cmd.Dir = cloneRepo

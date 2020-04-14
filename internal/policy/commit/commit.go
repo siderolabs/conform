@@ -120,7 +120,7 @@ func (c *Commit) Compliance(options *policy.Options) (*policy.Report, error) {
 	}
 
 	if c.MaximumOfOneCommit {
-		report.AddCheck(c.ValidateNumberOfCommits(g, "refs/heads/master"))
+		report.AddCheck(c.ValidateNumberOfCommits(g, options.CommitRef))
 	}
 
 	if c.Body != nil {

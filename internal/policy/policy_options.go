@@ -10,6 +10,7 @@ type Option func(*Options)
 // Options defines the set of options available to a Policy.
 type Options struct {
 	CommitMsgFile *string
+	CommitRef     string
 }
 
 // WithCommitMsgFile sets the path to the commit message file.
@@ -19,10 +20,18 @@ func WithCommitMsgFile(o *string) Option {
 	}
 }
 
+// WithCommitRef sets the ref to compare git policies against.
+func WithCommitRef(o string) Option {
+	return func(args *Options) {
+		args.CommitRef = o
+	}
+}
+
 // NewDefaultOptions initializes a Options struct with default values.
 func NewDefaultOptions(setters ...Option) *Options {
 	opts := &Options{
 		CommitMsgFile: nil,
+		CommitRef:     "refs/heads/master",
 	}
 
 	for _, setter := range setters {

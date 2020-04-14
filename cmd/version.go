@@ -7,8 +7,8 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"html/template"
 	"runtime"
+	"text/template"
 
 	"github.com/spf13/cobra"
 	"github.com/talos-systems/conform/internal/constants"

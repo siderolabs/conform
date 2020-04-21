@@ -128,6 +128,7 @@ func TestValidateDCO(t *testing.T) {
 	}
 }
 
+// nolint: dupl
 func TestValidConventionalCommitPolicy(t *testing.T) {
 	dir, err := ioutil.TempDir("", "test")
 	if err != nil {
@@ -211,11 +212,67 @@ func TestEmptyConventionalCommitPolicy(t *testing.T) {
 	}
 }
 
+// nolint: dupl
+func TestValidConventionalCommitPolicyRegex(t *testing.T) {
+	dir, err := ioutil.TempDir("", "test")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer RemoveAll(dir)
+	err = os.Chdir(dir)
+	if err != nil {
+		t.Error(err)
+	}
+	err = initRepo()
+	if err != nil {
+		t.Error(err)
+	}
+	err = createValidCommitRegex()
+	if err != nil {
+		t.Error(err)
+	}
+	report, err := runCompliance()
+	if err != nil {
+		t.Error(err)
+	}
+	if !report.Valid() {
+		t.Error("Report is invalid with valid conventional commit")
+	}
+}
+
+// nolint: dupl
+func TestInvalidConventionalCommitPolicyRegex(t *testing.T) {
+	dir, err := ioutil.TempDir("", "test")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer RemoveAll(dir)
+	err = os.Chdir(dir)
+	if err != nil {
+		t.Error(err)
+	}
+	err = initRepo()
+	if err != nil {
+		t.Error(err)
+	}
+	err = createInvalidCommitRegex()
+	if err != nil {
+		t.Error(err)
+	}
+	report, err := runCompliance()
+	if err != nil {
+		t.Error(err)
+	}
+	if report.Valid() {
+		t.Error("Report is valid with invalid conventional commit")
+	}
+}
+
 func runCompliance() (*policy.Report, error) {
 	c := &Commit{
 		Conventional: &Conventional{
 			Types:  []string{"type"},
-			Scopes: []string{"scope"},
+			Scopes: []string{"scope", "^valid"},
 		},
 	}
 
@@ -250,6 +307,18 @@ func createInvalidCommit() error {
 
 func createEmptyCommit() error {
 	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "--allow-empty-message", "-m", "").Output()
+
+	return err
+}
+
+func createValidCommitRegex() error {
+	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "-m", "type(valid-1): description").Output()
+
+	return err
+}
+
+func createInvalidCommitRegex() error {
+	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "-m", "type(invalid-1): description").Output()
 
 	return err
 }

@@ -84,7 +84,8 @@ func (c Commit) ValidateConventionalCommit() policy.Check {
 	if groups[3] != "" {
 		scopeIsValid := false
 		for _, scope := range c.Conventional.Scopes {
-			if scope == groups[3] {
+			re := regexp.MustCompile(scope)
+			if re.Match([]byte(groups[3])) {
 				scopeIsValid = true
 				break
 			}

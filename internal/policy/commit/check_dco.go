@@ -31,6 +31,7 @@ func (d DCOCheck) Message() string {
 	if len(d.errors) != 0 {
 		return d.errors[0].Error()
 	}
+
 	return "Developer Certificate of Origin was found"
 }
 
@@ -42,6 +43,7 @@ func (d DCOCheck) Errors() []error {
 // ValidateDCO checks the commit message for a Developer Certificate of Origin.
 func (c Commit) ValidateDCO() policy.Check {
 	check := &DCOCheck{}
+
 	for _, line := range strings.Split(c.msg, "\n") {
 		if DCORegex.MatchString(strings.TrimSpace(line)) {
 			return check

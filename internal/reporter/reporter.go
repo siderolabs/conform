@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+// Package reporter provides check result reporting.
 package reporter
 
 import (
@@ -49,6 +50,7 @@ func NewGitHubReporter() (*GitHub, error) {
 	if !ok {
 		return nil, errors.New("missing INPUT_TOKEN")
 	}
+
 	eventPath, ok := os.LookupEnv("GITHUB_EVENT_PATH")
 	if !ok {
 		return nil, errors.New("GITHUB_EVENT_PATH is not set")
@@ -60,6 +62,7 @@ func NewGitHubReporter() (*GitHub, error) {
 	}
 
 	pullRequestEvent := &github.PullRequestEvent{}
+
 	if err = json.Unmarshal(data, pullRequestEvent); err != nil {
 		return nil, err
 	}
@@ -98,6 +101,7 @@ func (gh *GitHub) SetStatus(state, policy, check, message string) error {
 	if gh.token == "" {
 		return errors.New("no token")
 	}
+
 	statusCheckContext := strings.ReplaceAll(strings.ToLower(path.Join("conform", policy, check)), " ", "-")
 	description := message
 	repoStatus := &github.RepoStatus{}
@@ -123,5 +127,6 @@ type roundTripper struct {
 // RoundTrip implements the net/http.RoundTripper interface.
 func (rt roundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
 	r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", rt.accessToken))
+
 	return http.DefaultTransport.RoundTrip(r)
 }

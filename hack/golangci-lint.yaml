@@ -101,6 +101,9 @@ linters:
     - typecheck
     - gochecknoglobals
     - gochecknoinits
+    - funlen
+    - gomnd
+    - gocognit
   disable-all: false
   fast: false
 

@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+// Package license provides license policy.
 package license
 
 import (
@@ -58,6 +59,7 @@ func (l HeaderCheck) Message() string {
 	if len(l.errors) != 0 {
 		return fmt.Sprintf("Found %d files without license header", len(l.errors))
 	}
+
 	return "All files have a valid license header"
 }
 
@@ -88,7 +90,9 @@ func (l License) ValidateLicenseHeader() policy.Check {
 		check.errors = append(check.errors, errors.New("Header is not defined"))
 		return check
 	}
+
 	value := []byte(l.Header)
+
 	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -112,6 +116,7 @@ func (l License) ValidateLicenseHeader() policy.Check {
 					return nil
 				}
 			}
+
 			// Check files matching the included suffixes.
 			for _, suffix := range l.IncludeSuffixes {
 				if strings.HasSuffix(info.Name(), suffix) {
@@ -120,16 +125,18 @@ func (l License) ValidateLicenseHeader() policy.Check {
 						check.errors = append(check.errors, errors.Errorf("Failed to open %s", path))
 						return nil
 					}
-					// ValidateLicenseHeader(&report, info.Name(), contents, []byte(l.Header))
+
 					if bytes.HasPrefix(contents, value) {
 						continue
 					}
+
 					check.errors = append(check.errors, errors.Errorf("File %s does not contain a license header", info.Name()))
 				}
 			}
 		}
 		return nil
 	})
+
 	if err != nil {
 		check.errors = append(check.errors, errors.Errorf("Failed to walk directory: %v", err))
 	}

@@ -30,6 +30,7 @@ func (h NumberOfCommits) Message() string {
 	if len(h.errors) != 0 {
 		return h.errors[0].Error()
 	}
+
 	return fmt.Sprintf("HEAD is %d commit(s) ahead of %s", h.ahead, h.ref)
 }
 
@@ -46,6 +47,7 @@ func (c Commit) ValidateNumberOfCommits(g *git.Git, ref string) policy.Check {
 
 	var err error
 	check.ahead, _, err = g.AheadBehind(ref)
+
 	if err != nil {
 		check.errors = append(check.errors, err)
 		return check

@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+// Package git provides helpers for SCM.
 package git
 
 import (
@@ -36,10 +37,12 @@ func NewGit() (g *Git, err error) {
 	if err != nil {
 		return
 	}
+
 	repo, err := git.PlainOpen(path.Dir(p))
 	if err != nil {
 		return
 	}
+
 	g = &Git{repo: repo}
 
 	return g, err
@@ -52,18 +55,23 @@ func (g *Git) Message() (message string, err error) {
 	if err != nil {
 		return
 	}
+
 	commit, err := g.repo.CommitObject(ref.Hash())
 	if err != nil {
 		return
 	}
+
 	if commit.NumParents() > 1 {
 		parents := commit.Parents()
+
 		for i := 1; i <= commit.NumParents(); i++ {
 			var next *object.Commit
+
 			next, err = parents.Next()
 			if err != nil {
 				return
 			}
+
 			if i == commit.NumParents() {
 				message = next.Message
 			}
@@ -82,6 +90,7 @@ func (g *Git) HasGPGSignature() (ok bool, err error) {
 	if err != nil {
 		return false, err
 	}
+
 	commit, err := g.repo.CommitObject(ref.Hash())
 	if err != nil {
 		return false, err
@@ -100,6 +109,7 @@ func (g *Git) FetchPullRequest(remote string, number int) (err error) {
 			config.RefSpec(fmt.Sprintf("refs/pull/%d/head:pr/%d", number, number)),
 		},
 	}
+
 	if err = g.repo.Fetch(opts); err != nil {
 		return err
 	}
@@ -131,6 +141,7 @@ func (g *Git) SHA() (sha string, err error) {
 	if err != nil {
 		return sha, err
 	}
+
 	sha = ref.Hash().String()
 
 	return sha, nil
@@ -155,7 +166,9 @@ func (g *Git) AheadBehind(ref string) (ahead int, behind int, err error) {
 	}
 
 	var count int
+
 	iter := object.NewCommitPreorderIter(commit2, nil, nil)
+
 	err = iter.ForEach(func(comm *object.Commit) error {
 		if comm.Hash != ref1.Hash() {
 			count++
@@ -164,6 +177,7 @@ func (g *Git) AheadBehind(ref string) (ahead int, behind int, err error) {
 
 		return storer.ErrStop
 	})
+
 	if err != nil {
 		return 0, 0, nil
 	}

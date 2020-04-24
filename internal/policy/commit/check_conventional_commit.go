@@ -50,6 +50,7 @@ func (c ConventionalCommitCheck) Message() string {
 	if len(c.errors) != 0 {
 		return c.errors[0].Error()
 	}
+
 	return "Commit message is a valid conventional commit"
 }
 
@@ -63,6 +64,7 @@ func (c ConventionalCommitCheck) Errors() []error {
 func (c Commit) ValidateConventionalCommit() policy.Check {
 	check := &ConventionalCommitCheck{}
 	groups := parseHeader(c.msg)
+
 	if len(groups) != 6 {
 		check.errors = append(check.errors, errors.Errorf("Invalid conventional commits format: %q", c.msg))
 		return check
@@ -70,11 +72,13 @@ func (c Commit) ValidateConventionalCommit() policy.Check {
 
 	c.Conventional.Types = append(c.Conventional.Types, TypeFeat, TypeFix)
 	typeIsValid := false
+
 	for _, t := range c.Conventional.Types {
 		if t == groups[1] {
 			typeIsValid = true
 		}
 	}
+
 	if !typeIsValid {
 		check.errors = append(check.errors, errors.Errorf("Invalid type %q: allowed types are %v", groups[1], c.Conventional.Types))
 		return check
@@ -83,6 +87,7 @@ func (c Commit) ValidateConventionalCommit() policy.Check {
 	// Scope is optional.
 	if groups[3] != "" {
 		scopeIsValid := false
+
 		for _, scope := range c.Conventional.Scopes {
 			re := regexp.MustCompile(scope)
 			if re.Match([]byte(groups[3])) {
@@ -90,6 +95,7 @@ func (c Commit) ValidateConventionalCommit() policy.Check {
 				break
 			}
 		}
+
 		if !scopeIsValid {
 			check.errors = append(check.errors, errors.Errorf("Invalid scope %q: allowed scopes are %v", groups[3], c.Conventional.Scopes))
 			return check
@@ -100,9 +106,11 @@ func (c Commit) ValidateConventionalCommit() policy.Check {
 	if c.Conventional.DescriptionLength == 0 {
 		c.Conventional.DescriptionLength = 72
 	}
+
 	if len(groups[4]) <= c.Conventional.DescriptionLength && len(groups[4]) != 0 {
 		return check
 	}
+
 	check.errors = append(check.errors, errors.Errorf("Invalid description: %s", groups[4]))
 
 	return check

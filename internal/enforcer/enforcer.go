@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+// Package enforcer defines policy enforcement.
 package enforcer
 
 import (
@@ -51,6 +52,7 @@ func New(r string) (*Conform, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		c.reporter = s
 	default:
 		c.reporter = &reporter.Noop{}
@@ -60,6 +62,7 @@ func New(r string) (*Conform, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	err = yaml.Unmarshal(configBytes, c)
 	if err != nil {
 		return nil, err
@@ -77,22 +80,27 @@ func (c *Conform) Enforce(setters ...policy.Option) error {
 	fmt.Fprintln(w, "POLICY\tCHECK\tSTATUS\tMESSAGE\t")
 
 	pass := true
+
 	for _, p := range c.Policies {
 		report, err := c.enforce(p, opts)
 		if err != nil {
 			log.Fatal(err)
 		}
+
 		for _, check := range report.Checks() {
 			if len(check.Errors()) != 0 {
 				for _, err := range check.Errors() {
 					fmt.Fprintf(w, "%s\t%s\t%s\t%v\t\n", p.Type, check.Name(), "FAILED", err)
 				}
+
 				if err := c.reporter.SetStatus("failure", p.Type, check.Name(), check.Message()); err != nil {
 					log.Printf("WARNING: report failed: %+v", err)
 				}
+
 				pass = false
 			} else {
 				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t\n", p.Type, check.Name(), "PASS", "<none>")
+
 				if err := c.reporter.SetStatus("success", p.Type, check.Name(), check.Message()); err != nil {
 					log.Printf("WARNING: report failed: %+v", err)
 				}

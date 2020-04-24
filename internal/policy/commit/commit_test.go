@@ -134,23 +134,29 @@ func TestValidConventionalCommitPolicy(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	defer RemoveAll(dir)
+
 	err = os.Chdir(dir)
 	if err != nil {
 		t.Error(err)
 	}
+
 	err = initRepo()
 	if err != nil {
 		t.Error(err)
 	}
+
 	err = createValidCommit()
 	if err != nil {
 		t.Error(err)
 	}
+
 	report, err := runCompliance()
 	if err != nil {
 		t.Error(err)
 	}
+
 	if !report.Valid() {
 		t.Errorf("Report is invalid with valid conventional commit")
 	}
@@ -162,23 +168,29 @@ func TestInvalidConventionalCommitPolicy(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	defer RemoveAll(dir)
+
 	err = os.Chdir(dir)
 	if err != nil {
 		t.Error(err)
 	}
+
 	err = initRepo()
 	if err != nil {
 		t.Error(err)
 	}
+
 	err = createInvalidCommit()
 	if err != nil {
 		t.Error(err)
 	}
+
 	report, err := runCompliance()
 	if err != nil {
 		t.Error(err)
 	}
+
 	if report.Valid() {
 		t.Errorf("Report is valid with invalid conventional commit")
 	}
@@ -190,23 +202,29 @@ func TestEmptyConventionalCommitPolicy(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	defer RemoveAll(dir)
+
 	err = os.Chdir(dir)
 	if err != nil {
 		t.Error(err)
 	}
+
 	err = initRepo()
 	if err != nil {
 		t.Error(err)
 	}
+
 	err = createEmptyCommit()
 	if err != nil {
 		t.Error(err)
 	}
+
 	report, err := runCompliance()
 	if err != nil {
 		t.Error(err)
 	}
+
 	if report.Valid() {
 		t.Error("Report is valid with invalid conventional commit")
 	}
@@ -218,23 +236,29 @@ func TestValidConventionalCommitPolicyRegex(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	defer RemoveAll(dir)
+
 	err = os.Chdir(dir)
 	if err != nil {
 		t.Error(err)
 	}
+
 	err = initRepo()
 	if err != nil {
 		t.Error(err)
 	}
+
 	err = createValidCommitRegex()
 	if err != nil {
 		t.Error(err)
 	}
+
 	report, err := runCompliance()
 	if err != nil {
 		t.Error(err)
 	}
+
 	if !report.Valid() {
 		t.Error("Report is invalid with valid conventional commit")
 	}
@@ -246,23 +270,29 @@ func TestInvalidConventionalCommitPolicyRegex(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	defer RemoveAll(dir)
+
 	err = os.Chdir(dir)
 	if err != nil {
 		t.Error(err)
 	}
+
 	err = initRepo()
 	if err != nil {
 		t.Error(err)
 	}
+
 	err = createInvalidCommitRegex()
 	if err != nil {
 		t.Error(err)
 	}
+
 	report, err := runCompliance()
 	if err != nil {
 		t.Error(err)
 	}
+
 	if report.Valid() {
 		t.Error("Report is valid with invalid conventional commit")
 	}
@@ -284,10 +314,12 @@ func initRepo() error {
 	if err != nil {
 		return err
 	}
+
 	_, err = exec.Command("touch", "test").Output()
 	if err != nil {
 		return err
 	}
+
 	_, err = exec.Command("git", "add", "test").Output()
 
 	return err

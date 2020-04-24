@@ -28,6 +28,7 @@ func (i ImperativeCheck) Message() string {
 	if len(i.errors) != 0 {
 		return i.errors[0].Error()
 	}
+
 	return "Commit begins with imperative verb"
 }
 
@@ -39,25 +40,31 @@ func (i ImperativeCheck) Errors() []error {
 // ValidateImperative checks the commit message for a GPG signature.
 func (c Commit) ValidateImperative() policy.Check {
 	check := &ImperativeCheck{}
+
 	var (
 		word string
 		err  error
 	)
+
 	if word, err = c.firstWord(); err != nil {
 		check.errors = append(check.errors, err)
 		return check
 	}
+
 	doc, err := prose.NewDocument("I " + strings.ToLower(word))
 	if err != nil {
 		check.errors = append(check.errors, errors.Errorf("Failed to create document: %v", err))
 		return check
 	}
+
 	if len(doc.Tokens()) != 2 {
 		check.errors = append(check.errors, errors.Errorf("Expected 2 tokens, got %d", len(doc.Tokens())))
 		return check
 	}
+
 	tokens := doc.Tokens()
 	tok := tokens[1]
+
 	for _, tag := range []string{"VBD", "VBG", "VBZ"} {
 		if tok.Tag == tag {
 			check.errors = append(check.errors, errors.Errorf("First word of commit must be an imperative verb: %q is invalid", word))

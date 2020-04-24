@@ -28,6 +28,7 @@ func (h HeaderCaseCheck) Message() string {
 	if len(h.errors) != 0 {
 		return h.errors[0].Error()
 	}
+
 	return "Header case is valid"
 }
 
@@ -53,6 +54,7 @@ func (c Commit) ValidateHeaderCase() policy.Check {
 	}
 
 	var valid bool
+
 	switch c.Header.Case {
 	case "upper":
 		valid = unicode.IsUpper(first)
@@ -62,8 +64,10 @@ func (c Commit) ValidateHeaderCase() policy.Check {
 		check.errors = append(check.errors, errors.Errorf("Invalid configured case %s", c.Header.Case))
 		return check
 	}
+
 	if !valid {
 		check.errors = append(check.errors, errors.Errorf("Commit header case is not %s", c.Header.Case))
 	}
+
 	return check
 }

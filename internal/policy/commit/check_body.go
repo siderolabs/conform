@@ -31,6 +31,7 @@ func (h Body) Message() string {
 	if len(h.errors) != 0 {
 		return h.errors[0].Error()
 	}
+
 	return "Commit body is valid"
 }
 
@@ -45,10 +46,12 @@ func (c Commit) ValidateBody() policy.Check {
 
 	lines := strings.Split(strings.TrimPrefix(c.msg, "\n"), "\n")
 	valid := false
+
 	for _, line := range lines[1:] {
 		if DCORegex.MatchString(strings.TrimSpace(line)) {
 			continue
 		}
+
 		if line != "" {
 			valid = true
 			break

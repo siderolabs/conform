@@ -27,6 +27,7 @@ func (h HeaderLastCharacterCheck) Message() string {
 	if len(h.errors) != 0 {
 		return h.errors[0].Error()
 	}
+
 	return "Header last character is valid"
 }
 

@@ -25,6 +25,7 @@ func (g GPGCheck) Message() string {
 	if len(g.errors) != 0 {
 		return g.errors[0].Error()
 	}
+
 	return "GPG signature found"
 }
 

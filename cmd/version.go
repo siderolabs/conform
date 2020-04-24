@@ -73,6 +73,7 @@ func PrintLongVersion() {
 	}
 
 	var wr bytes.Buffer
+
 	tmpl, err := template.New("version").Parse(versionTemplate)
 	if err != nil {
 		fmt.Println(err)
@@ -88,5 +89,5 @@ func PrintLongVersion() {
 
 // PrintShortVersion prints the tag and sha.
 func PrintShortVersion() {
-	fmt.Println(fmt.Sprintf("%s %s-%s", constants.AppName, Tag, SHA))
+	fmt.Printf("%s %s-%s\n", constants.AppName, Tag, SHA)
 }

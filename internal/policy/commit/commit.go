@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+// Package commit provides commit-related policies.
 package commit
 
 import (
@@ -69,20 +70,25 @@ func (c *Commit) Compliance(options *policy.Options) (*policy.Report, error) {
 	// Setup the policy for all checks.
 
 	var g *git.Git
+
 	if g, err = git.NewGit(); err != nil {
 		return report, errors.Errorf("failed to open git repo: %v", err)
 	}
 
 	var msg string
+
 	if options.CommitMsgFile != nil {
 		var contents []byte
+
 		if contents, err = ioutil.ReadFile(*options.CommitMsgFile); err != nil {
 			return report, errors.Errorf("failed to read commit message file: %v", err)
 		}
+
 		msg = string(contents)
 	} else if msg, err = g.Message(); err != nil {
 		return report, errors.Errorf("failed to get commit message: %v", err)
 	}
+
 	c.msg = msg
 
 	if c.Header != nil {
@@ -133,23 +139,30 @@ func (c *Commit) Compliance(options *policy.Options) (*policy.Report, error) {
 }
 
 func (c Commit) firstWord() (string, error) {
-	var groups []string
-	var msg string
+	var (
+		groups []string
+		msg    string
+	)
+
 	if c.Conventional != nil {
 		groups = parseHeader(c.msg)
 		if len(groups) != 6 {
 			return "", errors.Errorf("Invalid conventional commit format")
 		}
+
 		msg = groups[4]
 	} else {
 		msg = c.msg
 	}
+
 	if msg == "" {
 		return "", errors.Errorf("Invalid msg: %s", msg)
 	}
+
 	if groups = FirstWordRegex.FindStringSubmatch(msg); groups == nil {
 		return "", errors.Errorf("Invalid msg: %s", msg)
 	}
+
 	return groups[0], nil
 }
 

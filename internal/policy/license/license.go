@@ -12,14 +12,16 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/denormal/go-gitignore"
 	"github.com/pkg/errors"
+
 	"github.com/talos-systems/conform/internal/policy"
 )
 
 // License implements the policy.Policy interface and enforces source code
 // license headers.
 type License struct {
-	// SkipPaths applies fnmatch-style patterns to file paths to skip completely
+	// SkipPaths applies gitignore-style patterns to file paths to skip completely
 	// parts of the tree which shouldn't be scanned (e.g. .git/)
 	SkipPaths []string `mapstructure:"skipPaths"`
 	// IncludeSuffixes is the regex used to find files that the license policy
@@ -68,7 +70,20 @@ func (l HeaderCheck) Errors() []error {
 // provided value.
 // nolint: gocyclo
 func (l License) ValidateLicenseHeader() policy.Check {
+	var buf bytes.Buffer
+
+	for _, pattern := range l.SkipPaths {
+		fmt.Fprintf(&buf, "%s\n", pattern)
+	}
+
 	check := HeaderCheck{}
+
+	patternmatcher := gitignore.New(&buf, ".", func(e gitignore.Error) bool {
+		check.errors = append(check.errors, e.Underlying())
+
+		return true
+	})
+
 	if l.Header == "" {
 		check.errors = append(check.errors, errors.New("Header is not defined"))
 		return check
@@ -79,18 +94,8 @@ func (l License) ValidateLicenseHeader() policy.Check {
 			return err
 		}
 
-		matchPath := path
-		if info.IsDir() {
-			// for directories, match against "dir/
-			matchPath += "/"
-		}
-		for _, pattern := range l.SkipPaths {
-			var matches bool
-			matches, err = filepath.Match(pattern, matchPath)
-			if err != nil {
-				return err
-			}
-			if matches {
+		if patternmatcher.Relative(path, info.IsDir()) != nil {
+			if info.IsDir() {
 				if info.IsDir() {
 					// skip whole directory tree
 					return filepath.SkipDir

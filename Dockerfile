@@ -32,7 +32,7 @@ COPY ./hack ./hack
 RUN chmod +x ./hack/test.sh
 RUN ./hack/test.sh --all
 
-FROM alpine:3.9 as ca-certificates
+FROM alpine:3.11 as ca-certificates
 RUN apk add --update --no-cache ca-certificates
 
 FROM scratch AS image

@@ -1,10 +1,9 @@
-SHA := $(shell gitmeta git sha)
-TAG := $(shell gitmeta image tag)
-BUILT := $(shell gitmeta built)
+SHA ?= $(shell git describe --match=none --always --abbrev=8)
+TAG ?= $(shell git describe --tag --always)
 
 GOLANG_IMAGE ?= golang:1.14
 
-COMMON_ARGS := -f ./Dockerfile --build-arg GOLANG_IMAGE=$(GOLANG_IMAGE) --build-arg SHA=$(SHA) --build-arg TAG=$(TAG) --build-arg BUILT="$(BUILT)" .
+COMMON_ARGS := -f ./Dockerfile --build-arg GOLANG_IMAGE=$(GOLANG_IMAGE) --build-arg SHA=$(SHA) --build-arg TAG=$(TAG) .
 
 export DOCKER_BUILDKIT := 1
 

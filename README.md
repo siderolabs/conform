@@ -27,6 +27,7 @@ Some of the policies included are:
   - Spell check
   - Maximum of one commit ahead of `master`
   - Require a commit body
+  - Jira issue check
 - **License Headers**: Enforce license headers on source code files.
 
 ## Getting Started
@@ -48,6 +49,10 @@ policies:
         imperative: true
         case: lower
         invalidLastCharacters: .
+        jira:
+          keys:
+          - PROJ
+          - JIRA
       body:
         required: true
       dco: true

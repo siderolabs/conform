@@ -17,6 +17,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.5 // indirect
+	golang.org/x/net v0.0.0-20201021035429-f5854403a974 // indirect
 	gonum.org/v1/gonum v0.6.1 // indirect
 	gopkg.in/jdkato/prose.v2 v2.0.0-20180825173540-767a23049b9e
 	gopkg.in/neurosnap/sentences.v1 v1.0.6 // indirect

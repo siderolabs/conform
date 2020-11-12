@@ -25,7 +25,13 @@ type HeaderChecks struct {
 	// HeaderCase is the case that the first word of the header must have ("upper" or "lower").
 	Case string `mapstructure:"case"`
 	// HeaderInvalidLastCharacters is a string containing all invalid last characters for the header.
-	InvalidLastCharacters string `mapstructure:"invalidLastCharacters"`
+	InvalidLastCharacters string      `mapstructure:"invalidLastCharacters"`
+	Jira                  *JiraChecks `mapstructure:"jira"`
+}
+
+// JiraChecks is the configuration for checks for Jira issues
+type JiraChecks struct {
+	Keys []string `mapstructure:"jiraKeys"`
 }
 
 // BodyChecks is the configuration for checks on the body of a commit.
@@ -106,6 +112,10 @@ func (c *Commit) Compliance(options *policy.Options) (*policy.Report, error) {
 
 		if c.Header.InvalidLastCharacters != "" {
 			report.AddCheck(c.ValidateHeaderLastCharacter())
+		}
+
+		if c.Header.Jira != nil {
+			report.AddCheck(c.ValidateJiraCheck())
 		}
 	}
 

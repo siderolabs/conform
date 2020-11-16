@@ -38,11 +38,12 @@ func (j *JiraCheck) Errors() []error {
 // ValidateJiraCheck validates if a Jira issue is mentioned in the header
 func (c Commit) ValidateJiraCheck() policy.Check {
 	check := &JiraCheck{}
-	compile := regexp.MustCompile(`^(\w+)( \w+)?: \[(\w+)-\d+\] .*`)
 
-	if compile.MatchString(c.msg) {
-		submatch := compile.FindStringSubmatch(c.msg)
-		jiraProject := submatch[3]
+	reg := regexp.MustCompile(`.* \[?(\w+)-\d+\]?.*`)
+
+	if reg.MatchString(c.msg) {
+		submatch := reg.FindStringSubmatch(c.msg)
+		jiraProject := submatch[1]
 
 		if !find(c.Header.Jira.Keys, jiraProject) {
 			check.errors = append(check.errors, errors.Errorf("Jira project %s is not a valid jira project", jiraProject))

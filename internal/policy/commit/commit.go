@@ -25,8 +25,9 @@ type HeaderChecks struct {
 	// HeaderCase is the case that the first word of the header must have ("upper" or "lower").
 	Case string `mapstructure:"case"`
 	// HeaderInvalidLastCharacters is a string containing all invalid last characters for the header.
-	InvalidLastCharacters string      `mapstructure:"invalidLastCharacters"`
-	Jira                  *JiraChecks `mapstructure:"jira"`
+	InvalidLastCharacters string `mapstructure:"invalidLastCharacters"`
+	// Jira checks if the header containers a Jira project key.
+	Jira *JiraChecks `mapstructure:"jira"`
 }
 
 // JiraChecks is the configuration for checks for Jira issues

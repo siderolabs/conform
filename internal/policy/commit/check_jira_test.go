@@ -78,7 +78,7 @@ func TestCommit_ValidateJiraCheck(t *testing.T) {
 			want: want{errorCount: 0},
 		},
 		{
-			name: "invalid jira project",
+			name: "Invalid jira project",
 			fields: fields{
 				Header: &HeaderChecks{
 					Jira: &JiraChecks{
@@ -88,6 +88,30 @@ func TestCommit_ValidateJiraCheck(t *testing.T) {
 				msg: "fix: [FALSE-1234] valid commit",
 			},
 			want: want{errorCount: 1},
+		},
+		{
+			name: "Valid commit with scope",
+			fields: fields{
+				Header: &HeaderChecks{
+					Jira: &JiraChecks{
+						Keys: []string{"JIRA", "PROJ"},
+					},
+				},
+				msg: "fix(test): [PROJ-1234] valid commit",
+			},
+			want: want{errorCount: 0},
+		},
+		{
+			name: "Valid commit without square brackets",
+			fields: fields{
+				Header: &HeaderChecks{
+					Jira: &JiraChecks{
+						Keys: []string{"JIRA", "PROJ"},
+					},
+				},
+				msg: "fix: PROJ-1234 valid commit",
+			},
+			want: want{errorCount: 0},
 		},
 	}
 	for _, tt := range tests {

@@ -32,7 +32,7 @@ type HeaderChecks struct {
 
 // JiraChecks is the configuration for checks for Jira issues
 type JiraChecks struct {
-	Keys []string `mapstructure:"jiraKeys"`
+	Keys []string `mapstructure:"keys"`
 }
 
 // BodyChecks is the configuration for checks on the body of a commit.

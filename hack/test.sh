@@ -7,7 +7,7 @@ CGO_ENABLED=1
 lint_packages() {
   if [ "${lint}" = true ]; then
     echo "linting packages"
-    curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $GOPATH/bin v1.24.0
+    curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $GOPATH/bin v1.32.2
     golangci-lint run --config "${BASH_SOURCE%/*}/golangci-lint.yaml"
   fi
 }

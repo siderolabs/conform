@@ -8,10 +8,11 @@ import (
 	"regexp"
 
 	"github.com/pkg/errors"
+
 	"github.com/talos-systems/conform/internal/policy"
 )
 
-// JiraCheck enforces that a Jira issue is mentioned in the header
+// JiraCheck enforces that a Jira issue is mentioned in the header.
 type JiraCheck struct {
 	errors []error
 }
@@ -35,7 +36,7 @@ func (j *JiraCheck) Errors() []error {
 	return j.errors
 }
 
-// ValidateJiraCheck validates if a Jira issue is mentioned in the header
+// ValidateJiraCheck validates if a Jira issue is mentioned in the header.
 func (c Commit) ValidateJiraCheck() policy.Check {
 	check := &JiraCheck{}
 

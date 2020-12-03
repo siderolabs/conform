@@ -8,8 +8,9 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/talos-systems/conform/internal/policy"
 	"gopkg.in/jdkato/prose.v2"
+
+	"github.com/talos-systems/conform/internal/policy"
 )
 
 // ImperativeCheck enforces that the first word of a commit message header is
@@ -48,17 +49,20 @@ func (c Commit) ValidateImperative() policy.Check {
 
 	if word, err = c.firstWord(); err != nil {
 		check.errors = append(check.errors, err)
+
 		return check
 	}
 
 	doc, err := prose.NewDocument("I " + strings.ToLower(word))
 	if err != nil {
 		check.errors = append(check.errors, errors.Errorf("Failed to create document: %v", err))
+
 		return check
 	}
 
 	if len(doc.Tokens()) != 2 {
 		check.errors = append(check.errors, errors.Errorf("Expected 2 tokens, got %d", len(doc.Tokens())))
+
 		return check
 	}
 

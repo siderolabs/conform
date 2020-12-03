@@ -9,6 +9,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/pkg/errors"
+
 	"github.com/talos-systems/conform/internal/policy"
 )
 
@@ -44,12 +45,14 @@ func (c Commit) ValidateHeaderCase() policy.Check {
 	firstWord, err := c.firstWord()
 	if err != nil {
 		check.errors = append(check.errors, err)
+
 		return check
 	}
 
 	first, _ := utf8.DecodeRuneInString(firstWord)
 	if first == utf8.RuneError {
 		check.errors = append(check.errors, errors.New("Header does not start with valid UTF-8 text"))
+
 		return check
 	}
 
@@ -62,6 +65,7 @@ func (c Commit) ValidateHeaderCase() policy.Check {
 		valid = unicode.IsLower(first)
 	default:
 		check.errors = append(check.errors, errors.Errorf("Invalid configured case %s", c.Header.Case))
+
 		return check
 	}
 

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+
 	"github.com/talos-systems/conform/internal/policy"
 )
 
@@ -67,6 +68,7 @@ func (c Commit) ValidateConventionalCommit() policy.Check {
 
 	if len(groups) != 6 {
 		check.errors = append(check.errors, errors.Errorf("Invalid conventional commits format: %q", c.msg))
+
 		return check
 	}
 
@@ -81,6 +83,7 @@ func (c Commit) ValidateConventionalCommit() policy.Check {
 
 	if !typeIsValid {
 		check.errors = append(check.errors, errors.Errorf("Invalid type %q: allowed types are %v", groups[1], c.Conventional.Types))
+
 		return check
 	}
 
@@ -92,12 +95,14 @@ func (c Commit) ValidateConventionalCommit() policy.Check {
 			re := regexp.MustCompile(scope)
 			if re.Match([]byte(groups[3])) {
 				scopeIsValid = true
+
 				break
 			}
 		}
 
 		if !scopeIsValid {
 			check.errors = append(check.errors, errors.Errorf("Invalid scope %q: allowed scopes are %v", groups[3], c.Conventional.Scopes))
+
 			return check
 		}
 	}

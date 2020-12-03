@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+
 	"github.com/talos-systems/conform/internal/git"
 	"github.com/talos-systems/conform/internal/policy"
 )
@@ -50,11 +51,13 @@ func (c Commit) ValidateNumberOfCommits(g *git.Git, ref string) policy.Check {
 
 	if err != nil {
 		check.errors = append(check.errors, err)
+
 		return check
 	}
 
 	if check.ahead > 1 {
 		check.errors = append(check.errors, errors.Errorf("HEAD is %d commit(s) ahead of %s", check.ahead, ref))
+
 		return check
 	}
 

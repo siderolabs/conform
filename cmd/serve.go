@@ -14,25 +14,24 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/google/go-github/github"
-	"github.com/spf13/cobra"
-
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/google/go-github/github"
+	"github.com/spf13/cobra"
 )
 
 const (
 	path = "/github"
 )
 
-// serveCmd represents the serve command
+// serveCmd represents the serve command.
 var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := os.MkdirAll("/tmp", 0700); err != nil {
+		if err := os.MkdirAll("/tmp", 0o700); err != nil {
 			log.Fatal(err)
 		}
 
@@ -40,6 +39,7 @@ var serveCmd = &cobra.Command{
 			payload, err := ioutil.ReadAll(r.Body)
 			if err != nil {
 				log.Printf("failed to read payload: %+v\n", err)
+
 				return
 			}
 
@@ -47,17 +47,20 @@ var serveCmd = &cobra.Command{
 				dir, err := ioutil.TempDir("/tmp", "conform")
 				if err != nil {
 					log.Printf("failed to create temporary directory: %+v\n", err)
+
 					return
 				}
 				// nolint: errcheck
 				defer os.RemoveAll(dir)
 
-				if err = os.MkdirAll(filepath.Join(dir, "github"), 0700); err != nil {
+				if err = os.MkdirAll(filepath.Join(dir, "github"), 0o700); err != nil {
 					log.Printf("failed to create github directory: %+v\n", err)
+
 					return
 				}
-				if err = os.MkdirAll(filepath.Join(dir, "repo"), 0700); err != nil {
+				if err = os.MkdirAll(filepath.Join(dir, "repo"), 0o700); err != nil {
 					log.Printf("failed to create repo directory: %+v\n", err)
+
 					return
 				}
 
@@ -65,6 +68,7 @@ var serveCmd = &cobra.Command{
 				pullRequestEvent := &github.PullRequestEvent{}
 				if err = json.Unmarshal(payload, pullRequestEvent); err != nil {
 					log.Printf("failed to parse pull_request event: %+v\n", err)
+
 					return
 				}
 
@@ -80,6 +84,7 @@ var serveCmd = &cobra.Command{
 				})
 				if err != nil {
 					log.Printf("failed to clone repo: %+v\n", err)
+
 					return
 				}
 
@@ -98,12 +103,14 @@ var serveCmd = &cobra.Command{
 				})
 				if err != nil {
 					log.Printf("failed to fetch %q: %v", refSpec, err)
+
 					return
 				}
 
 				worktree, err := repo.Worktree()
 				if err != nil {
 					log.Printf("failed to get working tree: %v", err)
+
 					return
 				}
 
@@ -113,13 +120,15 @@ var serveCmd = &cobra.Command{
 
 				if err != nil {
 					log.Printf("failed to checkout %q: %v", ref, err)
+
 					return
 				}
 
 				log.Printf("writing %s to disk", event)
 
-				if err = ioutil.WriteFile(event, payload, 0600); err != nil {
+				if err = ioutil.WriteFile(event, payload, 0o600); err != nil {
 					log.Printf("failed to write event to disk: %+v\n", err)
+
 					return
 				}
 				cmd := exec.Command("/proc/self/exe", "enforce", "--reporter=github", "--commit-ref=refs/heads/"+pullRequestEvent.GetPullRequest().GetBase().GetRef())
@@ -130,11 +139,13 @@ var serveCmd = &cobra.Command{
 				err = cmd.Start()
 				if err != nil {
 					log.Printf("failed to start command: %+v\n", err)
+
 					return
 				}
 				err = cmd.Wait()
 				if err != nil {
 					log.Printf("command failed: %+v\n", err)
+
 					return
 				}
 			}()

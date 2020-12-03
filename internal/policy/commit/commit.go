@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+
 	"github.com/talos-systems/conform/internal/git"
 	"github.com/talos-systems/conform/internal/policy"
 )
@@ -30,7 +31,7 @@ type HeaderChecks struct {
 	Jira *JiraChecks `mapstructure:"jira"`
 }
 
-// JiraChecks is the configuration for checks for Jira issues
+// JiraChecks is the configuration for checks for Jira issues.
 type JiraChecks struct {
 	Keys []string `mapstructure:"keys"`
 }

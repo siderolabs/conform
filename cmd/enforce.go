@@ -9,11 +9,12 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+
 	"github.com/talos-systems/conform/internal/enforcer"
 	"github.com/talos-systems/conform/internal/policy"
 )
 
-// enforceCmd represents the enforce command
+// enforceCmd represents the enforce command.
 var enforceCmd = &cobra.Command{
 	Use:   "enforce",
 	Short: "",

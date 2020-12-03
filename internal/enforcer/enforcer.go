@@ -14,12 +14,12 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
+	yaml "gopkg.in/yaml.v2"
+
 	"github.com/talos-systems/conform/internal/policy"
 	"github.com/talos-systems/conform/internal/policy/commit"
 	"github.com/talos-systems/conform/internal/policy/license"
 	"github.com/talos-systems/conform/internal/reporter"
-
-	yaml "gopkg.in/yaml.v2"
 )
 
 // Conform is a struct that conform.yaml gets decoded into.

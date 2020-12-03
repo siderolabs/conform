@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+
 	"github.com/talos-systems/conform/internal/policy"
 )
 

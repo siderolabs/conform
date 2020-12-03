@@ -6,6 +6,7 @@ package commit
 
 import (
 	"github.com/pkg/errors"
+
 	"github.com/talos-systems/conform/internal/git"
 	"github.com/talos-systems/conform/internal/policy"
 )
@@ -41,6 +42,7 @@ func (c Commit) ValidateGPGSign(g *git.Git) policy.Check {
 	ok, err := g.HasGPGSignature()
 	if err != nil {
 		check.errors = append(check.errors, err)
+
 		return check
 	}
 

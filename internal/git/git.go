@@ -172,6 +172,7 @@ func (g *Git) AheadBehind(ref string) (ahead int, behind int, err error) {
 	err = iter.ForEach(func(comm *object.Commit) error {
 		if comm.Hash != ref1.Hash() {
 			count++
+
 			return nil
 		}
 

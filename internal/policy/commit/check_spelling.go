@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/talos-systems/conform/internal/policy"
-
 	"github.com/golangci/misspell"
+
+	"github.com/talos-systems/conform/internal/policy"
 )
 
 // SpellCheck represents to spell check policy.

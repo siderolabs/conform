@@ -18,6 +18,7 @@ import (
 	"strings"
 
 	"github.com/google/go-github/github"
+
 	"github.com/talos-systems/conform/internal/git"
 )
 
@@ -97,6 +98,7 @@ func NewGitHubReporter() (*GitHub, error) {
 
 // SetStatus sets the status of a GitHub check.
 // Valid statuses are "error", "failure", "pending", "success"
+// nolint: godot
 func (gh *GitHub) SetStatus(state, policy, check, message string) error {
 	if gh.token == "" {
 		return errors.New("no token")

@@ -93,6 +93,8 @@ linters-settings:
     simple: true
     range-loops: true # Report preallocation suggestions on range loops, true by default
     for-loops: false # Report preallocation suggestions on for loops, false by default
+  gci:
+    local-prefixes: github.com/talos-systems/conform
 
 linters:
   enable-all: true
@@ -102,8 +104,14 @@ linters:
     - gochecknoglobals
     - gochecknoinits
     - funlen
-    - gomnd
+    - godox
     - gocognit
+    - gomnd
+    - goerr113
+    - nestif
+    - exhaustivestruct
+    - errorlint
+    - wrapcheck
   disable-all: false
   fast: false
 

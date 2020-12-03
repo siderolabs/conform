@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+
 	"github.com/talos-systems/conform/internal/policy"
 )
 
@@ -54,6 +55,7 @@ func (c Commit) ValidateBody() policy.Check {
 
 		if line != "" {
 			valid = true
+
 			break
 		}
 	}

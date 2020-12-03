@@ -9,6 +9,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/pkg/errors"
+
 	"github.com/talos-systems/conform/internal/policy"
 )
 

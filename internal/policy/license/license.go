@@ -88,6 +88,7 @@ func (l License) ValidateLicenseHeader() policy.Check {
 
 	if l.Header == "" {
 		check.errors = append(check.errors, errors.New("Header is not defined"))
+
 		return check
 	}
 
@@ -123,6 +124,7 @@ func (l License) ValidateLicenseHeader() policy.Check {
 					var contents []byte
 					if contents, err = ioutil.ReadFile(path); err != nil {
 						check.errors = append(check.errors, errors.Errorf("Failed to open %s", path))
+
 						return nil
 					}
 
@@ -134,9 +136,9 @@ func (l License) ValidateLicenseHeader() policy.Check {
 				}
 			}
 		}
+
 		return nil
 	})
-
 	if err != nil {
 		check.errors = append(check.errors, errors.Errorf("Failed to walk directory: %v", err))
 	}

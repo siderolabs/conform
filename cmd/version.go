@@ -11,6 +11,7 @@ import (
 	"text/template"
 
 	"github.com/spf13/cobra"
+
 	"github.com/talos-systems/conform/internal/constants"
 )
 
@@ -42,7 +43,7 @@ type Version struct {
 	Arch      string
 }
 
-// versionCmd represents the version command
+// versionCmd represents the version command.
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Prints the version",

@@ -91,6 +91,18 @@ func TestCommit_ValidateJiraCheck(t *testing.T) {
 			want: want{errorCount: 1},
 		},
 		{
+			name: "Invalid jira issue number",
+			fields: fields{
+				Header: &HeaderChecks{
+					Jira: &JiraChecks{
+						Keys: []string{"JIRA", "PROJ"},
+					},
+				},
+				msg: "fix: JIRA-0 valid commit",
+			},
+			want: want{errorCount: 1},
+		},
+		{
 			name: "Valid commit with scope",
 			fields: fields{
 				Header: &HeaderChecks{

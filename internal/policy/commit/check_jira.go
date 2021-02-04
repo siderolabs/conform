@@ -40,7 +40,7 @@ func (j *JiraCheck) Errors() []error {
 func (c Commit) ValidateJiraCheck() policy.Check {
 	check := &JiraCheck{}
 
-	reg := regexp.MustCompile(`.* \[?(\w+)-[1-9]{1}\d*\]?.*`)
+	reg := regexp.MustCompile(`.* \[?([A-Z]*)-[1-9]{1}\d*\]?.*`)
 
 	if reg.MatchString(c.msg) {
 		submatch := reg.FindStringSubmatch(c.msg)

@@ -9,4 +9,4 @@ inputs:
     required: true
 runs:
   using: "docker"
-  image: "docker://autonomy/conform:v0.1.0-alpha.17"
+  image: "docker://autonomy/conform:v0.1.0-alpha.20"

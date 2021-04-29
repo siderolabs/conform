@@ -36,6 +36,16 @@ func TestConventionalCommitPolicy(t *testing.T) {
 			ExpectValid:  true,
 		},
 		{
+			Name:         "Breaking",
+			CreateCommit: createBreakingCommit,
+			ExpectValid:  true,
+		},
+		{
+			Name:         "InvalidBreaking",
+			CreateCommit: createInvalidBreakingCommit,
+			ExpectValid:  false,
+		},
+		{
 			Name:         "Invalid",
 			CreateCommit: createInvalidCommit,
 			ExpectValid:  false,
@@ -328,6 +338,18 @@ func initRepo() error {
 
 func createValidCommit() error {
 	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "-m", "type(scope): description").Output()
+
+	return err
+}
+
+func createBreakingCommit() error {
+	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "-m", "feat!: description").Output()
+
+	return err
+}
+
+func createInvalidBreakingCommit() error {
+	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "-m", "feat$: description").Output()
 
 	return err
 }

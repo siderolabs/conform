@@ -23,7 +23,7 @@ type Conventional struct {
 
 // HeaderRegex is the regular expression used for Conventional Commits
 // 1.0.0-beta.1.
-var HeaderRegex = regexp.MustCompile(`^(\w*)(\(([^)]+)\))?:\s{1}(.*)($|\n{2})`)
+var HeaderRegex = regexp.MustCompile(`^(\w*)(\!)?(\(([^)]+)\))?:\s{1}(.*)($|\n{2})`)
 
 const (
 	// TypeFeat is a commit of the type fix patches a bug in your codebase
@@ -66,17 +66,22 @@ func (c Commit) ValidateConventionalCommit() policy.Check {
 	check := &ConventionalCommitCheck{}
 	groups := parseHeader(c.msg)
 
-	if len(groups) != 6 {
+	if len(groups) != 7 {
 		check.errors = append(check.errors, errors.Errorf("Invalid conventional commits format: %q", c.msg))
 
 		return check
 	}
 
+	// conventional commit sections
+	ccType := groups[1]
+	ccScope := groups[4]
+	ccDesc := groups[5]
+
 	c.Conventional.Types = append(c.Conventional.Types, TypeFeat, TypeFix)
 	typeIsValid := false
 
 	for _, t := range c.Conventional.Types {
-		if t == groups[1] {
+		if t == ccType {
 			typeIsValid = true
 		}
 	}
@@ -88,12 +93,12 @@ func (c Commit) ValidateConventionalCommit() policy.Check {
 	}
 
 	// Scope is optional.
-	if groups[3] != "" {
+	if ccScope != "" {
 		scopeIsValid := false
 
 		for _, scope := range c.Conventional.Scopes {
 			re := regexp.MustCompile(scope)
-			if re.Match([]byte(groups[3])) {
+			if re.Match([]byte(ccScope)) {
 				scopeIsValid = true
 
 				break
@@ -112,11 +117,11 @@ func (c Commit) ValidateConventionalCommit() policy.Check {
 		c.Conventional.DescriptionLength = 72
 	}
 
-	if len(groups[4]) <= c.Conventional.DescriptionLength && len(groups[4]) != 0 {
+	if len(ccDesc) <= c.Conventional.DescriptionLength && len(ccDesc) != 0 {
 		return check
 	}
 
-	check.errors = append(check.errors, errors.Errorf("Invalid description: %s", groups[4]))
+	check.errors = append(check.errors, errors.Errorf("Invalid description: %s", ccDesc))
 
 	return check
 }

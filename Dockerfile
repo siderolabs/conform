@@ -26,9 +26,9 @@ RUN go build -o /conform-${GOOS}-${GOARCH} -ldflags "-s -w -X \"github.com/talos
 FROM common AS test
 ENV GOOS linux
 ENV GOARCH amd64
-COPY ./hack ./hack
-RUN chmod +x ./hack/test.sh
-RUN ./hack/test.sh --all
+RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.42.0
+RUN golangci-lint run
+RUN CGO_ENABLED=1 go test -v -race -covermode=atomic -coverprofile=/coverage.txt ./...
 
 FROM alpine:3.11 as ca-certificates
 RUN apk add --update --no-cache ca-certificates

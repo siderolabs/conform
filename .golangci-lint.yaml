@@ -112,6 +112,8 @@ linters:
     - exhaustivestruct
     - errorlint
     - wrapcheck
+    - forbidigo
+    - paralleltest
   disable-all: false
   fast: false
 

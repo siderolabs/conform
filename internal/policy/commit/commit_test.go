@@ -16,8 +16,7 @@ import (
 )
 
 func RemoveAll(dir string) {
-	err := os.RemoveAll(dir)
-	if err != nil {
+	if err := os.RemoveAll(dir); err != nil {
 		log.Fatal(err)
 	}
 }

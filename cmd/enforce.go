@@ -43,11 +43,7 @@ var enforceCmd = &cobra.Command{
 			opts = append(opts, policy.WithCommitRef(commitRef))
 		}
 
-		if err := e.Enforce(opts...); err != nil {
-			return err
-		}
-
-		return nil
+		return e.Enforce(opts...)
 	},
 }
 

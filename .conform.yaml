@@ -9,7 +9,10 @@ policies:
       body:
         required: true
       dco: true
-      gpg: false
+      gpg:
+        required: true
+        identity:
+          gitHubOrganization: talos-systems
       spellcheck:
         locale: US
       maximumOfOneCommit: true

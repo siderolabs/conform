@@ -99,7 +99,7 @@ func (c *Conform) Enforce(setters ...policy.Option) error {
 
 				pass = false
 			} else {
-				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t\n", p.Type, check.Name(), "PASS", "<none>")
+				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t\n", p.Type, check.Name(), "PASS", check.Message())
 
 				if err := c.reporter.SetStatus("success", p.Type, check.Name(), check.Message()); err != nil {
 					log.Printf("WARNING: report failed: %+v", err)
@@ -124,6 +124,19 @@ func (c *Conform) enforce(declaration *PolicyDeclaration, opts *policy.Options) 
 	}
 
 	p := policyMap[declaration.Type]
+
+	// backwards compatibility, convert `gpg: bool` into `gpg: required: bool`
+	if declaration.Type == "commit" {
+		if spec, ok := declaration.Spec.(map[interface{}]interface{}); ok {
+			if gpg, ok := spec["gpg"]; ok {
+				if val, ok := gpg.(bool); ok {
+					spec["gpg"] = map[string]interface{}{
+						"required": val,
+					}
+				}
+			}
+		}
+	}
 
 	err := mapstructure.Decode(declaration.Spec, p)
 	if err != nil {

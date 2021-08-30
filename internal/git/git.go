@@ -10,12 +10,14 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/storer"
+	"github.com/keybase/go-crypto/openpgp"
 )
 
 // Git is a helper for git.
@@ -101,6 +103,49 @@ func (g *Git) HasGPGSignature() (ok bool, err error) {
 	return ok, err
 }
 
+// VerifyPGPSignature validates PGP signature against a keyring.
+func (g *Git) VerifyPGPSignature(armoredKeyrings []string) (*openpgp.Entity, error) {
+	ref, err := g.repo.Head()
+	if err != nil {
+		return nil, err
+	}
+
+	commit, err := g.repo.CommitObject(ref.Hash())
+	if err != nil {
+		return nil, err
+	}
+
+	var keyring openpgp.EntityList
+
+	for _, armoredKeyring := range armoredKeyrings {
+		var el openpgp.EntityList
+
+		el, err = openpgp.ReadArmoredKeyRing(strings.NewReader(armoredKeyring))
+		if err != nil {
+			return nil, err
+		}
+
+		keyring = append(keyring, el...)
+	}
+
+	// Extract signature.
+	signature := strings.NewReader(commit.PGPSignature)
+
+	encoded := &plumbing.MemoryObject{}
+
+	// Encode commit components, excluding signature and get a reader object.
+	if err = commit.EncodeWithoutSignature(encoded); err != nil {
+		return nil, err
+	}
+
+	er, err := encoded.Reader()
+	if err != nil {
+		return nil, err
+	}
+
+	return openpgp.CheckArmoredDetachedSignature(keyring, er, signature)
+}
+
 // FetchPullRequest fetches a remote PR.
 func (g *Git) FetchPullRequest(remote string, number int) (err error) {
 	opts := &git.FetchOptions{
@@ -110,11 +155,7 @@ func (g *Git) FetchPullRequest(remote string, number int) (err error) {
 		},
 	}
 
-	if err = g.repo.Fetch(opts); err != nil {
-		return err
-	}
-
-	return nil
+	return g.repo.Fetch(opts)
 }
 
 // CheckoutPullRequest checks out pull request.
@@ -128,11 +169,7 @@ func (g *Git) CheckoutPullRequest(number int) (err error) {
 		Branch: plumbing.ReferenceName(fmt.Sprintf("pr/%d", number)),
 	}
 
-	if err := w.Checkout(opts); err != nil {
-		return err
-	}
-
-	return nil
+	return w.Checkout(opts)
 }
 
 // SHA returns the sha of the current commit.
@@ -162,7 +199,7 @@ func (g *Git) AheadBehind(ref string) (ahead int, behind int, err error) {
 
 	commit2, err := object.GetCommit(g.repo.Storer, ref2.Hash())
 	if err != nil {
-		return 0, 0, nil
+		return 0, 0, nil //nolint:nilerr
 	}
 
 	var count int
@@ -180,7 +217,7 @@ func (g *Git) AheadBehind(ref string) (ahead int, behind int, err error) {
 	})
 
 	if err != nil {
-		return 0, 0, nil
+		return 0, 0, nil //nolint:nilerr
 	}
 
 	return count, 0, nil

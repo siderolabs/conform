@@ -42,8 +42,22 @@ type BodyChecks struct {
 	Required bool `mapstructure:"required"`
 }
 
+// GPG is the configuration for checks GPG signature on the commit.
+type GPG struct {
+	// Required enforces that the current commit has a signature.
+	Required bool `mapstructure:"required"`
+	// Identity configures identity of the signature.
+	Identity *struct {
+		// GitHubOrganization enforces that commit should be signed with the key
+		// of one of the organization public members.
+		GitHubOrganization string `mapstructure:"gitHubOrganization"`
+	} `mapstructure:"identity"`
+}
+
 // Commit implements the policy.Policy interface and enforces commit
 // messages to conform the Conventional Commit standard.
+//
+//nolint:maligned
 type Commit struct {
 	// SpellCheck enforces correct spelling.
 	SpellCheck *SpellCheck `mapstructure:"spellcheck"`
@@ -55,8 +69,11 @@ type Commit struct {
 	Body *BodyChecks `mapstructure:"body"`
 	// DCO enables the Developer Certificate of Origin check.
 	DCO bool `mapstructure:"dco"`
-	// GPG enables the GPG signature check.
-	GPG bool `mapstructure:"gpg"`
+	// GPG is the user specified settings for the GPG signature check.
+	GPG *GPG `mapstructure:"gpg"`
+	// GPGSignatureGitHubOrganization enforces that GPG signature should come from
+	// one of the members of the GitHub org.
+	GPGSignatureGitHubOrganization string `mapstructure:"gpgSignatureGitHubOrg"`
 	// MaximumOfOneCommit enforces that the current commit is only one commit
 	// ahead of a specified ref.
 	MaximumOfOneCommit bool `mapstructure:"maximumOfOneCommit"`
@@ -69,14 +86,13 @@ type Commit struct {
 var FirstWordRegex = regexp.MustCompile(`^\s*([a-zA-Z0-9]+)`)
 
 // Compliance implements the policy.Policy.Compliance function.
-// nolint: gocyclo
+//nolint: gocyclo,cyclop
 func (c *Commit) Compliance(options *policy.Options) (*policy.Report, error) {
 	var err error
 
 	report := &policy.Report{}
 
 	// Setup the policy for all checks.
-
 	var g *git.Git
 
 	if g, err = git.NewGit(); err != nil {
@@ -125,8 +141,14 @@ func (c *Commit) Compliance(options *policy.Options) (*policy.Report, error) {
 		report.AddCheck(c.ValidateDCO())
 	}
 
-	if c.GPG {
-		report.AddCheck(c.ValidateGPGSign(g))
+	if c.GPG != nil {
+		if c.GPG.Required {
+			report.AddCheck(c.ValidateGPGSign(g))
+
+			if c.GPG.Identity != nil {
+				report.AddCheck(c.ValidateGPGIdentity(g))
+			}
+		}
 	}
 
 	if c.Conventional != nil {
@@ -158,11 +180,11 @@ func (c Commit) firstWord() (string, error) {
 
 	if c.Conventional != nil {
 		groups = parseHeader(c.msg)
-		if len(groups) != 6 {
+		if len(groups) != 7 {
 			return "", errors.Errorf("Invalid conventional commit format")
 		}
 
-		msg = groups[4]
+		msg = groups[5]
 	} else {
 		msg = c.msg
 	}

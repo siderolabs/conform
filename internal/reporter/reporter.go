@@ -36,8 +36,7 @@ type GitHub struct {
 }
 
 // Noop is a reporter that does nothing.
-type Noop struct {
-}
+type Noop struct{}
 
 // SetStatus is a noop func.
 func (n *Noop) SetStatus(state, policy, check, message string) error {
@@ -97,8 +96,8 @@ func NewGitHubReporter() (*GitHub, error) {
 }
 
 // SetStatus sets the status of a GitHub check.
-// Valid statuses are "error", "failure", "pending", "success"
-// nolint: godot
+//
+// Valid statuses are "error", "failure", "pending", "success".
 func (gh *GitHub) SetStatus(state, policy, check, message string) error {
 	if gh.token == "" {
 		return errors.New("no token")

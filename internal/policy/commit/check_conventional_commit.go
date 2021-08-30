@@ -61,7 +61,7 @@ func (c ConventionalCommitCheck) Errors() []error {
 }
 
 // ValidateConventionalCommit returns the commit type.
-// nolint: gocyclo
+//nolint:gocyclo,cyclop
 func (c Commit) ValidateConventionalCommit() policy.Check {
 	check := &ConventionalCommitCheck{}
 	groups := parseHeader(c.msg)

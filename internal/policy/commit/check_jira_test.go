@@ -131,12 +131,14 @@ func TestCommit_ValidateJiraCheck(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			c := Commit{
-				SpellCheck:         tt.fields.SpellCheck,
-				Conventional:       tt.fields.Conventional,
-				Header:             tt.fields.Header,
-				Body:               tt.fields.Body,
-				DCO:                tt.fields.DCO,
-				GPG:                tt.fields.GPG,
+				SpellCheck:   tt.fields.SpellCheck,
+				Conventional: tt.fields.Conventional,
+				Header:       tt.fields.Header,
+				Body:         tt.fields.Body,
+				DCO:          tt.fields.DCO,
+				GPG: &GPG{
+					Required: tt.fields.GPG,
+				},
 				MaximumOfOneCommit: tt.fields.MaximumOfOneCommit,
 				msg:                tt.fields.msg,
 			}

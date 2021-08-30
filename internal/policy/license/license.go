@@ -70,7 +70,8 @@ func (l HeaderCheck) Errors() []error {
 
 // ValidateLicenseHeader checks the header of a file and ensures it contains the
 // provided value.
-// nolint: gocyclo
+//
+//nolint:gocyclo,cyclop
 func (l License) ValidateLicenseHeader() policy.Check {
 	var buf bytes.Buffer
 
@@ -125,7 +126,7 @@ func (l License) ValidateLicenseHeader() policy.Check {
 					if contents, err = ioutil.ReadFile(path); err != nil {
 						check.errors = append(check.errors, errors.Errorf("Failed to open %s", path))
 
-						return nil
+						return nil //nolint:nilerr
 					}
 
 					if bytes.HasPrefix(contents, value) {

@@ -46,11 +46,11 @@ func (c Commit) ValidateGPGSign(g *git.Git) policy.Check {
 		return check
 	}
 
-	if ok {
+	if !ok {
+		check.errors = append(check.errors, errors.Errorf("Commit does not have a GPG signature"))
+
 		return check
 	}
-
-	check.errors = append(check.errors, errors.Errorf("Commit does not have a GPG signature"))
 
 	return check
 }

@@ -2,10 +2,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// Package constants defines common values.
-package constants
+package main
 
-const (
-	// AppName is the application name.
-	AppName = "Conform"
-)
+func main() {
+	Execute()
+}

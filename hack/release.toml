@@ -1,0 +1,16 @@
+# THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
+#
+# Generated on 2021-09-01T21:21:54Z by kres 5ca7963.
+
+
+# commit to be tagged for the new release
+commit = "HEAD"
+
+project_name = "conform"
+github_repo = "talos-systems/conform"
+match_deps = "^github.com/(talos-systems/[a-zA-Z0-9-]+)$"
+
+# previous = -
+# pre_release = true
+
+# [notes]

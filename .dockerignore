@@ -1,1 +1,13 @@
-build
+# THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
+#
+# Generated on 2021-09-01T21:21:54Z by kres 5ca7963.
+
+**
+!cmd
+!internal
+!go.mod
+!go.sum
+!.golangci.yml
+!CHANGELOG.md
+!README.md
+!.markdownlint.json

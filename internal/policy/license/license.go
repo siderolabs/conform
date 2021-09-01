@@ -1,6 +1,6 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 // Package license provides license policy.
 package license
@@ -21,6 +21,8 @@ import (
 
 // License implements the policy.Policy interface and enforces source code
 // license headers.
+//
+//nolint:govet
 type License struct {
 	// SkipPaths applies gitignore-style patterns to file paths to skip completely
 	// parts of the tree which shouldn't be scanned (e.g. .git/)
@@ -71,7 +73,7 @@ func (l HeaderCheck) Errors() []error {
 // ValidateLicenseHeader checks the header of a file and ensures it contains the
 // provided value.
 //
-//nolint:gocyclo,cyclop
+//nolint:gocognit
 func (l License) ValidateLicenseHeader() policy.Check {
 	var buf bytes.Buffer
 

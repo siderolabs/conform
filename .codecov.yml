@@ -1,0 +1,18 @@
+# THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
+#
+# Generated on 2021-09-01T21:02:33Z by kres d88b53b-dirty.
+
+codecov:
+  require_ci_to_pass: false
+
+coverage:
+  status:
+    project:
+      default:
+        target: 50%
+        threshold: 0.5%
+        base: auto
+        if_ci_failed: success
+    patch: off
+
+comment: false

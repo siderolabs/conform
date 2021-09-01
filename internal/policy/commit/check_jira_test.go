@@ -1,8 +1,8 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// nolint: testpackage
+//nolint: testpackage
 package commit
 
 import (
@@ -10,6 +10,7 @@ import (
 )
 
 func TestCommit_ValidateJiraCheck(t *testing.T) {
+	//nolint:govet
 	type fields struct {
 		SpellCheck         *SpellCheck
 		Conventional       *Conventional

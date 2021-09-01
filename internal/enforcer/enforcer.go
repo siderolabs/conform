@@ -1,6 +1,6 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 // Package enforcer defines policy enforcement.
 package enforcer
@@ -23,6 +23,8 @@ import (
 )
 
 // Conform is a struct that conform.yaml gets decoded into.
+//
+//nolint:govet
 type Conform struct {
 	Policies []*PolicyDeclaration `yaml:"policies"`
 	reporter reporter.Reporter
@@ -30,6 +32,8 @@ type Conform struct {
 
 // PolicyDeclaration allows a user to declare an arbitrary type along with a
 // spec that will be decoded into the appropriate concrete type.
+//
+//nolint:govet
 type PolicyDeclaration struct {
 	Type string      `yaml:"type"`
 	Spec interface{} `yaml:"spec"`
@@ -108,7 +112,7 @@ func (c *Conform) Enforce(setters ...policy.Option) error {
 		}
 	}
 
-	// nolint: errcheck
+	//nolint: errcheck
 	w.Flush()
 
 	if !pass {

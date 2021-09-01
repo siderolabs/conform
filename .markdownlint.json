@@ -2,4 +2,8 @@
 #
 # Generated on 2021-09-01T21:02:33Z by kres d88b53b-dirty.
 
-_out
+{
+    "MD013": false,
+    "MD033": false,
+    "default": true
+  }

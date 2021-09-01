@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD041 -->
+
 <p align="center">
   <h1 align="center">Conform</h1>
   <p align="center">Policy enforcement for your pipelines.</p>

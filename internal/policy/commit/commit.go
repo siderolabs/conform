@@ -1,6 +1,6 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 // Package commit provides commit-related policies.
 package commit
@@ -17,6 +17,8 @@ import (
 )
 
 // HeaderChecks is the configuration for checks on the header of a commit.
+//
+//nolint:govet
 type HeaderChecks struct {
 	// Length is the maximum length of the commit subject.
 	Length int `mapstructure:"length"`
@@ -43,6 +45,8 @@ type BodyChecks struct {
 }
 
 // GPG is the configuration for checks GPG signature on the commit.
+//
+//nolint:govet
 type GPG struct {
 	// Required enforces that the current commit has a signature.
 	Required bool `mapstructure:"required"`
@@ -57,7 +61,7 @@ type GPG struct {
 // Commit implements the policy.Policy interface and enforces commit
 // messages to conform the Conventional Commit standard.
 //
-//nolint:maligned
+//nolint:maligned,govet
 type Commit struct {
 	// SpellCheck enforces correct spelling.
 	SpellCheck *SpellCheck `mapstructure:"spellcheck"`
@@ -86,7 +90,6 @@ type Commit struct {
 var FirstWordRegex = regexp.MustCompile(`^\s*([a-zA-Z0-9]+)`)
 
 // Compliance implements the policy.Policy.Compliance function.
-//nolint: gocyclo,cyclop
 func (c *Commit) Compliance(options *policy.Options) (*policy.Report, error) {
 	var err error
 

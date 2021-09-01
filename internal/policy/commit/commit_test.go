@@ -1,8 +1,8 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// nolint: testpackage
+//nolint: testpackage
 package commit
 
 import (
@@ -21,7 +21,9 @@ func RemoveAll(dir string) {
 	}
 }
 
+//nolint:gocognit
 func TestConventionalCommitPolicy(t *testing.T) {
+	//nolint:govet
 	type testDesc struct {
 		Name         string
 		CreateCommit func() error
@@ -138,7 +140,6 @@ func TestValidateDCO(t *testing.T) {
 	}
 }
 
-// nolint: dupl
 func TestValidConventionalCommitPolicy(t *testing.T) {
 	dir, err := ioutil.TempDir("", "test")
 	if err != nil {
@@ -172,7 +173,6 @@ func TestValidConventionalCommitPolicy(t *testing.T) {
 	}
 }
 
-// nolint: dupl
 func TestInvalidConventionalCommitPolicy(t *testing.T) {
 	dir, err := ioutil.TempDir("", "test")
 	if err != nil {
@@ -206,7 +206,6 @@ func TestInvalidConventionalCommitPolicy(t *testing.T) {
 	}
 }
 
-// nolint: dupl
 func TestEmptyConventionalCommitPolicy(t *testing.T) {
 	dir, err := ioutil.TempDir("", "test")
 	if err != nil {
@@ -240,7 +239,6 @@ func TestEmptyConventionalCommitPolicy(t *testing.T) {
 	}
 }
 
-// nolint: dupl
 func TestValidConventionalCommitPolicyRegex(t *testing.T) {
 	dir, err := ioutil.TempDir("", "test")
 	if err != nil {
@@ -274,7 +272,6 @@ func TestValidConventionalCommitPolicyRegex(t *testing.T) {
 	}
 }
 
-// nolint: dupl
 func TestInvalidConventionalCommitPolicyRegex(t *testing.T) {
 	dir, err := ioutil.TempDir("", "test")
 	if err != nil {

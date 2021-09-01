@@ -1,8 +1,8 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-package cmd
+package main
 
 import (
 	"errors"
@@ -30,7 +30,7 @@ var enforceCmd = &cobra.Command{
 		reporter := cmd.Flags().Lookup("reporter").Value.String()
 		e, err := enforcer.New(reporter)
 		if err != nil {
-			return fmt.Errorf("failed to create enforcer: %+v", err)
+			return fmt.Errorf("failed to create enforcer: %w", err)
 		}
 
 		opts := []policy.Option{}

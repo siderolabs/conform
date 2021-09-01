@@ -1,6 +1,6 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 // Package git provides helpers for SCM.
 package git
@@ -186,7 +186,7 @@ func (g *Git) SHA() (sha string, err error) {
 
 // AheadBehind returns the number of commits that HEAD is ahead and behind
 // relative to the specified ref.
-func (g *Git) AheadBehind(ref string) (ahead int, behind int, err error) {
+func (g *Git) AheadBehind(ref string) (ahead, behind int, err error) {
 	ref1, err := g.repo.Reference(plumbing.ReferenceName(ref), false)
 	if err != nil {
 		return 0, 0, err

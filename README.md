@@ -24,6 +24,7 @@ Some of the policies included are:
   - Commit message header length
   - Developer Certificate of Origin
   - GPG signature
+  - GPG signature identity check
   - [Conventional Commits](https://www.conventionalcommits.org)
   - Imperative mood
   - Spell check
@@ -37,7 +38,13 @@ Some of the policies included are:
 To install conform you can download a [release](https://github.com/talos-systems/conform/releases), or build it locally (go must be installed):
 
 ```bash
-go get github.com/talos-systems/conform
+go install github.com/talos-systems/conform/cmd/conform@latest
+```
+
+Third option is to run it as a container:
+
+```bash
+docker run --rm -it -v $PWD:/src -w /src ghcr.io/talos-systems/conform:v0.1.0-alpha.22 enforce
 ```
 
 Now, create a file named `.conform.yaml` with the following contents:
@@ -58,7 +65,10 @@ policies:
       body:
         required: true
       dco: true
-      gpg: false
+      gpg:
+        required: false
+        identity:
+          gitHubOrganization: some-organization
       spellcheck:
         locale: US
       maximumOfOneCommit: true
@@ -86,15 +96,18 @@ In the same directory, run:
 ```bash
 $ conform enforce
 POLICY         CHECK                        STATUS        MESSAGE
-commit         Header Length                PASS          <none>
-commit         Imperative Mood              PASS          <none>
-commit         Header Case                  PASS          <none>
-commit         Header Last Character        PASS          <none>
-commit         DCO                          PASS          <none>
-commit         Conventional Commit          PASS          <none>
-commit         Number of Commits            PASS          <none>
-commit         Commit Body                  PASS          <none>
-license        File Header                  PASS          <none>
+commit         Header Length                PASS          Header is 43 characters
+commit         Imperative Mood              PASS          Commit begins with imperative verb
+commit         Header Case                  PASS          Header case is valid
+commit         Header Last Character        PASS          Header last character is valid
+commit         DCO                          PASS          Developer Certificate of Origin was found
+commit         GPG                          PASS          GPG signature found
+commit         GPG Identity                 PASS          Signed by "Someone <someone@example.com>"
+commit         Conventional Commit          PASS          Commit message is a valid conventional commit
+commit         Spellcheck                   PASS          Commit contains 0 misspellings
+commit         Number of Commits            PASS          HEAD is 0 commit(s) ahead of refs/heads/master
+commit         Commit Body                  PASS          Commit body is valid
+license        File Header                  PASS          All files have a valid license header
 ```
 
 To setup a `commit-msg` hook:

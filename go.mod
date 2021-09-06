@@ -1,5 +1,7 @@
 module github.com/talos-systems/conform
 
+go 1.13
+
 require (
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 // indirect
 	github.com/deckarep/golang-set v1.7.1 // indirect
@@ -18,11 +20,10 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/stretchr/testify v1.7.0
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	gonum.org/v1/gonum v0.6.1 // indirect
 	gopkg.in/jdkato/prose.v2 v2.0.0-20180825173540-767a23049b9e
 	gopkg.in/neurosnap/sentences.v1 v1.0.6 // indirect
 	gopkg.in/yaml.v2 v2.3.0
 )
-
-go 1.13

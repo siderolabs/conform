@@ -50,8 +50,8 @@ var serveCmd = &cobra.Command{
 
 					return
 				}
-				//nolint: errcheck
-				defer os.RemoveAll(dir)
+
+				defer os.RemoveAll(dir) //nolint:errcheck
 
 				if err = os.MkdirAll(filepath.Join(dir, "github"), 0o700); err != nil {
 					log.Printf("failed to create github directory: %+v\n", err)

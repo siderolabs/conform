@@ -87,6 +87,7 @@ policies:
         - .ext
       excludeSuffixes:
         - .exclude-ext-prefix.ext
+      allowPrecedingComments: false
       header: |
         This is the contents of a license header.
 ```

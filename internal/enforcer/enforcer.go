@@ -112,8 +112,7 @@ func (c *Conform) Enforce(setters ...policy.Option) error {
 		}
 	}
 
-	//nolint: errcheck
-	w.Flush()
+	w.Flush() //nolint:errcheck
 
 	if !pass {
 		return errors.New("1 or more policy failed")

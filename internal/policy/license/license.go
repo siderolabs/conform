@@ -6,6 +6,7 @@
 package license
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io/ioutil"
@@ -33,6 +34,10 @@ type License struct {
 	// ExcludeSuffixes is the Suffixes used to find files that the license policy
 	// should not be applied to.
 	ExcludeSuffixes []string `mapstructure:"excludeSuffixes"`
+	// AllowPrecedingComments, when enabled, allows blank lines and `//` and `#` line comments
+	// before the license header. Useful for code generators that put build constraints or
+	// "DO NOT EDIT" lines before the license.
+	AllowPrecedingComments bool `mapstructure:"allowPrecedingComments"`
 	// Header is the contents of the license header.
 	Header string `mapstructure:"header"`
 }
@@ -95,7 +100,7 @@ func (l License) ValidateLicenseHeader() policy.Check {
 		return check
 	}
 
-	value := []byte(l.Header)
+	value := []byte(strings.TrimSpace(l.Header))
 
 	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -124,18 +129,15 @@ func (l License) ValidateLicenseHeader() policy.Check {
 			// Check files matching the included suffixes.
 			for _, suffix := range l.IncludeSuffixes {
 				if strings.HasSuffix(info.Name(), suffix) {
-					var contents []byte
-					if contents, err = ioutil.ReadFile(path); err != nil {
-						check.errors = append(check.errors, errors.Errorf("Failed to open %s", path))
-
-						return nil //nolint:nilerr
+					if l.AllowPrecedingComments {
+						err = validateFileWithPrecedingComments(path, value)
+					} else {
+						err = validateFile(path, value)
 					}
 
-					if bytes.HasPrefix(contents, value) {
-						continue
+					if err != nil {
+						check.errors = append(check.errors, err)
 					}
-
-					check.errors = append(check.errors, errors.Errorf("File %s does not contain a license header", info.Name()))
 				}
 			}
 		}
@@ -147,4 +149,54 @@ func (l License) ValidateLicenseHeader() policy.Check {
 	}
 
 	return check
+}
+
+func validateFile(path string, value []byte) error {
+	contents, err := ioutil.ReadFile(path)
+	if err != nil {
+		return errors.Errorf("Failed to read %s: %s", path, err)
+	}
+
+	if bytes.HasPrefix(contents, value) {
+		return nil
+	}
+
+	return errors.Errorf("File %s does not contain a license header", path)
+}
+
+func validateFileWithPrecedingComments(path string, value []byte) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return errors.Errorf("Failed to open %s: %s", path, err)
+	}
+	defer f.Close() //nolint:errcheck
+
+	var contents []byte
+
+	// read lines until the first non-comment line
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+
+		comment := line == ""
+		comment = comment || strings.HasPrefix(line, "//")
+		comment = comment || strings.HasPrefix(line, "#")
+
+		if !comment {
+			break
+		}
+
+		contents = append(contents, scanner.Bytes()...)
+		contents = append(contents, '\n')
+	}
+
+	if err := scanner.Err(); err != nil {
+		return errors.Errorf("Failed to check file %s: %s", path, err)
+	}
+
+	if bytes.Contains(contents, value) {
+		return nil
+	}
+
+	return errors.Errorf("File %s does not contain a license header", path)
 }

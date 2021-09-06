@@ -44,7 +44,7 @@ go install github.com/talos-systems/conform/cmd/conform@latest
 Third option is to run it as a container:
 
 ```bash
-docker run --rm -it -v $PWD:/src -w /src ghcr.io/talos-systems/conform:v0.1.0-alpha.22 enforce
+docker run --rm -it -v $PWD:/src -w /src ghcr.io/talos-systems/conform:v0.1.0 enforce
 ```
 
 Now, create a file named `.conform.yaml` with the following contents:

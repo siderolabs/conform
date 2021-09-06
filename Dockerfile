@@ -130,4 +130,3 @@ COPY --from=image-fhs / /
 COPY --from=image-ca-certificates / /
 LABEL org.opencontainers.image.source https://github.com/talos-systems/conform
 ENTRYPOINT ["/conform"]
-

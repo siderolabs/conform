@@ -9,4 +9,4 @@ inputs:
     required: true
 runs:
   using: "docker"
-  image: "docker://autonomy/conform:v0.1.0-alpha.20"
+  image: "docker://ghcr.io/talos-systems/conform:v0.1.0"

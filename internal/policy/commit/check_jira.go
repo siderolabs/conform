@@ -28,7 +28,7 @@ func (j *JiraCheck) Message() string {
 		return j.errors[0].Error()
 	}
 
-	return "Jira issues are invalid"
+	return "Jira issues are valid"
 }
 
 // Errors returns any violations of the check.

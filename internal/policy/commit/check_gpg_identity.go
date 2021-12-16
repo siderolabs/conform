@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v41/github"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/talos-systems/conform/internal/git"

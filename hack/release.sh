@@ -2,10 +2,7 @@
 
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-09-01T21:21:54Z by kres 5ca7963.
-
-
-#!/bin/bash
+# Generated on 2021-12-16T15:13:36Z by kres 137a0e1.
 
 set -e
 
@@ -66,3 +63,4 @@ EOF
 
   exit 1
 fi
+

@@ -11,15 +11,12 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"path"
 	"strings"
 
-	"github.com/google/go-github/github"
-
-	"github.com/talos-systems/conform/internal/git"
+	"github.com/google/go-github/v41/github"
 )
 
 // Reporter describes a hook for sending summarized results to a remote API.
@@ -67,29 +64,11 @@ func NewGitHubReporter() (*GitHub, error) {
 		return nil, err
 	}
 
-	g, err := git.NewGit()
-	if err != nil {
-		return nil, err
-	}
-
-	if err = g.FetchPullRequest("origin", pullRequestEvent.GetNumber()); err != nil {
-		return nil, err
-	}
-
-	if err = g.CheckoutPullRequest(pullRequestEvent.GetNumber()); err != nil {
-		return nil, err
-	}
-
-	sha, err := g.SHA()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	gh := &GitHub{
 		token: token,
 		owner: pullRequestEvent.GetRepo().GetOwner().GetLogin(),
 		repo:  pullRequestEvent.GetRepo().GetName(),
-		sha:   sha,
+		sha:   pullRequestEvent.GetPullRequest().GetHead().GetSHA(),
 	}
 
 	return gh, nil

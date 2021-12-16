@@ -1,16 +1,16 @@
 kind: golang.Build
 spec:
   outputs:
-    conform-linux-amd64:
+    linux-amd64:
       GOOS: linux
       GOARCH: amd64
-    conform-linux-arm64:
+    linux-arm64:
       GOOS: linux
       GOARCH: arm64
-    conform-darwin-amd64:
+    darwin-amd64:
       GOOS: darwin
       GOARCH: amd64
-    conform-darwin-arm64:
+    darwin-arm64:
       GOOS: darwin
       GOARCH: arm64
 ---

@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-09-01T21:42:39Z by kres 5ca7963-dirty.
+# Generated on 2021-12-16T15:13:36Z by kres 137a0e1.
 
 ---
 policies:
@@ -28,13 +28,11 @@ policies:
   spec:
     skipPaths:
       - .git/
+      - testdata/
     includeSuffixes:
       - .go
     excludeSuffixes:
       - .pb.go
       - .pb.gw.go
     allowPrecedingComments: true
-    header: |
-      // This Source Code Form is subject to the terms of the Mozilla Public
-      // License, v. 2.0. If a copy of the MPL was not distributed with this
-      // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+    header: "// This Source Code Form is subject to the terms of the Mozilla Public\u000A// License, v. 2.0. If a copy of the MPL was not distributed with this\u000A// file, You can obtain one at http://mozilla.org/MPL/2.0/.\u000A"

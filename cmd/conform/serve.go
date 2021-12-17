@@ -79,6 +79,7 @@ var serveCmd = &cobra.Command{
 
 				repo, err := git.PlainClone(cloneRepo, false, &git.CloneOptions{
 					SingleBranch: false,
+					NoCheckout:   true,
 					URL:          cloneURL,
 					Progress:     os.Stdout,
 				})

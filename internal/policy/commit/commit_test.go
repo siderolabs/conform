@@ -33,17 +33,27 @@ func TestConventionalCommitPolicy(t *testing.T) {
 	for _, test := range []testDesc{
 		{
 			Name:         "Valid",
-			CreateCommit: createValidCommit,
+			CreateCommit: createValidScopedCommit,
 			ExpectValid:  true,
 		},
 		{
-			Name:         "Breaking",
-			CreateCommit: createBreakingCommit,
+			Name:         "ValidBreaking",
+			CreateCommit: createValidBreakingCommit,
 			ExpectValid:  true,
 		},
 		{
-			Name:         "InvalidBreaking",
-			CreateCommit: createInvalidBreakingCommit,
+			Name:         "InvalidBreakingSymbol",
+			CreateCommit: createInvalidBreakingSymbolCommit,
+			ExpectValid:  false,
+		},
+		{
+			Name:         "ValidScopedBreaking",
+			CreateCommit: createValidScopedBreakingCommit,
+			ExpectValid:  true,
+		},
+		{
+			Name:         "InvalidScopedBreaking",
+			CreateCommit: createInvalidScopedBreakingCommit,
 			ExpectValid:  false,
 		},
 		{
@@ -52,8 +62,8 @@ func TestConventionalCommitPolicy(t *testing.T) {
 			ExpectValid:  false,
 		},
 		{
-			Name:         "Empty",
-			CreateCommit: createEmptyCommit,
+			Name:         "InvalidEmpty",
+			CreateCommit: createInvalidEmptyCommit,
 			ExpectValid:  false,
 		},
 	} {
@@ -158,7 +168,7 @@ func TestValidConventionalCommitPolicy(t *testing.T) {
 		t.Error(err)
 	}
 
-	err = createValidCommit()
+	err = createValidScopedCommit()
 	if err != nil {
 		t.Error(err)
 	}
@@ -224,7 +234,7 @@ func TestEmptyConventionalCommitPolicy(t *testing.T) {
 		t.Error(err)
 	}
 
-	err = createEmptyCommit()
+	err = createInvalidEmptyCommit()
 	if err != nil {
 		t.Error(err)
 	}
@@ -332,20 +342,32 @@ func initRepo() error {
 	return err
 }
 
-func createValidCommit() error {
+func createValidScopedCommit() error {
 	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "-m", "type(scope): description").Output()
 
 	return err
 }
 
-func createBreakingCommit() error {
+func createValidBreakingCommit() error {
 	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "-m", "feat!: description").Output()
 
 	return err
 }
 
-func createInvalidBreakingCommit() error {
+func createInvalidBreakingSymbolCommit() error {
 	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "-m", "feat$: description").Output()
+
+	return err
+}
+
+func createValidScopedBreakingCommit() error {
+	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "-m", "feat(scope)!: description").Output()
+
+	return err
+}
+
+func createInvalidScopedBreakingCommit() error {
+	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "-m", "feat!(scope): description").Output()
 
 	return err
 }
@@ -356,7 +378,7 @@ func createInvalidCommit() error {
 	return err
 }
 
-func createEmptyCommit() error {
+func createInvalidEmptyCommit() error {
 	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "--allow-empty-message", "-m", "").Output()
 
 	return err

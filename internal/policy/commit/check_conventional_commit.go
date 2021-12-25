@@ -21,9 +21,8 @@ type Conventional struct {
 	DescriptionLength int      `mapstructure:"descriptionLength"`
 }
 
-// HeaderRegex is the regular expression used for Conventional Commits
-// 1.0.0-beta.1.
-var HeaderRegex = regexp.MustCompile(`^(\w*)(\!)?(\(([^)]+)\))?:\s{1}(.*)($|\n{2})`)
+// HeaderRegex is the regular expression used for Conventional Commits 1.0.0.
+var HeaderRegex = regexp.MustCompile(`^(\w*)(\(([^)]+)\))?(!)?:\s{1}(.*)($|\n{2})`)
 
 const (
 	// TypeFeat is a commit of the type fix patches a bug in your codebase
@@ -73,7 +72,7 @@ func (c Commit) ValidateConventionalCommit() policy.Check {
 
 	// conventional commit sections
 	ccType := groups[1]
-	ccScope := groups[4]
+	ccScope := groups[3]
 	ccDesc := groups[5]
 
 	c.Conventional.Types = append(c.Conventional.Types, TypeFeat, TypeFix)

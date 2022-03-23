@@ -1,7 +1,7 @@
 ---
 # install with `pre-commit install -t commit-msg`
 repos:
-  - repo: https://github.com/talos-systems/conform
+  - repo: https://github.com/siderolabs/conform
     rev: master
     hooks:
       - id: conform

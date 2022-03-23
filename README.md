@@ -8,9 +8,9 @@
     <a href="https://godoc.org/github.com/talos-systems/conform"><img alt="GoDoc" src="http://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square"></a>
     <a href="https://travis-ci.org/talos-systems/conform"><img alt="Travis" src="https://img.shields.io/travis/talos-systems/conform.svg?style=flat-square"></a>
     <a href="https://codecov.io/gh/talos-systems/conform"><img alt="Codecov" src="https://img.shields.io/codecov/c/github/talos-systems/conform.svg?style=flat-square"></a>
-    <a href="https://goreportcard.com/report/github.com/talos-systems/conform"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/talos-systems/conform?style=flat-square"></a>
-    <a href="https://github.com/talos-systems/conform/releases/latest"><img alt="Release" src="https://img.shields.io/github/release/talos-systems/conform.svg?style=flat-square"></a>
-    <a href="https://github.com/talos-systems/conform/releases/latest"><img alt="GitHub (pre-)release" src="https://img.shields.io/github/release/talos-systems/conform/all.svg?style=flat-square"></a>
+    <a href="https://goreportcard.com/report/github.com/siderolabs/conform"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/siderolabs/conform?style=flat-square"></a>
+    <a href="https://github.com/siderolabs/conform/releases/latest"><img alt="Release" src="https://img.shields.io/github/release/siderolabs/conform.svg?style=flat-square"></a>
+    <a href="https://github.com/siderolabs/conform/releases/latest"><img alt="GitHub (pre-)release" src="https://img.shields.io/github/release/siderolabs/conform/all.svg?style=flat-square"></a>
   </p>
 </p>
 
@@ -35,7 +35,7 @@ Some of the policies included are:
 
 ## Getting Started
 
-To install conform you can download a [release](https://github.com/talos-systems/conform/releases), or build it locally (go must be installed):
+To install conform you can download a [release](https://github.com/siderolabs/conform/releases), or build it locally (go must be installed):
 
 ```bash
 go install github.com/talos-systems/conform/cmd/conform@latest
@@ -44,7 +44,7 @@ go install github.com/talos-systems/conform/cmd/conform@latest
 Third option is to run it as a container:
 
 ```bash
-docker run --rm -it -v $PWD:/src -w /src ghcr.io/talos-systems/conform:v0.1.0-alpha.22 enforce
+docker run --rm -it -v $PWD:/src -w /src ghcr.io/siderolabs/conform:v0.1.0-alpha.22 enforce
 ```
 
 Now, create a file named `.conform.yaml` with the following contents:
@@ -127,7 +127,7 @@ We also provide a [Pre-Commit](https://pre-commit.com) hook that you can use as 
 ```yaml
 # .pre-commit-config.yaml
 repos:
-  - repo: https://github.com/talos-systems/conform
+  - repo: https://github.com/siderolabs/conform
     rev: master
     hooks:
       - id: conform
@@ -137,4 +137,4 @@ repos:
 
 ### License
 
-[![license](https://img.shields.io/github/license/talos-systems/conform.svg?style=flat-square)](https://github.com/talos-systems/conform/blob/master/LICENSE)
+[![license](https://img.shields.io/github/license/siderolabs/conform.svg?style=flat-square)](https://github.com/siderolabs/conform/blob/master/LICENSE)

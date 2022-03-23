@@ -94,7 +94,7 @@ linters-settings:
     range-loops: true # Report preallocation suggestions on range loops, true by default
     for-loops: false # Report preallocation suggestions on for loops, false by default
   gci:
-    local-prefixes: github.com/talos-systems/conform
+    local-prefixes: github.com/siderolabs/conform
 
 linters:
   enable-all: true

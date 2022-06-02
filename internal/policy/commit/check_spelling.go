@@ -10,7 +10,7 @@ import (
 
 	"github.com/golangci/misspell"
 
-	"github.com/talos-systems/conform/internal/policy"
+	"github.com/siderolabs/conform/internal/policy"
 )
 
 // SpellCheck represents to spell check policy.
@@ -39,7 +39,7 @@ func (h SpellingCheck) Errors() []error {
 }
 
 // ValidateSpelling checks the spelling.
-func (c Commit) ValidateSpelling() policy.Check {
+func (c Commit) ValidateSpelling() policy.Check { //nolint:ireturn
 	check := &SpellingCheck{}
 
 	r := misspell.Replacer{

@@ -10,7 +10,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/talos-systems/conform/internal/policy"
+	"github.com/siderolabs/conform/internal/policy"
 )
 
 // DCORegex is the regular expression used for Developer Certificate of Origin.
@@ -42,7 +42,7 @@ func (d DCOCheck) Errors() []error {
 }
 
 // ValidateDCO checks the commit message for a Developer Certificate of Origin.
-func (c Commit) ValidateDCO() policy.Check {
+func (c Commit) ValidateDCO() policy.Check { //nolint:ireturn
 	check := &DCOCheck{}
 
 	for _, line := range strings.Split(c.msg, "\n") {

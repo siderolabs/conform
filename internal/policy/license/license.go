@@ -17,7 +17,7 @@ import (
 	"github.com/denormal/go-gitignore"
 	"github.com/pkg/errors"
 
-	"github.com/talos-systems/conform/internal/policy"
+	"github.com/siderolabs/conform/internal/policy"
 )
 
 // License implements the policy.Policy interface and enforces source code
@@ -77,9 +77,7 @@ func (l HeaderCheck) Errors() []error {
 
 // ValidateLicenseHeader checks the header of a file and ensures it contains the
 // provided value.
-//
-//nolint:gocognit
-func (l License) ValidateLicenseHeader() policy.Check {
+func (l License) ValidateLicenseHeader() policy.Check { //nolint:gocognit,ireturn
 	var buf bytes.Buffer
 
 	for _, pattern := range l.SkipPaths {

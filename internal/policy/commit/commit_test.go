@@ -12,7 +12,7 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/talos-systems/conform/internal/policy"
+	"github.com/siderolabs/conform/internal/policy"
 )
 
 func RemoveAll(dir string) {
@@ -343,55 +343,55 @@ func initRepo() error {
 }
 
 func createValidScopedCommit() error {
-	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "-m", "type(scope): description").Output()
+	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "type(scope): description").Output()
 
 	return err
 }
 
 func createValidBreakingCommit() error {
-	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "-m", "feat!: description").Output()
+	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "feat!: description").Output()
 
 	return err
 }
 
 func createInvalidBreakingSymbolCommit() error {
-	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "-m", "feat$: description").Output()
+	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "feat$: description").Output()
 
 	return err
 }
 
 func createValidScopedBreakingCommit() error {
-	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "-m", "feat(scope)!: description").Output()
+	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "feat(scope)!: description").Output()
 
 	return err
 }
 
 func createInvalidScopedBreakingCommit() error {
-	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "-m", "feat!(scope): description").Output()
+	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "feat!(scope): description").Output()
 
 	return err
 }
 
 func createInvalidCommit() error {
-	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "-m", "invalid commit").Output()
+	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "invalid commit").Output()
 
 	return err
 }
 
 func createInvalidEmptyCommit() error {
-	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "--allow-empty-message", "-m", "").Output()
+	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "--allow-empty-message", "-m", "").Output()
 
 	return err
 }
 
 func createValidCommitRegex() error {
-	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "-m", "type(valid-1): description").Output()
+	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "type(valid-1): description").Output()
 
 	return err
 }
 
 func createInvalidCommitRegex() error {
-	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@talos-systems.io'", "commit", "-m", "type(invalid-1): description").Output()
+	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "type(invalid-1): description").Output()
 
 	return err
 }

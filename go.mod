@@ -1,4 +1,4 @@
-module github.com/talos-systems/conform
+module github.com/siderolabs/conform
 
 go 1.17
 

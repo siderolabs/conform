@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"gopkg.in/jdkato/prose.v2"
 
-	"github.com/talos-systems/conform/internal/policy"
+	"github.com/siderolabs/conform/internal/policy"
 )
 
 // ImperativeCheck enforces that the first word of a commit message header is
@@ -39,7 +39,7 @@ func (i ImperativeCheck) Errors() []error {
 }
 
 // ValidateImperative checks the commit message for a GPG signature.
-func (c Commit) ValidateImperative() policy.Check {
+func (c Commit) ValidateImperative() policy.Check { //nolint:ireturn
 	check := &ImperativeCheck{}
 
 	var (

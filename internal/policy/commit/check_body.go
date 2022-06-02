@@ -9,7 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/talos-systems/conform/internal/policy"
+	"github.com/siderolabs/conform/internal/policy"
 )
 
 // RequiredBodyThreshold is the default minimum number of line changes required
@@ -42,7 +42,7 @@ func (h Body) Errors() []error {
 }
 
 // ValidateBody checks the header length.
-func (c Commit) ValidateBody() policy.Check {
+func (c Commit) ValidateBody() policy.Check { //nolint:ireturn
 	check := &Body{}
 
 	lines := strings.Split(strings.TrimPrefix(c.msg, "\n"), "\n")

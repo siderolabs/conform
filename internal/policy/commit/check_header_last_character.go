@@ -10,7 +10,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/talos-systems/conform/internal/policy"
+	"github.com/siderolabs/conform/internal/policy"
 )
 
 // HeaderLastCharacterCheck enforces that the last character of the header isn't in some set.
@@ -38,7 +38,7 @@ func (h HeaderLastCharacterCheck) Errors() []error {
 }
 
 // ValidateHeaderLastCharacter checks the last character of the header.
-func (c Commit) ValidateHeaderLastCharacter() policy.Check {
+func (c Commit) ValidateHeaderLastCharacter() policy.Check { //nolint:ireturn
 	check := &HeaderLastCharacterCheck{}
 
 	switch last, _ := utf8.DecodeLastRuneInString(c.header()); {

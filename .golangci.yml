@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-12-16T15:13:36Z by kres 137a0e1.
+# Generated on 2022-06-03T19:43:01Z by kres 65530e7.
 
 # options for analysis running
 run:
@@ -36,9 +36,16 @@ linters-settings:
     lines: 60
     statements: 40
   gci:
-    local-prefixes: github.com/talos-systems/conform
+    local-prefixes: github.com/siderolabs/conform
   gocognit:
     min-complexity: 30
+  ireturn:
+    allow:
+      - anon
+      - error
+      - empty
+      - stdlib
+      - github.com\/talos-systems\/kres\/internal\/dag.Node
   nestif:
     min-complexity: 5
   goconst:
@@ -58,7 +65,7 @@ linters-settings:
   gofmt:
     simplify: true
   goimports:
-    local-prefixes: github.com/talos-systems/conform
+    local-prefixes: github.com/siderolabs/conform
   golint:
     min-confidence: 0.8
   gomnd:
@@ -117,6 +124,7 @@ linters:
   disable-all: false
   fast: false
   disable:
+    - exhaustruct
     - exhaustivestruct
     - forbidigo
     - funlen
@@ -127,11 +135,13 @@ linters:
     - goerr113
     - gomnd
     - gomoddirectives
+    - ireturn
     - nestif
     - paralleltest
     - tagliatelle
     - thelper
     - typecheck
+    - varnamelen
     - wrapcheck
     # abandoned linters for which golangci shows the warning that the repo is archived by the owner
     - interfacer

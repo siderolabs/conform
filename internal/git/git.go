@@ -34,24 +34,24 @@ func findDotGit(name string) (string, error) {
 }
 
 // NewGit instantiates and returns a Git struct.
-func NewGit() (g *Git, err error) {
+func NewGit() (*Git, error) {
 	p, err := findDotGit(".git")
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	repo, err := git.PlainOpen(path.Dir(p))
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	g = &Git{repo: repo}
-
-	return g, err
+	return &Git{repo: repo}, nil
 }
 
 // Message returns the commit message. In the case that a commit has multiple
 // parents, the message of the last parent is returned.
+//
+//nolint:nonamedreturns
 func (g *Git) Message() (message string, err error) {
 	ref, err := g.repo.Head()
 	if err != nil {
@@ -87,6 +87,8 @@ func (g *Git) Message() (message string, err error) {
 
 // HasGPGSignature returns the commit message. In the case that a commit has multiple
 // parents, the message of the last parent is returned.
+//
+//nolint:nonamedreturns
 func (g *Git) HasGPGSignature() (ok bool, err error) {
 	ref, err := g.repo.Head()
 	if err != nil {
@@ -147,6 +149,8 @@ func (g *Git) VerifyPGPSignature(armoredKeyrings []string) (*openpgp.Entity, err
 }
 
 // FetchPullRequest fetches a remote PR.
+//
+//nolint:nonamedreturns
 func (g *Git) FetchPullRequest(remote string, number int) (err error) {
 	opts := &git.FetchOptions{
 		RemoteName: remote,
@@ -159,6 +163,8 @@ func (g *Git) FetchPullRequest(remote string, number int) (err error) {
 }
 
 // CheckoutPullRequest checks out pull request.
+//
+//nolint:nonamedreturns
 func (g *Git) CheckoutPullRequest(number int) (err error) {
 	w, err := g.repo.Worktree()
 	if err != nil {
@@ -173,6 +179,8 @@ func (g *Git) CheckoutPullRequest(number int) (err error) {
 }
 
 // SHA returns the sha of the current commit.
+//
+//nolint:nonamedreturns
 func (g *Git) SHA() (sha string, err error) {
 	ref, err := g.repo.Head()
 	if err != nil {
@@ -186,6 +194,8 @@ func (g *Git) SHA() (sha string, err error) {
 
 // AheadBehind returns the number of commits that HEAD is ahead and behind
 // relative to the specified ref.
+//
+//nolint:nonamedreturns
 func (g *Git) AheadBehind(ref string) (ahead, behind int, err error) {
 	ref1, err := g.repo.Reference(plumbing.ReferenceName(ref), false)
 	if err != nil {

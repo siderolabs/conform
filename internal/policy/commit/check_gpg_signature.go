@@ -7,8 +7,8 @@ package commit
 import (
 	"github.com/pkg/errors"
 
-	"github.com/talos-systems/conform/internal/git"
-	"github.com/talos-systems/conform/internal/policy"
+	"github.com/siderolabs/conform/internal/git"
+	"github.com/siderolabs/conform/internal/policy"
 )
 
 // GPGCheck ensures that the commit is cryptographically signed using GPG.
@@ -36,7 +36,7 @@ func (g GPGCheck) Errors() []error {
 }
 
 // ValidateGPGSign checks the commit message for a GPG signature.
-func (c Commit) ValidateGPGSign(g *git.Git) policy.Check {
+func (c Commit) ValidateGPGSign(g *git.Git) policy.Check { //nolint:ireturn
 	check := &GPGCheck{}
 
 	ok, err := g.HasGPGSignature()

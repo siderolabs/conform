@@ -10,7 +10,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/talos-systems/conform/internal/policy"
+	"github.com/siderolabs/conform/internal/policy"
 )
 
 // Conventional implements the policy.Policy interface and enforces commit
@@ -60,7 +60,7 @@ func (c ConventionalCommitCheck) Errors() []error {
 }
 
 // ValidateConventionalCommit returns the commit type.
-func (c Commit) ValidateConventionalCommit() policy.Check {
+func (c Commit) ValidateConventionalCommit() policy.Check { //nolint:ireturn
 	check := &ConventionalCommitCheck{}
 	groups := parseHeader(c.msg)
 

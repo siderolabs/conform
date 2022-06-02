@@ -2,7 +2,7 @@
 
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2022-03-23T18:24:36Z by kres latest.
+# Generated on 2022-06-03T19:43:01Z by kres 65530e7.
 
 ARG TOOLCHAIN
 
@@ -14,14 +14,14 @@ FROM ghcr.io/siderolabs/ca-certificates:v1.0.0 AS image-ca-certificates
 FROM ghcr.io/siderolabs/fhs:v1.0.0 AS image-fhs
 
 # runs markdownlint
-FROM node:14.8.0-alpine AS lint-markdown
-RUN npm i -g markdownlint-cli@0.23.2
-RUN npm i sentences-per-line@0.2.1
+FROM node:18.2.0-alpine AS lint-markdown
 WORKDIR /src
+RUN npm i -g markdownlint-cli@0.31.1
+RUN npm i sentences-per-line@0.2.1
 COPY .markdownlint.json .
 COPY ./CHANGELOG.md ./CHANGELOG.md
 COPY ./README.md ./README.md
-RUN markdownlint --ignore "CHANGELOG.md" --ignore "**/node_modules/**" --ignore '**/hack/chglog/**' --rules /node_modules/sentences-per-line/index.js .
+RUN markdownlint --ignore "CHANGELOG.md" --ignore "**/node_modules/**" --ignore '**/hack/chglog/**' --rules node_modules/sentences-per-line/index.js .
 
 # base toolchain image
 FROM ${TOOLCHAIN} AS toolchain
@@ -32,10 +32,17 @@ FROM toolchain AS tools
 ENV GO111MODULE on
 ENV CGO_ENABLED 0
 ENV GOPATH /go
-RUN curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b /bin v1.42.1
+ARG GOLANGCILINT_VERSION
+RUN curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/${GOLANGCILINT_VERSION}/install.sh | bash -s -- -b /bin ${GOLANGCILINT_VERSION}
 ARG GOFUMPT_VERSION
-RUN go install mvdan.cc/gofumpt/gofumports@${GOFUMPT_VERSION} \
-	&& mv /go/bin/gofumports /bin/gofumports
+RUN go install mvdan.cc/gofumpt@${GOFUMPT_VERSION} \
+	&& mv /go/bin/gofumpt /bin/gofumpt
+ARG GOIMPORTS_VERSION
+RUN go install golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION} \
+	&& mv /go/bin/goimports /bin/goimports
+ARG DEEPCOPY_VERSION
+RUN go install github.com/siderolabs/deep-copy@${DEEPCOPY_VERSION} \
+	&& mv /go/bin/deep-copy /bin/deep-copy
 
 # tools and sources
 FROM tools AS base
@@ -52,7 +59,7 @@ RUN --mount=type=cache,target=/go/pkg go list -mod=readonly all >/dev/null
 FROM base AS conform-darwin-amd64-build
 COPY --from=generate / /
 WORKDIR /src/cmd/conform
-ARG VERSION_PKG="github.com/talos-systems/conform/internal/version"
+ARG VERSION_PKG="github.com/siderolabs/conform/internal/version"
 ARG SHA
 ARG TAG
 RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOARCH=amd64 GOOS=darwin go build -ldflags "-s -w -X ${VERSION_PKG}.Name=conform -X ${VERSION_PKG}.SHA=${SHA} -X ${VERSION_PKG}.Tag=${TAG}" -o /conform-darwin-amd64
@@ -61,7 +68,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/g
 FROM base AS conform-darwin-arm64-build
 COPY --from=generate / /
 WORKDIR /src/cmd/conform
-ARG VERSION_PKG="github.com/talos-systems/conform/internal/version"
+ARG VERSION_PKG="github.com/siderolabs/conform/internal/version"
 ARG SHA
 ARG TAG
 RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOARCH=arm64 GOOS=darwin go build -ldflags "-s -w -X ${VERSION_PKG}.Name=conform -X ${VERSION_PKG}.SHA=${SHA} -X ${VERSION_PKG}.Tag=${TAG}" -o /conform-darwin-arm64
@@ -70,7 +77,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/g
 FROM base AS conform-linux-amd64-build
 COPY --from=generate / /
 WORKDIR /src/cmd/conform
-ARG VERSION_PKG="github.com/talos-systems/conform/internal/version"
+ARG VERSION_PKG="github.com/siderolabs/conform/internal/version"
 ARG SHA
 ARG TAG
 RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOARCH=amd64 GOOS=linux go build -ldflags "-s -w -X ${VERSION_PKG}.Name=conform -X ${VERSION_PKG}.SHA=${SHA} -X ${VERSION_PKG}.Tag=${TAG}" -o /conform-linux-amd64
@@ -79,16 +86,18 @@ RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/g
 FROM base AS conform-linux-arm64-build
 COPY --from=generate / /
 WORKDIR /src/cmd/conform
-ARG VERSION_PKG="github.com/talos-systems/conform/internal/version"
+ARG VERSION_PKG="github.com/siderolabs/conform/internal/version"
 ARG SHA
 ARG TAG
 RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOARCH=arm64 GOOS=linux go build -ldflags "-s -w -X ${VERSION_PKG}.Name=conform -X ${VERSION_PKG}.SHA=${SHA} -X ${VERSION_PKG}.Tag=${TAG}" -o /conform-linux-arm64
 
 # runs gofumpt
 FROM base AS lint-gofumpt
-RUN find . -name '*.pb.go' | xargs -r rm
-RUN find . -name '*.pb.gw.go' | xargs -r rm
-RUN FILES="$(gofumports -l -local github.com/talos-systems/conform .)" && test -z "${FILES}" || (echo -e "Source code is not formatted with 'gofumports -w -local github.com/talos-systems/conform .':\n${FILES}"; exit 1)
+RUN FILES="$(gofumpt -l .)" && test -z "${FILES}" || (echo -e "Source code is not formatted with 'gofumpt -w .':\n${FILES}"; exit 1)
+
+# runs goimports
+FROM base AS lint-goimports
+RUN FILES="$(goimports -l -local github.com/siderolabs/conform .)" && test -z "${FILES}" || (echo -e "Source code is not formatted with 'goimports -w -local github.com/siderolabs/conform .':\n${FILES}"; exit 1)
 
 # runs golangci-lint
 FROM base AS lint-golangci-lint

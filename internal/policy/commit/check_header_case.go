@@ -10,7 +10,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/talos-systems/conform/internal/policy"
+	"github.com/siderolabs/conform/internal/policy"
 )
 
 // HeaderCaseCheck enforces the case of the first word in the header.
@@ -39,7 +39,7 @@ func (h HeaderCaseCheck) Errors() []error {
 }
 
 // ValidateHeaderCase checks the header length.
-func (c Commit) ValidateHeaderCase() policy.Check {
+func (c Commit) ValidateHeaderCase() policy.Check { //nolint:ireturn
 	check := &HeaderCaseCheck{headerCase: c.Header.Case}
 
 	firstWord, err := c.firstWord()

@@ -9,8 +9,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/talos-systems/conform/internal/git"
-	"github.com/talos-systems/conform/internal/policy"
+	"github.com/siderolabs/conform/internal/git"
+	"github.com/siderolabs/conform/internal/policy"
 )
 
 // NumberOfCommits enforces a maximum number of charcters on the commit
@@ -43,7 +43,7 @@ func (h NumberOfCommits) Errors() []error {
 }
 
 // ValidateNumberOfCommits checks the header length.
-func (c Commit) ValidateNumberOfCommits(g *git.Git, ref string) policy.Check {
+func (c Commit) ValidateNumberOfCommits(g *git.Git, ref string) policy.Check { //nolint:ireturn
 	check := &NumberOfCommits{
 		ref: ref,
 	}

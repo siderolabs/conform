@@ -9,7 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/talos-systems/conform/internal/policy"
+	"github.com/siderolabs/conform/internal/policy"
 )
 
 // MaxNumberOfCommitCharacters is the default maximium number of characters
@@ -41,7 +41,7 @@ func (h HeaderLengthCheck) Errors() []error {
 }
 
 // ValidateHeaderLength checks the header length.
-func (c Commit) ValidateHeaderLength() policy.Check {
+func (c Commit) ValidateHeaderLength() policy.Check { //nolint:ireturn
 	check := &HeaderLengthCheck{}
 
 	if c.Header.Length != 0 {

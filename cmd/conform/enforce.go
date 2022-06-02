@@ -10,8 +10,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/talos-systems/conform/internal/enforcer"
-	"github.com/talos-systems/conform/internal/policy"
+	"github.com/siderolabs/conform/internal/enforcer"
+	"github.com/siderolabs/conform/internal/policy"
 )
 
 // enforceCmd represents the enforce command.

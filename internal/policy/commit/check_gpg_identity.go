@@ -14,8 +14,8 @@ import (
 	"github.com/google/go-github/v41/github"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/talos-systems/conform/internal/git"
-	"github.com/talos-systems/conform/internal/policy"
+	"github.com/siderolabs/conform/internal/git"
+	"github.com/siderolabs/conform/internal/policy"
 )
 
 // GPGIdentityCheck ensures that the commit is cryptographically signed using known identity.
@@ -46,7 +46,7 @@ func (g GPGIdentityCheck) Errors() []error {
 }
 
 // ValidateGPGIdentity checks the commit GPG signature for a known identity.
-func (c Commit) ValidateGPGIdentity(g *git.Git) policy.Check {
+func (c Commit) ValidateGPGIdentity(g *git.Git) policy.Check { //nolint:ireturn
 	check := &GPGIdentityCheck{}
 
 	switch {

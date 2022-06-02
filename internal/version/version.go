@@ -11,7 +11,7 @@ import (
 	"runtime"
 	"text/template"
 
-	"github.com/talos-systems/conform/internal/constants"
+	"github.com/siderolabs/conform/internal/constants"
 )
 
 var (

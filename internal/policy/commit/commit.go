@@ -12,8 +12,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/talos-systems/conform/internal/git"
-	"github.com/talos-systems/conform/internal/policy"
+	"github.com/siderolabs/conform/internal/git"
+	"github.com/siderolabs/conform/internal/policy"
 )
 
 // HeaderChecks is the configuration for checks on the header of a commit.

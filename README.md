@@ -5,9 +5,9 @@
   <p align="center">Policy enforcement for your pipelines.</p>
   <p align="center">
     <a href="https://conventionalcommits.org"><img alt="Conventional Commits" src="https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=flat-square"></a>
-    <a href="https://godoc.org/github.com/talos-systems/conform"><img alt="GoDoc" src="http://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square"></a>
-    <a href="https://travis-ci.org/talos-systems/conform"><img alt="Travis" src="https://img.shields.io/travis/talos-systems/conform.svg?style=flat-square"></a>
-    <a href="https://codecov.io/gh/talos-systems/conform"><img alt="Codecov" src="https://img.shields.io/codecov/c/github/talos-systems/conform.svg?style=flat-square"></a>
+    <a href="https://godoc.org/github.com/siderolabs/conform"><img alt="GoDoc" src="http://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square"></a>
+    <a href="https://travis-ci.org/siderolabs/conform"><img alt="Travis" src="https://img.shields.io/travis/siderolabs/conform.svg?style=flat-square"></a>
+    <a href="https://codecov.io/gh/siderolabs/conform"><img alt="Codecov" src="https://img.shields.io/codecov/c/github/siderolabs/conform.svg?style=flat-square"></a>
     <a href="https://goreportcard.com/report/github.com/siderolabs/conform"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/siderolabs/conform?style=flat-square"></a>
     <a href="https://github.com/siderolabs/conform/releases/latest"><img alt="Release" src="https://img.shields.io/github/release/siderolabs/conform.svg?style=flat-square"></a>
     <a href="https://github.com/siderolabs/conform/releases/latest"><img alt="GitHub (pre-)release" src="https://img.shields.io/github/release/siderolabs/conform/all.svg?style=flat-square"></a>
@@ -38,7 +38,7 @@ Some of the policies included are:
 To install conform you can download a [release](https://github.com/siderolabs/conform/releases), or build it locally (go must be installed):
 
 ```bash
-go install github.com/talos-systems/conform/cmd/conform@latest
+go install github.com/siderolabs/conform/cmd/conform@latest
 ```
 
 Third option is to run it as a container:

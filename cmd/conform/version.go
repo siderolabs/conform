@@ -7,7 +7,7 @@ package main
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/talos-systems/conform/internal/version"
+	"github.com/siderolabs/conform/internal/version"
 )
 
 var shortVersion bool

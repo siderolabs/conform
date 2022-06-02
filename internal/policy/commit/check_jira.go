@@ -9,7 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/talos-systems/conform/internal/policy"
+	"github.com/siderolabs/conform/internal/policy"
 )
 
 // JiraCheck enforces that a Jira issue is mentioned in the header.
@@ -37,7 +37,7 @@ func (j *JiraCheck) Errors() []error {
 }
 
 // ValidateJiraCheck validates if a Jira issue is mentioned in the header.
-func (c Commit) ValidateJiraCheck() policy.Check {
+func (c Commit) ValidateJiraCheck() policy.Check { //nolint:ireturn
 	check := &JiraCheck{}
 
 	reg := regexp.MustCompile(`.* \[?([A-Z]*)-[1-9]{1}\d*\]?.*`)

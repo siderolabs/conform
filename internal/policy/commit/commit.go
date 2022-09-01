@@ -102,22 +102,47 @@ func (c *Commit) Compliance(options *policy.Options) (*policy.Report, error) {
 		return report, errors.Errorf("failed to open git repo: %v", err)
 	}
 
-	var msg string
+	var msgs []string
 
-	if options.CommitMsgFile != nil {
+	switch o := options; {
+	case o.CommitMsgFile != nil:
 		var contents []byte
 
 		if contents, err = os.ReadFile(*options.CommitMsgFile); err != nil {
 			return report, errors.Errorf("failed to read commit message file: %v", err)
 		}
 
-		msg = string(contents)
-	} else if msg, err = g.Message(); err != nil {
-		return report, errors.Errorf("failed to get commit message: %v", err)
+		msgs = append(msgs, string(contents))
+	case o.RevisionRange != "":
+		revs, err := extractRevisionRange(options)
+		if err != nil {
+			return report, errors.Errorf("failed to get commit message: %v", err)
+		}
+
+		msgs, err = g.Messages(revs[0], revs[1])
+		if err != nil {
+			return report, errors.Errorf("failed to get commit message: %v", err)
+		}
+	default:
+		msg, err := g.Message()
+		if err != nil {
+			return report, errors.Errorf("failed to get commit message: %v", err)
+		}
+
+		msgs = append(msgs, msg)
 	}
 
-	c.msg = msg
+	for i := range msgs {
+		c.msg = msgs[i]
 
+		c.compliance(report, g, options)
+	}
+
+	return report, nil
+}
+
+// compliance checks the compliance with the policies of the given commit.
+func (c *Commit) compliance(report *policy.Report, g *git.Git, options *policy.Options) {
 	if c.Header != nil {
 		if c.Header.Length != 0 {
 			report.AddCheck(c.ValidateHeaderLength())
@@ -171,8 +196,6 @@ func (c *Commit) Compliance(options *policy.Options) (*policy.Report, error) {
 			report.AddCheck(c.ValidateBody())
 		}
 	}
-
-	return report, nil
 }
 
 func (c Commit) firstWord() (string, error) {
@@ -205,4 +228,16 @@ func (c Commit) firstWord() (string, error) {
 
 func (c Commit) header() string {
 	return strings.Split(strings.TrimPrefix(c.msg, "\n"), "\n")[0]
+}
+
+func extractRevisionRange(options *policy.Options) ([]string, error) {
+	revs := strings.Split(options.RevisionRange, "..")
+	if len(revs) > 2 || len(revs) == 0 || revs[0] == "" || revs[1] == "" {
+		return nil, errors.New("invalid revision range")
+	} else if len(revs) == 1 {
+		// if no final rev is given, use HEAD as default
+		revs = append(revs, "HEAD")
+	}
+
+	return revs, nil
 }

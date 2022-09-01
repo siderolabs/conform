@@ -11,6 +11,7 @@ type Option func(*Options)
 type Options struct {
 	CommitMsgFile *string
 	CommitRef     string
+	RevisionRange string
 }
 
 // WithCommitMsgFile sets the path to the commit message file.
@@ -24,6 +25,13 @@ func WithCommitMsgFile(o *string) Option {
 func WithCommitRef(o string) Option {
 	return func(args *Options) {
 		args.CommitRef = o
+	}
+}
+
+// WithRevisionRange sets the revision range to compare git policies against.
+func WithRevisionRange(o string) Option {
+	return func(args *Options) {
+		args.RevisionRange = o
 	}
 }
 

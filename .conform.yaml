@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2022-09-19T13:49:50Z by kres 9ea8a33.
+# Generated on 2022-09-19T19:55:11Z by kres 255fc05.
 
 ---
 policies:
@@ -29,7 +29,6 @@ policies:
     skipPaths:
       - .git/
       - testdata/
-      - internal/policy/license/
     includeSuffixes:
       - .go
     excludeSuffixes:

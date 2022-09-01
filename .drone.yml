@@ -1,7 +1,7 @@
 ---
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2022-09-19T13:49:50Z by kres 9ea8a33.
+# Generated on 2022-09-19T19:52:38Z by kres 255fc05.
 
 kind: pipeline
 type: kubernetes
@@ -340,6 +340,9 @@ trigger:
     exclude:
     - renovate/*
     - dependabot/*
+  status:
+  - success
+  - failure
 
 depends_on:
 - default

@@ -43,6 +43,12 @@ var enforceCmd = &cobra.Command{
 			opts = append(opts, policy.WithCommitRef(commitRef))
 		}
 
+		if baseBranch := cmd.Flags().Lookup("base-branch").Value.String(); baseBranch != "" {
+			opts = append(opts, policy.WithRevisionRange(fmt.Sprintf("%s..HEAD", baseBranch)))
+		} else if revisionRange := cmd.Flags().Lookup("revision-range").Value.String(); revisionRange != "" {
+			opts = append(opts, policy.WithRevisionRange(revisionRange))
+		}
+
 		return e.Enforce(opts...)
 	},
 }
@@ -51,5 +57,7 @@ func init() {
 	enforceCmd.Flags().String("commit-msg-file", "", "the path to the temporary commit message file")
 	enforceCmd.Flags().String("commit-ref", "", "the ref to compare git policies against")
 	enforceCmd.Flags().String("reporter", "none", "the reporter method to use")
+	enforceCmd.Flags().String("revision-range", "", "<commit1>..<commit2>")
+	enforceCmd.Flags().String("base-branch", "", "base branch to compare with")
 	rootCmd.AddCommand(enforceCmd)
 }

@@ -1,9 +1,9 @@
-//go:build !some_test_tag
-// +build !some_test_tag
-
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+//go:build !some_test_tag
+// +build !some_test_tag
 
 package license_test
 
@@ -23,7 +23,7 @@ func TestLicense(t *testing.T) {
 
 	t.Run("Default", func(t *testing.T) {
 		l := license.License{
-			IncludeSuffixes:        []string{".go"},
+			IncludeSuffixes:        []string{".txt"},
 			AllowPrecedingComments: false,
 			Header:                 header,
 		}
@@ -33,7 +33,7 @@ func TestLicense(t *testing.T) {
 
 	t.Run("AllowPrecedingComments", func(t *testing.T) {
 		l := license.License{
-			IncludeSuffixes:        []string{".go"},
+			IncludeSuffixes:        []string{".txt"},
 			AllowPrecedingComments: true,
 			Header:                 header,
 		}

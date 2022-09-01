@@ -18,6 +18,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/storer"
 	"github.com/keybase/go-crypto/openpgp"
+	"github.com/pkg/errors"
 )
 
 // Git is a helper for git.
@@ -83,6 +84,55 @@ func (g *Git) Message() (message string, err error) {
 	}
 
 	return message, err
+}
+
+// Messages returns the list of commit messages in the range commit1..commit2.
+func (g *Git) Messages(commit1, commit2 string) ([]string, error) {
+	hash1, err := g.repo.ResolveRevision(plumbing.Revision(commit1))
+	if err != nil {
+		return nil, err
+	}
+
+	hash2, err := g.repo.ResolveRevision(plumbing.Revision(commit2))
+	if err != nil {
+		return nil, err
+	}
+
+	c2, err := g.repo.CommitObject(*hash2)
+	if err != nil {
+		return nil, err
+	}
+
+	c1, err := g.repo.CommitObject(*hash1)
+	if err != nil {
+		return nil, err
+	}
+
+	if ok, ancestorErr := c1.IsAncestor(c2); ancestorErr != nil || !ok {
+		c, mergeBaseErr := c1.MergeBase(c2)
+		if mergeBaseErr != nil {
+			return nil, errors.Errorf("invalid ancestor %s", c1)
+		}
+
+		c1 = c[0]
+	}
+
+	msgs := make([]string, 0)
+
+	for {
+		msgs = append(msgs, c2.Message)
+
+		c2, err = c2.Parents().Next()
+		if err != nil {
+			return nil, err
+		}
+
+		if c2.ID() == c1.ID() {
+			break
+		}
+	}
+
+	return msgs, nil
 }
 
 // HasGPGSignature returns the commit message. In the case that a commit has multiple

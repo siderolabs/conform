@@ -6,19 +6,14 @@
 package commit
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"testing"
 
 	"github.com/siderolabs/conform/internal/policy"
 )
-
-func RemoveAll(dir string) {
-	if err := os.RemoveAll(dir); err != nil {
-		log.Fatal(err)
-	}
-}
 
 //nolint:gocognit
 func TestConventionalCommitPolicy(t *testing.T) {
@@ -261,8 +256,6 @@ func TestValidConventionalCommitPolicyRegex(t *testing.T) {
 func TestInvalidConventionalCommitPolicyRegex(t *testing.T) {
 	dir := t.TempDir()
 
-	defer RemoveAll(dir)
-
 	err := os.Chdir(dir)
 	if err != nil {
 		t.Error(err)
@@ -286,6 +279,106 @@ func TestInvalidConventionalCommitPolicyRegex(t *testing.T) {
 	if report.Valid() {
 		t.Error("Report is valid with invalid conventional commit")
 	}
+}
+
+func TestValidRevisionRange(t *testing.T) {
+	dir := t.TempDir()
+
+	err := os.Chdir(dir)
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = initRepo()
+	if err != nil {
+		t.Error(err)
+	}
+
+	revs, err := createValidCommitRange()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Test with a valid revision range
+	report, err := runComplianceRange(revs[0], revs[len(revs)-1])
+	if err != nil {
+		t.Error(err)
+	}
+
+	if !report.Valid() {
+		t.Error("Report is invalid with valid conventional commits")
+	}
+
+	// Test with HEAD as end of revision range
+	report, err = runComplianceRange(revs[0], "HEAD")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if !report.Valid() {
+		t.Error("Report is invalid with valid conventional commits")
+	}
+
+	// Test with empty end of revision range (should fail)
+	_, err = runComplianceRange(revs[0], "")
+	if err == nil {
+		t.Error("Invalid end of revision, got success, expecting failure")
+	}
+
+	// Test with empty start of revision (should fail)
+	_, err = runComplianceRange("", "HEAD")
+	if err == nil {
+		t.Error("Invalid end of revision, got success, expecting failure")
+	}
+
+	// Test with start of revision not an ancestor of end of range (should fail)
+	_, err = runComplianceRange(revs[1], revs[0])
+	if err == nil {
+		t.Error("Invalid end of revision, got success, expecting failure")
+	}
+}
+
+func createValidCommitRange() ([]string, error) {
+	var revs []string
+
+	for i := 0; i < 4; i++ {
+		err := os.WriteFile("test", []byte(fmt.Sprint(i)), 0o644)
+		if err != nil {
+			return nil, fmt.Errorf("writing test file failed: %w", err)
+		}
+
+		_, err = exec.Command("git", "add", "test").Output()
+		if err != nil {
+			return nil, fmt.Errorf("git add failed: %w", err)
+		}
+
+		_, err = exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", fmt.Sprintf("type(scope): description %d", i)).Output()
+		if err != nil {
+			return nil, fmt.Errorf("git commit failed: %w", err)
+		}
+
+		id, err := exec.Command("git", "rev-parse", "HEAD").Output()
+		if err != nil {
+			return nil, fmt.Errorf("rev-parse failed: %w", err)
+		}
+
+		revs = append(revs, strings.TrimSpace(string(id)))
+	}
+
+	return revs, nil
+}
+
+func runComplianceRange(id1, id2 string) (*policy.Report, error) {
+	c := &Commit{
+		Conventional: &Conventional{
+			Types:  []string{"type"},
+			Scopes: []string{"scope", "^valid"},
+		},
+	}
+
+	return c.Compliance(&policy.Options{
+		RevisionRange: fmt.Sprintf("%s..%s", id1, id2),
+	})
 }
 
 func runCompliance() (*policy.Report, error) {

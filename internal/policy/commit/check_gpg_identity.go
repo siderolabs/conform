@@ -7,7 +7,7 @@ package commit
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"sync"
 
@@ -133,7 +133,7 @@ func getKey(ctx context.Context, login string) (string, error) {
 
 	defer resp.Body.Close() //nolint:errcheck
 
-	buf, err := ioutil.ReadAll(resp.Body)
+	buf, err := io.ReadAll(resp.Body)
 
 	return string(buf), err
 }

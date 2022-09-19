@@ -6,7 +6,7 @@
 package commit
 
 import (
-	"io/ioutil"
+	"os"
 	"regexp"
 	"strings"
 
@@ -107,7 +107,7 @@ func (c *Commit) Compliance(options *policy.Options) (*policy.Report, error) {
 	if options.CommitMsgFile != nil {
 		var contents []byte
 
-		if contents, err = ioutil.ReadFile(*options.CommitMsgFile); err != nil {
+		if contents, err = os.ReadFile(*options.CommitMsgFile); err != nil {
 			return report, errors.Errorf("failed to read commit message file: %v", err)
 		}
 

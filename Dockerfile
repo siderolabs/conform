@@ -2,21 +2,21 @@
 
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2022-06-03T19:43:01Z by kres 65530e7.
+# Generated on 2022-09-19T13:49:50Z by kres 9ea8a33.
 
 ARG TOOLCHAIN
 
 # cleaned up specs and compiled versions
 FROM scratch AS generate
 
-FROM ghcr.io/siderolabs/ca-certificates:v1.0.0 AS image-ca-certificates
+FROM ghcr.io/siderolabs/ca-certificates:v1.2.0 AS image-ca-certificates
 
-FROM ghcr.io/siderolabs/fhs:v1.0.0 AS image-fhs
+FROM ghcr.io/siderolabs/fhs:v1.2.0 AS image-fhs
 
 # runs markdownlint
-FROM node:18.2.0-alpine AS lint-markdown
+FROM docker.io/node:18.9.0-alpine3.16 AS lint-markdown
 WORKDIR /src
-RUN npm i -g markdownlint-cli@0.31.1
+RUN npm i -g markdownlint-cli@0.32.2
 RUN npm i sentences-per-line@0.2.1
 COPY .markdownlint.json .
 COPY ./CHANGELOG.md ./CHANGELOG.md
@@ -28,12 +28,13 @@ FROM ${TOOLCHAIN} AS toolchain
 RUN apk --update --no-cache add bash curl build-base protoc protobuf-dev git
 
 # build tools
-FROM toolchain AS tools
+FROM --platform=${BUILDPLATFORM} toolchain AS tools
 ENV GO111MODULE on
 ENV CGO_ENABLED 0
 ENV GOPATH /go
 ARG GOLANGCILINT_VERSION
-RUN curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/${GOLANGCILINT_VERSION}/install.sh | bash -s -- -b /bin ${GOLANGCILINT_VERSION}
+RUN go install github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCILINT_VERSION} \
+	&& mv /go/bin/golangci-lint /bin/golangci-lint
 ARG GOFUMPT_VERSION
 RUN go install mvdan.cc/gofumpt@${GOFUMPT_VERSION} \
 	&& mv /go/bin/gofumpt /bin/gofumpt

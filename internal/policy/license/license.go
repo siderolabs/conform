@@ -9,7 +9,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -150,7 +149,7 @@ func (l License) ValidateLicenseHeader() policy.Check { //nolint:gocognit,iretur
 }
 
 func validateFile(path string, value []byte) error {
-	contents, err := ioutil.ReadFile(path)
+	contents, err := os.ReadFile(path)
 	if err != nil {
 		return errors.Errorf("Failed to read %s: %s", path, err)
 	}

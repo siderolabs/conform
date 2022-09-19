@@ -6,7 +6,6 @@
 package commit
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -69,12 +68,9 @@ func TestConventionalCommitPolicy(t *testing.T) {
 	} {
 		func(test testDesc) {
 			t.Run(test.Name, func(tt *testing.T) {
-				dir, err := ioutil.TempDir("", "test")
-				if err != nil {
-					log.Fatal(err)
-				}
-				defer RemoveAll(dir)
-				err = os.Chdir(dir)
+				dir := t.TempDir()
+
+				err := os.Chdir(dir)
 				if err != nil {
 					tt.Error(err)
 				}
@@ -151,14 +147,9 @@ func TestValidateDCO(t *testing.T) {
 }
 
 func TestValidConventionalCommitPolicy(t *testing.T) {
-	dir, err := ioutil.TempDir("", "test")
-	if err != nil {
-		log.Fatal(err)
-	}
+	dir := t.TempDir()
 
-	defer RemoveAll(dir)
-
-	err = os.Chdir(dir)
+	err := os.Chdir(dir)
 	if err != nil {
 		t.Error(err)
 	}
@@ -184,14 +175,9 @@ func TestValidConventionalCommitPolicy(t *testing.T) {
 }
 
 func TestInvalidConventionalCommitPolicy(t *testing.T) {
-	dir, err := ioutil.TempDir("", "test")
-	if err != nil {
-		log.Fatal(err)
-	}
+	dir := t.TempDir()
 
-	defer RemoveAll(dir)
-
-	err = os.Chdir(dir)
+	err := os.Chdir(dir)
 	if err != nil {
 		t.Error(err)
 	}
@@ -217,14 +203,9 @@ func TestInvalidConventionalCommitPolicy(t *testing.T) {
 }
 
 func TestEmptyConventionalCommitPolicy(t *testing.T) {
-	dir, err := ioutil.TempDir("", "test")
-	if err != nil {
-		log.Fatal(err)
-	}
+	dir := t.TempDir()
 
-	defer RemoveAll(dir)
-
-	err = os.Chdir(dir)
+	err := os.Chdir(dir)
 	if err != nil {
 		t.Error(err)
 	}
@@ -250,14 +231,9 @@ func TestEmptyConventionalCommitPolicy(t *testing.T) {
 }
 
 func TestValidConventionalCommitPolicyRegex(t *testing.T) {
-	dir, err := ioutil.TempDir("", "test")
-	if err != nil {
-		log.Fatal(err)
-	}
+	dir := t.TempDir()
 
-	defer RemoveAll(dir)
-
-	err = os.Chdir(dir)
+	err := os.Chdir(dir)
 	if err != nil {
 		t.Error(err)
 	}
@@ -283,14 +259,11 @@ func TestValidConventionalCommitPolicyRegex(t *testing.T) {
 }
 
 func TestInvalidConventionalCommitPolicyRegex(t *testing.T) {
-	dir, err := ioutil.TempDir("", "test")
-	if err != nil {
-		log.Fatal(err)
-	}
+	dir := t.TempDir()
 
 	defer RemoveAll(dir)
 
-	err = os.Chdir(dir)
+	err := os.Chdir(dir)
 	if err != nil {
 		t.Error(err)
 	}

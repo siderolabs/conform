@@ -7,7 +7,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -36,7 +36,7 @@ var serveCmd = &cobra.Command{
 		}
 
 		http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
-			payload, err := ioutil.ReadAll(r.Body)
+			payload, err := io.ReadAll(r.Body)
 			if err != nil {
 				log.Printf("failed to read payload: %+v\n", err)
 
@@ -44,27 +44,27 @@ var serveCmd = &cobra.Command{
 			}
 
 			go func() {
-				dir, err := ioutil.TempDir("/tmp", "conform")
+				dir, err := os.CreateTemp("/tmp", "conform")
 				if err != nil {
 					log.Printf("failed to create temporary directory: %+v\n", err)
 
 					return
 				}
 
-				defer os.RemoveAll(dir) //nolint:errcheck
+				defer os.RemoveAll(dir.Name()) //nolint:errcheck
 
-				if err = os.MkdirAll(filepath.Join(dir, "github"), 0o700); err != nil {
+				if err = os.MkdirAll(filepath.Join(dir.Name(), "github"), 0o700); err != nil {
 					log.Printf("failed to create github directory: %+v\n", err)
 
 					return
 				}
-				if err = os.MkdirAll(filepath.Join(dir, "repo"), 0o700); err != nil {
+				if err = os.MkdirAll(filepath.Join(dir.Name(), "repo"), 0o700); err != nil {
 					log.Printf("failed to create repo directory: %+v\n", err)
 
 					return
 				}
 
-				event := filepath.Join(dir, "github", "event.json")
+				event := filepath.Join(dir.Name(), "github", "event.json")
 				pullRequestEvent := &github.PullRequestEvent{}
 				if err = json.Unmarshal(payload, pullRequestEvent); err != nil {
 					log.Printf("failed to parse pull_request event: %+v\n", err)
@@ -72,7 +72,7 @@ var serveCmd = &cobra.Command{
 					return
 				}
 
-				cloneRepo := filepath.Join(dir, "repo")
+				cloneRepo := filepath.Join(dir.Name(), "repo")
 				cloneURL := pullRequestEvent.GetPullRequest().GetBase().GetRepo().GetCloneURL()
 
 				log.Printf("Cloning %s", cloneURL)
@@ -127,7 +127,7 @@ var serveCmd = &cobra.Command{
 
 				log.Printf("writing %s to disk", event)
 
-				if err = ioutil.WriteFile(event, payload, 0o600); err != nil {
+				if err = os.WriteFile(event, payload, 0o600); err != nil {
 					log.Printf("failed to write event to disk: %+v\n", err)
 
 					return

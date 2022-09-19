@@ -7,7 +7,6 @@ package enforcer
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"text/tabwriter"
@@ -62,7 +61,7 @@ func New(r string) (*Conform, error) {
 		c.reporter = &reporter.Noop{}
 	}
 
-	configBytes, err := ioutil.ReadFile(".conform.yaml")
+	configBytes, err := os.ReadFile(".conform.yaml")
 	if err != nil {
 		return nil, err
 	}

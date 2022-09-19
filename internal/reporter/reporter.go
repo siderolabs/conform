@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -53,7 +52,7 @@ func NewGitHubReporter() (*GitHub, error) {
 		return nil, errors.New("GITHUB_EVENT_PATH is not set")
 	}
 
-	data, err := ioutil.ReadFile(eventPath)
+	data, err := os.ReadFile(eventPath)
 	if err != nil {
 		return nil, err
 	}

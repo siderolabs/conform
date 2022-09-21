@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 
+	git "github.com/go-git/go-git/v5"
 	"github.com/spf13/cobra"
 
 	"github.com/siderolabs/conform/internal/enforcer"
@@ -41,6 +42,14 @@ var enforceCmd = &cobra.Command{
 
 		if commitRef := cmd.Flags().Lookup("commit-ref").Value.String(); commitRef != "" {
 			opts = append(opts, policy.WithCommitRef(commitRef))
+		} else {
+			mainBranch, err := detectMainBranch()
+			if err != nil {
+				return fmt.Errorf("failed to detect main branch: %w", err)
+			}
+			if mainBranch != "" {
+				opts = append(opts, policy.WithCommitRef(fmt.Sprintf("refs/heads/%s", mainBranch)))
+			}
 		}
 
 		if baseBranch := cmd.Flags().Lookup("base-branch").Value.String(); baseBranch != "" {
@@ -60,4 +69,35 @@ func init() {
 	enforceCmd.Flags().String("revision-range", "", "<commit1>..<commit2>")
 	enforceCmd.Flags().String("base-branch", "", "base branch to compare with")
 	rootCmd.AddCommand(enforceCmd)
+}
+
+func detectMainBranch() (string, error) {
+	mainBranch := "main"
+
+	repo, err := git.PlainOpen(".")
+	if err != nil {
+		// not a git repo, ignore
+		return "", nil //nolint:nilerr
+	}
+
+	c, err := repo.Config()
+	if err != nil {
+		return "", fmt.Errorf("failed to get repository configuration: %w", err)
+	}
+
+	rawConfig := c.Raw
+
+	const branchSectionName = "branch"
+
+	branchSection := rawConfig.Section(branchSectionName)
+	for _, b := range branchSection.Subsections {
+		remote := b.Option("remote")
+		if remote == git.DefaultRemoteName {
+			mainBranch = b.Name
+
+			break
+		}
+	}
+
+	return mainBranch, nil
 }

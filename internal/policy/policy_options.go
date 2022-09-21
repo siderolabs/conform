@@ -39,7 +39,6 @@ func WithRevisionRange(o string) Option {
 func NewDefaultOptions(setters ...Option) *Options {
 	opts := &Options{
 		CommitMsgFile: nil,
-		CommitRef:     "refs/heads/master",
 	}
 
 	for _, setter := range setters {

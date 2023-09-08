@@ -18,3 +18,13 @@ kind: golang.Toolchain
 spec:
   extraPackages:
     - git
+---
+kind: golang.Generate
+spec:
+    versionPackagePath: internal/version
+---
+kind: common.Release
+name: release
+spec:
+  artifacts:
+    - conform-*

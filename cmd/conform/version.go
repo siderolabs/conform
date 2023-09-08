@@ -5,6 +5,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 
 	"github.com/siderolabs/conform/internal/version"
@@ -17,12 +19,9 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Prints the version",
 	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		if shortVersion {
-			version.PrintShortVersion()
-		} else {
-			version.PrintLongVersion()
-		}
+	Run: func(cmd *cobra.Command, _ []string) {
+		line := fmt.Sprintf("%s version %s (%s)", version.Name, version.Tag, version.SHA)
+		fmt.Println(line)
 	},
 }
 

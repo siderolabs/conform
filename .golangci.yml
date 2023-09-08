@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2022-09-19T13:49:50Z by kres 9ea8a33.
+# Generated on 2023-09-08T12:45:27Z by kres latest.
 
 # options for analysis running
 run:
@@ -36,7 +36,7 @@ linters-settings:
     lines: 60
     statements: 40
   gci:
-    local-prefixes: github.com/siderolabs/conform
+    local-prefixes: github.com/siderolabs/conform/
   gocognit:
     min-complexity: 30
   ireturn:
@@ -65,7 +65,7 @@ linters-settings:
   gofmt:
     simplify: true
   goimports:
-    local-prefixes: github.com/siderolabs/conform
+    local-prefixes: github.com/siderolabs/conform/
   golint:
     min-confidence: 0.8
   gomnd:
@@ -74,9 +74,8 @@ linters-settings:
   govet:
     check-shadowing: true
     enable-all: true
-  depguard:
-    list-type: blacklist
-    include-go-root: false
+    disable:
+      - loopclosure
   lll:
     line-length: 200
     tab-width: 4
@@ -118,6 +117,10 @@ linters-settings:
   cyclop:
       # the maximal code complexity to report
       max-complexity: 20
+  #  depguard:
+  #    Main:
+  #      deny:
+  #        - github.com/OpenPeeDeeP/depguard # this is just an example
 
 linters:
   enable-all: true
@@ -145,11 +148,19 @@ linters:
     - typecheck
     - varnamelen
     - wrapcheck
+    - depguard # Disabled because starting with golangci-lint 1.53.0 it doesn't allow denylist alone anymore
+    - tagalign
     # abandoned linters for which golangci shows the warning that the repo is archived by the owner
     - interfacer
     - maligned
     - golint
     - scopelint
+    - varcheck
+    - deadcode
+    - structcheck
+    - ifshort
+    # disabled as it seems to be broken - goes into imported libraries and reports issues there
+    - musttag
 
 issues:
   exclude: []

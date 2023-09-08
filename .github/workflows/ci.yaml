@@ -1,0 +1,19 @@
+name: default
+"on":
+  push:
+    branches:
+      - main
+    tags:
+      - v*
+  pull_request: {}
+env:
+  CI_ARGS: --cache-from=type=registry,ref=registry.dev.siderolabs.io/${GITHUB_REPOSITORY}:buildcache --cache-to=type=registry,ref=registry.dev.siderolabs.io/${GITHUB_REPOSITORY}:buildcache,mode=max
+jobs:
+  default:
+    permissions:
+      contents: write
+      packages: write
+    runs-on: self-hosted
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3

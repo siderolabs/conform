@@ -47,6 +47,12 @@ Third option is to run it as a container:
 docker run --rm -it -v $PWD:/src -w /src ghcr.io/siderolabs/conform:v0.1.0-alpha.22 enforce
 ```
 
+You can also install conform with [aqua](https://aquaproj.github.io/).
+
+```bash
+aqua g -i siderolabs/conform
+```
+
 Now, create a file named `.conform.yaml` with the following contents:
 
 ```yaml

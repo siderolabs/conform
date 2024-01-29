@@ -26,11 +26,11 @@ var HeaderRegex = regexp.MustCompile(`^(\w*)(\(([^)]+)\))?(!)?:\s{1}(.*)($|\n{2}
 
 const (
 	// TypeFeat is a commit of the type fix patches a bug in your codebase
-	// (this correlates with PATCH in semantic versioning).
+	// (this correlates with MINOR in semantic versioning).
 	TypeFeat = "feat"
 
 	// TypeFix is a commit of the type feat introduces a new feature to the
-	// codebase (this correlates with MINOR in semantic versioning).
+	// codebase (this correlates with PATCH in semantic versioning).
 	TypeFix = "fix"
 )
 

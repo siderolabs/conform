@@ -1,19 +1,110 @@
+# THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
+#
+# Generated on 2024-02-15T11:12:36Z by kres latest.
+
 name: default
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 "on":
   push:
     branches:
       - main
+      - release-*
     tags:
       - v*
-  pull_request: {}
-env:
-  CI_ARGS: --cache-from=type=registry,ref=registry.dev.siderolabs.io/${GITHUB_REPOSITORY}:buildcache --cache-to=type=registry,ref=registry.dev.siderolabs.io/${GITHUB_REPOSITORY}:buildcache,mode=max
+  pull_request:
+    branches:
+      - main
+      - release-*
 jobs:
   default:
     permissions:
+      actions: read
       contents: write
+      issues: read
       packages: write
-    runs-on: self-hosted
+      pull-requests: read
+    runs-on:
+      - self-hosted
+      - generic
+    if: (!startsWith(github.head_ref, 'renovate/') && !startsWith(github.head_ref, 'dependabot/'))
+    services:
+      buildkitd:
+        image: moby/buildkit:v0.12.5
+        options: --privileged
+        ports:
+          - 1234:1234
+        volumes:
+          - /var/lib/buildkit/${{ github.repository }}:/var/lib/buildkit
+          - /usr/etc/buildkit/buildkitd.toml:/etc/buildkit/buildkitd.toml
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+      - name: Unshallow
+        run: |
+          git fetch --prune --unshallow
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: remote
+          endpoint: tcp://localhost:1234
+        timeout-minutes: 1
+      - name: base
+        run: |
+          make base
+      - name: unit-tests
+        run: |
+          make unit-tests
+      - name: unit-tests-race
+        run: |
+          make unit-tests-race
+      - name: coverage
+        run: |
+          make coverage
+      - name: conform
+        run: |
+          make conform
+      - name: lint
+        run: |
+          make lint
+      - name: Login to registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+      - name: image-conform
+        run: |
+          make image-conform
+      - name: push-conform
+        if: github.event_name != 'pull_request'
+        env:
+          PUSH: "true"
+        run: |
+          make image-conform
+      - name: push-conform-latest
+        if: github.event_name != 'pull_request'
+        env:
+          PUSH: "true"
+        run: |
+          make image-conform TAG=latest
+      - name: Generate Checksums
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          sha256sum _out/conform-* > _out/sha256sum.txt
+          sha512sum _out/conform-* > _out/sha512sum.txt
+      - name: release-notes
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          make release-notes
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: crazy-max/ghaction-github-release@v2
+        with:
+          body_path: _out/RELEASE_NOTES.md
+          draft: "true"
+          files: |-
+            _out/conform-*
+            _out/sha*.txt

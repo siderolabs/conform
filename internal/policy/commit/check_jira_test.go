@@ -144,6 +144,7 @@ func TestCommit_ValidateJiraCheck(t *testing.T) {
 				msg:                tt.fields.msg,
 			}
 			got := c.ValidateJiraCheck()
+
 			if len(got.Errors()) != tt.want.errorCount {
 				t.Errorf("Wanted %d errors but got %d errors: %v", tt.want.errorCount, len(got.Errors()), got.Errors())
 			}

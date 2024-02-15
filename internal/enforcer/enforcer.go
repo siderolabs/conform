@@ -13,7 +13,7 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
-	yaml "gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v3"
 
 	"github.com/siderolabs/conform/internal/policy"
 	"github.com/siderolabs/conform/internal/policy/commit"

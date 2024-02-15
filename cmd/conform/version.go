@@ -5,28 +5,20 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 
 	"github.com/siderolabs/conform/internal/version"
 )
 
-var shortVersion bool
-
-// versionCmd represents the version command.
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Prints the version",
-	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		if shortVersion {
-			version.PrintShortVersion()
-		} else {
-			version.PrintLongVersion()
-		}
+	Short: "Prints Kres version.",
+	Long:  `Prints Kres version.`,
+	Args:  cobra.NoArgs,
+	Run: func(*cobra.Command, []string) {
+		line := fmt.Sprintf("%s version %s (%s)", version.Name, version.Tag, version.SHA)
+		fmt.Println(line)
 	},
-}
-
-func init() {
-	versionCmd.Flags().BoolVar(&shortVersion, "short", false, "Print the short version")
-	rootCmd.AddCommand(versionCmd)
 }

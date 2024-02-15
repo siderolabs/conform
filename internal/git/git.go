@@ -56,12 +56,12 @@ func NewGit() (*Git, error) {
 func (g *Git) Message() (message string, err error) {
 	ref, err := g.repo.Head()
 	if err != nil {
-		return
+		return "", err
 	}
 
 	commit, err := g.repo.CommitObject(ref.Hash())
 	if err != nil {
-		return
+		return "", err
 	}
 
 	if commit.NumParents() > 1 {
@@ -72,7 +72,7 @@ func (g *Git) Message() (message string, err error) {
 
 			next, err = parents.Next()
 			if err != nil {
-				return
+				return "", err
 			}
 
 			if i == commit.NumParents() {
@@ -275,7 +275,6 @@ func (g *Git) AheadBehind(ref string) (ahead, behind int, err error) {
 
 		return storer.ErrStop
 	})
-
 	if err != nil {
 		return 0, 0, nil //nolint:nilerr
 	}

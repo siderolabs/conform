@@ -18,3 +18,7 @@ kind: golang.Toolchain
 spec:
   extraPackages:
     - git
+---
+kind: golang.Generate
+spec:
+    versionPackagePath: internal/version

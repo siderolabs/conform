@@ -49,8 +49,8 @@ func (c Commit) ValidateNumberOfCommits(g *git.Git, ref string) policy.Check { /
 	}
 
 	var err error
-	check.ahead, _, err = g.AheadBehind(ref)
 
+	check.ahead, _, err = g.AheadBehind(ref)
 	if err != nil {
 		check.errors = append(check.errors, err)
 

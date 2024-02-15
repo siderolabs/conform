@@ -2,67 +2,40 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// Package version provides version information.
+// THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
+//
+// Generated on 2024-02-15T11:12:45Z by kres latest.
+
+// Package version contains variables such as project name, tag and sha. It's a proper alternative to using
+// -ldflags '-X ...'.
 package version
 
 import (
-	"bytes"
-	"fmt"
-	"runtime"
-	"text/template"
-
-	"github.com/siderolabs/conform/internal/constants"
+	_ "embed"
+	"runtime/debug"
+	"strings"
 )
 
 var (
-	// Tag is set at build time.
+	// Tag declares project git tag.
+	//go:embed data/tag
 	Tag string
-	// SHA is set at build time.
+	// SHA declares project git SHA.
+	//go:embed data/sha
 	SHA string
+	// Name declares project name.
+	Name = func() string {
+		info, ok := debug.ReadBuildInfo()
+		if !ok {
+			panic("cannot read build info, something is very wrong")
+		}
+
+		// Check if siderolabs project
+		if strings.HasPrefix(info.Path, "github.com/siderolabs/") {
+			return info.Path[strings.LastIndex(info.Path, "/")+1:]
+		}
+
+		// We could return a proper full path here, but it could be seen as a privacy violation.
+		return "community-project"
+	}()
 )
-
-const versionTemplate = constants.AppName + `:
-	Tag:         {{ .Tag }}
-	SHA:         {{ .SHA }}
-	Go version:  {{ .GoVersion }}
-	OS/Arch:     {{ .Os }}/{{ .Arch }}
-`
-
-// Version contains verbose version information.
-type Version struct {
-	Tag       string
-	SHA       string
-	GoVersion string
-	Os        string
-	Arch      string
-}
-
-// PrintLongVersion prints verbose version information.
-func PrintLongVersion() {
-	v := Version{
-		Tag:       Tag,
-		SHA:       SHA,
-		GoVersion: runtime.Version(),
-		Os:        runtime.GOOS,
-		Arch:      runtime.GOARCH,
-	}
-
-	var wr bytes.Buffer
-
-	tmpl, err := template.New("version").Parse(versionTemplate)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	err = tmpl.Execute(&wr, v)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Println(wr.String())
-}
-
-// PrintShortVersion prints the tag and sha.
-func PrintShortVersion() {
-	fmt.Printf("%s %s-%s\n", constants.AppName, Tag, SHA)
-}

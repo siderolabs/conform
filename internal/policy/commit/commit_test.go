@@ -69,6 +69,7 @@ func TestConventionalCommitPolicy(t *testing.T) {
 				if err != nil {
 					tt.Error(err)
 				}
+
 				err = initRepo()
 				if err != nil {
 					tt.Error(err)
@@ -78,6 +79,7 @@ func TestConventionalCommitPolicy(t *testing.T) {
 				if err != nil {
 					tt.Error(err)
 				}
+
 				report, err := runCompliance()
 				if err != nil {
 					t.Error(err)
@@ -125,6 +127,7 @@ func TestValidateDCO(t *testing.T) {
 		test := test
 		t.Run(test.Name, func(tt *testing.T) {
 			var report policy.Report
+
 			c := Commit{msg: test.CommitMessage}
 			report.AddCheck(c.ValidateDCO())
 

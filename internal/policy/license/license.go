@@ -42,7 +42,7 @@ type License struct {
 }
 
 // Compliance implements the policy.Policy.Compliance function.
-func (l *License) Compliance(options *policy.Options) (*policy.Report, error) {
+func (l *License) Compliance(_ *policy.Options) (*policy.Report, error) {
 	report := &policy.Report{}
 
 	report.AddCheck(l.ValidateLicenseHeader())

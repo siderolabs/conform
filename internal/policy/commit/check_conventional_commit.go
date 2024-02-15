@@ -96,7 +96,7 @@ func (c Commit) ValidateConventionalCommit() policy.Check { //nolint:ireturn
 
 		for _, scope := range c.Conventional.Scopes {
 			re := regexp.MustCompile(scope)
-			if re.Match([]byte(ccScope)) {
+			if re.MatchString(ccScope) {
 				scopeIsValid = true
 
 				break

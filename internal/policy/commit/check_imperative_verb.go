@@ -7,8 +7,8 @@ package commit
 import (
 	"strings"
 
+	"github.com/jdkato/prose/v3"
 	"github.com/pkg/errors"
-	"gopkg.in/jdkato/prose.v2"
 
 	"github.com/siderolabs/conform/internal/policy"
 )

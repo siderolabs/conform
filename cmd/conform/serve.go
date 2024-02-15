@@ -30,7 +30,7 @@ var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "",
 	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		if err := os.MkdirAll("/tmp", 0o700); err != nil {
 			log.Fatal(err)
 		}
@@ -118,7 +118,6 @@ var serveCmd = &cobra.Command{
 				err = worktree.Checkout(&git.CheckoutOptions{
 					Branch: ref,
 				})
-
 				if err != nil {
 					log.Printf("failed to checkout %q: %v", ref, err)
 
@@ -160,4 +159,5 @@ var serveCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(serveCmd)
+	rootCmd.AddCommand(versionCmd)
 }

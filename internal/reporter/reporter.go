@@ -35,7 +35,7 @@ type GitHub struct {
 type Noop struct{}
 
 // SetStatus is a noop func.
-func (n *Noop) SetStatus(state, policy, check, message string) error {
+func (n *Noop) SetStatus(_, _, _, _ string) error {
 	return nil
 }
 

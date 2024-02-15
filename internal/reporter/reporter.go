@@ -15,7 +15,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/google/go-github/v41/github"
+	"github.com/google/go-github/v59/github"
 )
 
 // Reporter describes a hook for sending summarized results to a remote API.

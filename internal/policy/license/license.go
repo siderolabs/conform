@@ -19,11 +19,14 @@ import (
 	"github.com/siderolabs/conform/internal/policy"
 )
 
-// License implements the policy.Policy interface and enforces source code
-// license headers.
+// Licenses implement the policy.Policy interface and enforces source code license headers.
+type Licenses []License
+
+// License represents a single license policy.
 //
 //nolint:govet
 type License struct {
+	Root string `mapstructure:"root"`
 	// SkipPaths applies gitignore-style patterns to file paths to skip completely
 	// parts of the tree which shouldn't be scanned (e.g. .git/)
 	SkipPaths []string `mapstructure:"skipPaths"`
@@ -42,17 +45,17 @@ type License struct {
 }
 
 // Compliance implements the policy.Policy.Compliance function.
-func (l *License) Compliance(_ *policy.Options) (*policy.Report, error) {
+func (l *Licenses) Compliance(_ *policy.Options) (*policy.Report, error) {
 	report := &policy.Report{}
 
-	report.AddCheck(l.ValidateLicenseHeader())
+	report.AddCheck(l.ValidateLicenseHeaders())
 
 	return report, nil
 }
 
 // HeaderCheck enforces a license header on source code files.
 type HeaderCheck struct {
-	errors []error
+	licenseErrors []error
 }
 
 // Name returns the name of the check.
@@ -62,8 +65,8 @@ func (l HeaderCheck) Name() string {
 
 // Message returns to check message.
 func (l HeaderCheck) Message() string {
-	if len(l.errors) != 0 {
-		return fmt.Sprintf("Found %d files without license header", len(l.errors))
+	if len(l.licenseErrors) != 0 {
+		return fmt.Sprintf("Found %d files without license header", len(l.licenseErrors))
 	}
 
 	return "All files have a valid license header"
@@ -71,35 +74,49 @@ func (l HeaderCheck) Message() string {
 
 // Errors returns any violations of the check.
 func (l HeaderCheck) Errors() []error {
-	return l.errors
+	return l.licenseErrors
 }
 
-// ValidateLicenseHeader checks the header of a file and ensures it contains the
-// provided value.
-func (l License) ValidateLicenseHeader() policy.Check { //nolint:gocognit,ireturn
+// ValidateLicenseHeaders checks the header of a file and ensures it contains the provided value.
+func (l Licenses) ValidateLicenseHeaders() policy.Check { //nolint:ireturn
+	check := HeaderCheck{}
+
+	for _, license := range l {
+		if license.Root == "" {
+			license.Root = "."
+		}
+
+		check.licenseErrors = append(check.licenseErrors, validateLicenseHeader(license)...)
+	}
+
+	return check
+}
+
+//nolint:gocognit
+func validateLicenseHeader(license License) []error {
+	var errs []error
+
 	var buf bytes.Buffer
 
-	for _, pattern := range l.SkipPaths {
+	for _, pattern := range license.SkipPaths {
 		fmt.Fprintf(&buf, "%s\n", pattern)
 	}
 
-	check := HeaderCheck{}
-
-	patternmatcher := gitignore.New(&buf, ".", func(e gitignore.Error) bool {
-		check.errors = append(check.errors, e.Underlying())
+	patternmatcher := gitignore.New(&buf, license.Root, func(e gitignore.Error) bool {
+		errs = append(errs, e.Underlying())
 
 		return true
 	})
 
-	if l.Header == "" {
-		check.errors = append(check.errors, errors.New("Header is not defined"))
+	if license.Header == "" {
+		errs = append(errs, errors.New("Header is not defined"))
 
-		return check
+		return errs
 	}
 
-	value := []byte(strings.TrimSpace(l.Header))
+	value := []byte(strings.TrimSpace(license.Header))
 
-	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(license.Root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -117,23 +134,23 @@ func (l License) ValidateLicenseHeader() policy.Check { //nolint:gocognit,iretur
 
 		if info.Mode().IsRegular() {
 			// Skip excluded suffixes.
-			for _, suffix := range l.ExcludeSuffixes {
+			for _, suffix := range license.ExcludeSuffixes {
 				if strings.HasSuffix(info.Name(), suffix) {
 					return nil
 				}
 			}
 
 			// Check files matching the included suffixes.
-			for _, suffix := range l.IncludeSuffixes {
+			for _, suffix := range license.IncludeSuffixes {
 				if strings.HasSuffix(info.Name(), suffix) {
-					if l.AllowPrecedingComments {
+					if license.AllowPrecedingComments {
 						err = validateFileWithPrecedingComments(path, value)
 					} else {
 						err = validateFile(path, value)
 					}
 
 					if err != nil {
-						check.errors = append(check.errors, err)
+						errs = append(errs, err)
 					}
 				}
 			}
@@ -142,10 +159,10 @@ func (l License) ValidateLicenseHeader() policy.Check { //nolint:gocognit,iretur
 		return nil
 	})
 	if err != nil {
-		check.errors = append(check.errors, errors.Errorf("Failed to walk directory: %v", err))
+		errs = append(errs, errors.Errorf("Failed to walk directory: %v", err))
 	}
 
-	return check
+	return errs
 }
 
 func validateFile(path string, value []byte) error {

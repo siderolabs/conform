@@ -38,13 +38,6 @@ type PolicyDeclaration struct {
 	Spec interface{} `yaml:"spec"`
 }
 
-// policyMap defines the set of policies allowed within Conform.
-var policyMap = map[string]policy.Policy{
-	"commit":  &commit.Commit{},
-	"license": &license.License{},
-	// "version":    &version.Version{},
-}
-
 // New loads the conform.yaml file and unmarshals it into a Conform struct.
 func New(r string) (*Conform, error) {
 	c := &Conform{}
@@ -84,8 +77,13 @@ func (c *Conform) Enforce(setters ...policy.Option) error {
 
 	pass := true
 
-	for _, p := range c.Policies {
-		report, err := c.enforce(p, opts)
+	policiesWithTypes, err := c.convertDeclarations()
+	if err != nil {
+		return fmt.Errorf("failed to convert declarations: %w", err)
+	}
+
+	for _, p := range policiesWithTypes {
+		report, err := p.policy.Compliance(opts)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -120,30 +118,61 @@ func (c *Conform) Enforce(setters ...policy.Option) error {
 	return nil
 }
 
-func (c *Conform) enforce(declaration *PolicyDeclaration, opts *policy.Options) (*policy.Report, error) {
-	if _, ok := policyMap[declaration.Type]; !ok {
-		return nil, errors.Errorf("Policy %q is not defined", declaration.Type)
-	}
+type policyWithType struct {
+	policy policy.Policy
+	Type   string
+}
 
-	p := policyMap[declaration.Type]
+func (c *Conform) convertDeclarations() ([]policyWithType, error) {
+	const typeLicense = "license"
 
-	// backwards compatibility, convert `gpg: bool` into `gpg: required: bool`
-	if declaration.Type == "commit" {
-		if spec, ok := declaration.Spec.(map[interface{}]interface{}); ok {
-			if gpg, ok := spec["gpg"]; ok {
-				if val, ok := gpg.(bool); ok {
-					spec["gpg"] = map[string]interface{}{
-						"required": val,
+	var (
+		policies = make([]policyWithType, 0, len(c.Policies))
+		licenses = make(license.Licenses, 0, len(c.Policies))
+	)
+
+	for _, p := range c.Policies {
+		switch p.Type {
+		case typeLicense:
+			var lcs license.License
+
+			if err := mapstructure.Decode(p.Spec, &lcs); err != nil {
+				return nil, fmt.Errorf("failed to convert license policy: %w", err)
+			}
+
+			licenses = append(licenses, lcs)
+
+		case "commit":
+			// backwards compatibility, convert `gpg: bool` into `gpg: required: bool`
+			if spec, ok := p.Spec.(map[interface{}]interface{}); ok {
+				if gpg, ok := spec["gpg"]; ok {
+					if val, ok := gpg.(bool); ok {
+						spec["gpg"] = map[string]interface{}{
+							"required": val,
+						}
 					}
 				}
 			}
+
+			var cmt commit.Commit
+
+			if err := mapstructure.Decode(p.Spec, &cmt); err != nil {
+				return nil, fmt.Errorf("failed to convert commit policy: %w", err)
+			}
+
+			policies = append(policies, policyWithType{
+				Type:   p.Type,
+				policy: &cmt,
+			})
+		default:
+			return nil, fmt.Errorf("invalid policy type: %s", p.Type)
 		}
 	}
 
-	err := mapstructure.Decode(declaration.Spec, p)
-	if err != nil {
-		return nil, errors.Errorf("Internal error: %v", err)
-	}
+	policies = append(policies, policyWithType{
+		Type:   typeLicense,
+		policy: &licenses,
+	})
 
-	return p.Compliance(opts)
+	return policies, nil
 }

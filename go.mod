@@ -7,6 +7,7 @@ require (
 	github.com/go-git/go-git/v5 v5.11.0
 	github.com/golangci/misspell v0.4.1
 	github.com/google/go-github/v59 v59.0.0
+	github.com/google/go-github/v60 v60.0.0
 	github.com/jdkato/prose/v3 v3.0.0-20210921205322-a376476c2627
 	github.com/keybase/go-crypto v0.0.0-20200123153347-de78d2cb44f4
 	github.com/mitchellh/mapstructure v1.5.0

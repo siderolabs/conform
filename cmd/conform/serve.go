@@ -17,7 +17,7 @@ import (
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/google/go-github/v59/github"
+	"github.com/google/go-github/v60/github"
 	"github.com/spf13/cobra"
 )
 
@@ -91,7 +91,7 @@ var serveCmd = &cobra.Command{
 
 				id := pullRequestEvent.GetPullRequest().GetNumber()
 
-				ref := plumbing.ReferenceName(pullRequestEvent.GetPullRequest().GetHead().GetRef())
+				ref := pullRequestEvent.GetPullRequest().GetHead().GetRef()
 
 				refSpec := fmt.Sprintf("refs/pull/%d/head:%s", id, ref)
 
@@ -116,7 +116,7 @@ var serveCmd = &cobra.Command{
 				}
 
 				err = worktree.Checkout(&git.CheckoutOptions{
-					Branch: ref,
+					Branch: plumbing.NewBranchReferenceName(ref),
 				})
 				if err != nil {
 					log.Printf("failed to checkout %q: %v", ref, err)

@@ -1,37 +1,48 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2022-09-19T19:55:11Z by kres 255fc05.
+# Generated on 2024-03-01T05:36:30Z by kres latest.
 
----
 policies:
-- type: commit
-  spec:
-    dco: true
-    gpg:
-      required: true
-      identity:
-        gitHubOrganization: siderolabs
-    spellcheck:
-      locale: US
-    maximumOfOneCommit: true
-    header:
-      length: 89
-      imperative: true
-      case: lower
-      invalidLastCharacters: .
-    body:
-      required: true
-    conventional:
-      types: ["chore","docs","perf","refactor","style","test","release"]
-      scopes: [".*"]
-- type: license
-  spec:
-    skipPaths:
-      - .git/
-      - testdata/
-    includeSuffixes:
-      - .go
-    excludeSuffixes:
-      - .pb.go
-      - .pb.gw.go
-    header: "// This Source Code Form is subject to the terms of the Mozilla Public\u000A// License, v. 2.0. If a copy of the MPL was not distributed with this\u000A// file, You can obtain one at http://mozilla.org/MPL/2.0/.\u000A"
+  - type: commit
+    spec:
+      dco: true
+      gpg:
+        required: true
+        identity:
+          gitHubOrganization: siderolabs
+      spellcheck:
+        locale: US
+      maximumOfOneCommit: true
+      header:
+        length: 89
+        imperative: true
+        case: lower
+        invalidLastCharacters: .
+      body:
+        required: true
+      conventional:
+        types:
+          - chore
+          - docs
+          - perf
+          - refactor
+          - style
+          - test
+          - release
+        scopes:
+          - .*
+  - type: license
+    spec:
+      root: .
+      skipPaths:
+        - .git/
+        - testdata/
+      includeSuffixes:
+        - .go
+      excludeSuffixes:
+        - .pb.go
+        - .pb.gw.go
+      header: |
+        // This Source Code Form is subject to the terms of the Mozilla Public
+        // License, v. 2.0. If a copy of the MPL was not distributed with this
+        // file, You can obtain one at http://mozilla.org/MPL/2.0/.

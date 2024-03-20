@@ -31,7 +31,7 @@ jobs:
     if: (!startsWith(github.head_ref, 'renovate/') && !startsWith(github.head_ref, 'dependabot/'))
     services:
       buildkitd:
-        image: moby/buildkit:v0.12.5
+        image: moby/buildkit:v0.13.1
         options: --privileged
         ports:
           - 1234:1234

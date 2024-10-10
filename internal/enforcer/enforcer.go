@@ -73,7 +73,7 @@ func (c *Conform) Enforce(setters ...policy.Option) error {
 
 	const padding = 8
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', 0)
-	fmt.Fprintln(w, "POLICY\tCHECK\tSTATUS\tMESSAGE\t")
+	fmt.Fprintln(w, "POLICY\tCHECK\tSTATUS\tMESSAGE\t") //nolint:errcheck
 
 	pass := true
 
@@ -91,7 +91,7 @@ func (c *Conform) Enforce(setters ...policy.Option) error {
 		for _, check := range report.Checks() {
 			if len(check.Errors()) != 0 {
 				for _, err := range check.Errors() {
-					fmt.Fprintf(w, "%s\t%s\t%s\t%v\t\n", p.Type, check.Name(), "FAILED", err)
+					fmt.Fprintf(w, "%s\t%s\t%s\t%v\t\n", p.Type, check.Name(), "FAILED", err) //nolint:errcheck
 				}
 
 				if err := c.reporter.SetStatus("failure", p.Type, check.Name(), check.Message()); err != nil {
@@ -100,7 +100,7 @@ func (c *Conform) Enforce(setters ...policy.Option) error {
 
 				pass = false
 			} else {
-				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t\n", p.Type, check.Name(), "PASS", check.Message())
+				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t\n", p.Type, check.Name(), "PASS", check.Message()) //nolint:errcheck
 
 				if err := c.reporter.SetStatus("success", p.Type, check.Name(), check.Message()); err != nil {
 					log.Printf("WARNING: report failed: %+v", err)

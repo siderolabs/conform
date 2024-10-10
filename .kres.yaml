@@ -1,3 +1,10 @@
+---
+kind: common.Image
+name: image-conform
+spec:
+  extraEnvironment:
+    PLATFORM: linux/amd64,linux/arm64
+---
 kind: golang.Build
 spec:
   outputs:

@@ -101,8 +101,6 @@ func getKeyring(ctx context.Context, members []string) ([]string, error) {
 	eg, ctx := errgroup.WithContext(ctx)
 
 	for _, member := range members {
-		member := member
-
 		eg.Go(func() error {
 			key, err := getKey(ctx, member)
 

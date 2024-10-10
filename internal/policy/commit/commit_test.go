@@ -124,7 +124,6 @@ func TestValidateDCO(t *testing.T) {
 		},
 	} {
 		// Fixes scopelint error.
-		test := test
 		t.Run(test.Name, func(tt *testing.T) {
 			var report policy.Report
 
@@ -342,9 +341,9 @@ func TestValidRevisionRange(t *testing.T) {
 }
 
 func createValidCommitRange() ([]string, error) {
-	var revs []string
+	revs := make([]string, 0, 4)
 
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		err := os.WriteFile("test", []byte(fmt.Sprint(i)), 0o644)
 		if err != nil {
 			return nil, fmt.Errorf("writing test file failed: %w", err)

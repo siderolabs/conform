@@ -26,6 +26,11 @@ type Git struct {
 	repo *git.Repository
 }
 
+type CommitData struct {
+	Message string
+	SHA string
+}
+
 func findDotGit(name string) (string, error) {
 	if _, err := os.Stat(name); os.IsNotExist(err) {
 		return findDotGit(path.Join("..", name))
@@ -49,19 +54,19 @@ func NewGit() (*Git, error) {
 	return &Git{repo: repo}, nil
 }
 
-// Message returns the commit message. In the case that a commit has multiple
+// Commit returns the commit data. In the case that a commit has multiple
 // parents, the message of the last parent is returned.
 //
 //nolint:nonamedreturns
-func (g *Git) Message() (message string, err error) {
+func (g *Git) Commit() (commitData CommitData, err error) {
 	ref, err := g.repo.Head()
 	if err != nil {
-		return "", err
+		return CommitData{Message: ""}, err
 	}
 
 	commit, err := g.repo.CommitObject(ref.Hash())
 	if err != nil {
-		return "", err
+		return CommitData{Message: "", SHA: ref.Hash().String()}, err
 	}
 
 	if commit.NumParents() > 1 {
@@ -72,22 +77,22 @@ func (g *Git) Message() (message string, err error) {
 
 			next, err = parents.Next()
 			if err != nil {
-				return "", err
+				return CommitData{Message: ""}, err
 			}
 
 			if i == commit.NumParents() {
-				message = next.Message
+				commitData = CommitData{Message: next.Message, SHA: next.Hash.String()}
 			}
 		}
 	} else {
-		message = commit.Message
+		commitData = CommitData{Message: commit.Message, SHA: commit.Hash.String()}
 	}
 
-	return message, err
+	return commitData, err
 }
 
-// Messages returns the list of commit messages in the range commit1..commit2.
-func (g *Git) Messages(commit1, commit2 string) ([]string, error) {
+// Commits returns the list of commit data in the range commit1..commit2.
+func (g *Git) Commits(commit1, commit2 string) ([]CommitData, error) {
 	hash1, err := g.repo.ResolveRevision(plumbing.Revision(commit1))
 	if err != nil {
 		return nil, err
@@ -117,10 +122,11 @@ func (g *Git) Messages(commit1, commit2 string) ([]string, error) {
 		c1 = c[0]
 	}
 
-	msgs := make([]string, 0)
+	commits := make([]CommitData, 0)
 
 	for {
-		msgs = append(msgs, c2.Message)
+		commit := CommitData{Message: c2.Message, SHA: c2.Hash.String()}
+		commits = append(commits, commit)
 
 		c2, err = c2.Parents().Next()
 		if err != nil {
@@ -132,20 +138,24 @@ func (g *Git) Messages(commit1, commit2 string) ([]string, error) {
 		}
 	}
 
-	return msgs, nil
+	return commits, nil
 }
 
-// HasGPGSignature returns the commit message. In the case that a commit has multiple
-// parents, the message of the last parent is returned.
+// HasGPGSignature verifies that the given commit has a GPG signature.
+// In the case that sha is empty. The last commit is checked.
 //
 //nolint:nonamedreturns
-func (g *Git) HasGPGSignature() (ok bool, err error) {
-	ref, err := g.repo.Head()
-	if err != nil {
-		return false, err
+func (g *Git) HasGPGSignature(sha string) (ok bool, err error) {
+	if sha == "" {
+		ref, err := g.repo.Head()
+		if err != nil {
+			return false, err
+		}
+		sha = ref.Hash().String()
 	}
 
-	commit, err := g.repo.CommitObject(ref.Hash())
+
+	commit, err := g.repo.CommitObject(plumbing.NewHash(sha))
 	if err != nil {
 		return false, err
 	}
@@ -156,13 +166,16 @@ func (g *Git) HasGPGSignature() (ok bool, err error) {
 }
 
 // VerifyPGPSignature validates PGP signature against a keyring.
-func (g *Git) VerifyPGPSignature(armoredKeyrings []string) (*openpgp.Entity, error) {
-	ref, err := g.repo.Head()
-	if err != nil {
-		return nil, err
+func (g *Git) VerifyPGPSignature(sha string, armoredKeyrings []string) (*openpgp.Entity, error) {
+	if sha == "" {
+		ref, err := g.repo.Head()
+		if err != nil {
+			return nil, err
+		}
+		sha = ref.Hash().String()
 	}
 
-	commit, err := g.repo.CommitObject(ref.Hash())
+	commit, err := g.repo.CommitObject(plumbing.NewHash(sha))
 	if err != nil {
 		return nil, err
 	}

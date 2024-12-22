@@ -44,7 +44,7 @@ go install github.com/siderolabs/conform/cmd/conform@latest
 Third option is to run it as a container:
 
 ```bash
-docker run --rm -it -v $PWD:/src -w /src ghcr.io/siderolabs/conform:v0.1.0-alpha.22 enforce
+docker run --rm -it -v $PWD:/src:ro,Z -w /src ghcr.io/siderolabs/conform:v0.1.0-alpha.22 enforce
 ```
 
 You can also install conform with [aqua](https://aquaproj.github.io/).

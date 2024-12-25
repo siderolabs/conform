@@ -2,7 +2,7 @@
 # install with `pre-commit install -t commit-msg`
 repos:
   - repo: https://github.com/siderolabs/conform
-    rev: master
+    rev: main
     hooks:
       - id: conform
         stages:

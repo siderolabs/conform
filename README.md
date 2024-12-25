@@ -134,7 +134,7 @@ We also provide a [Pre-Commit](https://pre-commit.com) hook that you can use as 
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/siderolabs/conform
-    rev: master
+    rev: main
     hooks:
       - id: conform
         stages:

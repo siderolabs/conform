@@ -73,7 +73,7 @@ func (c Commit) ValidateGPGIdentity(g *git.Git) policy.Check { //nolint:ireturn
 			return check
 		}
 
-		entity, err := g.VerifyPGPSignature(keyrings)
+		entity, err := g.VerifyPGPSignature(c.sha, keyrings)
 		if err != nil {
 			check.errors = append(check.errors, err)
 

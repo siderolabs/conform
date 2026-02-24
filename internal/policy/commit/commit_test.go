@@ -22,6 +22,7 @@ func TestConventionalCommitPolicy(t *testing.T) {
 		Name         string
 		CreateCommit func(t *testing.T) error
 		ExpectValid  bool
+		Conventional *Conventional
 	}
 
 	for _, test := range []testDesc{
@@ -60,6 +61,29 @@ func TestConventionalCommitPolicy(t *testing.T) {
 			CreateCommit: createInvalidEmptyCommit,
 			ExpectValid:  false,
 		},
+		{
+			Name:         "FixupRejected",
+			CreateCommit: createFixupCommit,
+			ExpectValid:  false,
+		},
+		{
+			Name:         "FixupAccepted",
+			CreateCommit: createFixupCommit,
+			ExpectValid:  true,
+			Conventional: acceptAutoSquashConventional(),
+		},
+		{
+			Name:         "SquashAccepted",
+			CreateCommit: createSquashCommit,
+			ExpectValid:  true,
+			Conventional: acceptAutoSquashConventional(),
+		},
+		{
+			Name:         "AmendAccepted",
+			CreateCommit: createAmendCommit,
+			ExpectValid:  true,
+			Conventional: acceptAutoSquashConventional(),
+		},
 	} {
 		func(test testDesc) {
 			t.Run(test.Name, func(tt *testing.T) {
@@ -77,7 +101,7 @@ func TestConventionalCommitPolicy(t *testing.T) {
 					tt.Error(err)
 				}
 
-				report, err := runCompliance()
+				report, err := runComplianceWithConventional(test.Conventional)
 				if err != nil {
 					t.Error(err)
 				}
@@ -363,14 +387,28 @@ func runComplianceRange(id1, id2 string) (*policy.Report, error) {
 }
 
 func runCompliance() (*policy.Report, error) {
-	c := &Commit{
-		Conventional: &Conventional{
+	return runComplianceWithConventional(nil)
+}
+
+func runComplianceWithConventional(conventional *Conventional) (*policy.Report, error) {
+	if conventional == nil {
+		conventional = &Conventional{
 			Types:  []string{"type"},
 			Scopes: []string{"scope", "^valid"},
-		},
+		}
 	}
 
+	c := &Commit{Conventional: conventional}
+
 	return c.Compliance(&policy.Options{})
+}
+
+func acceptAutoSquashConventional() *Conventional {
+	return &Conventional{
+		Types:            []string{"type"},
+		Scopes:           []string{"scope", "^valid"},
+		AcceptAutoSquash: true,
+	}
 }
 
 func initRepo(t *testing.T) error {
@@ -439,6 +477,24 @@ func createValidCommitRegex(t *testing.T) error {
 
 func createInvalidCommitRegex(t *testing.T) error {
 	_, err := exec.CommandContext(t.Context(), "git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "type(invalid-1): description").Output()
+
+	return err
+}
+
+func createFixupCommit(t *testing.T) error {
+	_, err := exec.CommandContext(t.Context(), "git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "fixup! deadbeef").Output()
+
+	return err
+}
+
+func createSquashCommit(t *testing.T) error {
+	_, err := exec.CommandContext(t.Context(), "git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "squash! deadbeef").Output()
+
+	return err
+}
+
+func createAmendCommit(t *testing.T) error {
+	_, err := exec.CommandContext(t.Context(), "git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "amend! deadbeef").Output()
 
 	return err
 }

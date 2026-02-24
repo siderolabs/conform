@@ -84,6 +84,7 @@ policies:
         scopes:
           - "scope"
         descriptionLength: 72
+        acceptAutoSquash: false
   - type: license
     spec:
       skipPaths:

@@ -58,6 +58,7 @@ var serveCmd = &cobra.Command{
 
 					return
 				}
+
 				if err = os.MkdirAll(filepath.Join(dir, "repo"), 0o700); err != nil {
 					log.Printf("failed to create repo directory: %+v\n", err)
 
@@ -65,6 +66,7 @@ var serveCmd = &cobra.Command{
 				}
 
 				event := filepath.Join(dir, "github", "event.json")
+
 				pullRequestEvent := &github.PullRequestEvent{}
 				if err = json.Unmarshal(payload, pullRequestEvent); err != nil {
 					log.Printf("failed to parse pull_request event: %+v\n", err)
@@ -131,17 +133,20 @@ var serveCmd = &cobra.Command{
 
 					return
 				}
+
 				cmd := exec.Command("/proc/self/exe", "enforce", "--reporter=github", "--commit-ref=refs/heads/"+pullRequestEvent.GetPullRequest().GetBase().GetRef())
 				cmd.Stdout = os.Stdout
 				cmd.Stderr = os.Stdout
 				cmd.Dir = cloneRepo
 				cmd.Env = []string{fmt.Sprintf("INPUT_TOKEN=%s", os.Getenv("INPUT_TOKEN")), fmt.Sprintf("GITHUB_EVENT_PATH=%s", event)}
+
 				err = cmd.Start()
 				if err != nil {
 					log.Printf("failed to start command: %+v\n", err)
 
 					return
 				}
+
 				err = cmd.Wait()
 				if err != nil {
 					log.Printf("command failed: %+v\n", err)

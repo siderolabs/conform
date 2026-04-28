@@ -33,6 +33,7 @@ var enforceCmd = &cobra.Command{
 
 		// Get the config path value
 		configPath := cmd.Flags().Lookup("config").Value.String()
+
 		e, err := enforcer.New(configPath, reporter)
 		if err != nil {
 			return fmt.Errorf("failed to create enforcer: %w", err)
@@ -51,6 +52,7 @@ var enforceCmd = &cobra.Command{
 			if err != nil {
 				return fmt.Errorf("failed to detect main branch: %w", err)
 			}
+
 			if mainBranch != "" {
 				opts = append(opts, policy.WithCommitRef(fmt.Sprintf("refs/heads/%s", mainBranch)))
 			}

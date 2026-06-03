@@ -7,9 +7,6 @@ package git
 
 import (
 	"fmt"
-	"os"
-	"path"
-	"path/filepath"
 	"strings"
 
 	git "github.com/go-git/go-git/v5"
@@ -26,22 +23,18 @@ type Git struct {
 	repo *git.Repository
 }
 
-func findDotGit(name string) (string, error) {
-	if _, err := os.Stat(name); os.IsNotExist(err) {
-		return findDotGit(path.Join("..", name))
-	}
-
-	return filepath.Abs(name)
+// OpenRepository opens the repository containing path, including linked
+// worktrees whose .git entry is a gitdir file.
+func OpenRepository(path string) (*git.Repository, error) {
+	return git.PlainOpenWithOptions(path, &git.PlainOpenOptions{
+		DetectDotGit:          true,
+		EnableDotGitCommonDir: true,
+	})
 }
 
 // NewGit instantiates and returns a Git struct.
 func NewGit() (*Git, error) {
-	p, err := findDotGit(".git")
-	if err != nil {
-		return nil, err
-	}
-
-	repo, err := git.PlainOpen(path.Dir(p))
+	repo, err := OpenRepository(".")
 	if err != nil {
 		return nil, err
 	}

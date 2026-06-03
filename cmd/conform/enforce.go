@@ -8,10 +8,11 @@ import (
 	"errors"
 	"fmt"
 
-	git "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5"
 	"github.com/spf13/cobra"
 
 	"github.com/siderolabs/conform/internal/enforcer"
+	conformgit "github.com/siderolabs/conform/internal/git"
 	"github.com/siderolabs/conform/internal/policy"
 )
 
@@ -81,7 +82,7 @@ func init() {
 func detectMainBranch() (string, error) {
 	mainBranch := "main"
 
-	repo, err := git.PlainOpen(".")
+	repo, err := conformgit.OpenRepository(".")
 	if err != nil {
 		// not a git repo, ignore
 		return "", nil //nolint:nilerr

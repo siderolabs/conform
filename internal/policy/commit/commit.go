@@ -83,6 +83,7 @@ type Commit struct {
 	MaximumOfOneCommit bool `mapstructure:"maximumOfOneCommit"`
 
 	msg string
+	sha string
 }
 
 // FirstWordRegex is theregular expression used to find the first word in a
@@ -102,7 +103,7 @@ func (c *Commit) Compliance(options *policy.Options) (*policy.Report, error) {
 		return report, errors.Errorf("failed to open git repo: %v", err)
 	}
 
-	var msgs []string
+	var commits []git.CommitData
 
 	switch o := options; {
 	case o.CommitMsgFile != nil:
@@ -112,28 +113,29 @@ func (c *Commit) Compliance(options *policy.Options) (*policy.Report, error) {
 			return report, errors.Errorf("failed to read commit message file: %v", err)
 		}
 
-		msgs = append(msgs, string(contents))
+		commits = append(commits, git.CommitData{Message: string(contents)})
 	case o.RevisionRange != "":
 		revs, err := extractRevisionRange(options)
 		if err != nil {
 			return report, errors.Errorf("failed to get commit message: %v", err)
 		}
 
-		msgs, err = g.Messages(revs[0], revs[1])
+		commits, err = g.Commits(revs[0], revs[1])
 		if err != nil {
 			return report, errors.Errorf("failed to get commit message: %v", err)
 		}
 	default:
-		msg, err := g.Message()
+		commit, err := g.Commit()
 		if err != nil {
 			return report, errors.Errorf("failed to get commit message: %v", err)
 		}
 
-		msgs = append(msgs, msg)
+		commits = append(commits, commit)
 	}
 
-	for i := range msgs {
-		c.msg = msgs[i]
+	for i := range commits {
+		c.msg = commits[i].Message
+		c.sha = commits[i].SHA
 
 		c.compliance(report, g, options)
 	}

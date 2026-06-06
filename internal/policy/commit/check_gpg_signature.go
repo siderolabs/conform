@@ -39,7 +39,7 @@ func (g GPGCheck) Errors() []error {
 func (c Commit) ValidateGPGSign(g *git.Git) policy.Check { //nolint:ireturn
 	check := &GPGCheck{}
 
-	ok, err := g.HasGPGSignature()
+	ok, err := g.HasGPGSignature(c.sha)
 	if err != nil {
 		check.errors = append(check.errors, err)
 

@@ -19,10 +19,16 @@ type Conventional struct {
 	Types             []string `mapstructure:"types"`
 	Scopes            []string `mapstructure:"scopes"`
 	DescriptionLength int      `mapstructure:"descriptionLength"`
+	AcceptAutoSquash  bool     `mapstructure:"acceptAutoSquash"`
 }
 
 // HeaderRegex is the regular expression used for Conventional Commits 1.0.0.
 var HeaderRegex = regexp.MustCompile(`^(\w*)(\(([^)]+)\))?(!)?:\s{1}(.*)($|\n{2})`)
+
+// AutoSquashHeaderRegex matches git autosquash commit messages produced by
+// `git commit --fixup=<hash>` / `--squash=<hash>` and (since Git 2.32)
+// `--fixup=amend:<hash>` / `--fixup=reword:<hash>`.
+var AutoSquashHeaderRegex = regexp.MustCompile(`^(fixup|squash|amend)!\s+.+`)
 
 const (
 	// TypeFeat is a commit of the type fix patches a bug in your codebase
@@ -62,7 +68,19 @@ func (c ConventionalCommitCheck) Errors() []error {
 // ValidateConventionalCommit returns the commit type.
 func (c Commit) ValidateConventionalCommit() policy.Check { //nolint:ireturn
 	check := &ConventionalCommitCheck{}
-	groups := parseHeader(c.msg)
+	header := firstHeaderLine(c.msg)
+
+	if isAutoSquashMessage(header) {
+		if c.Conventional.AcceptAutoSquash {
+			return check
+		}
+
+		check.errors = append(check.errors, errors.Errorf("auto-squash commits are rejected by policy: %q", c.msg))
+
+		return check
+	}
+
+	groups := parseHeader(header)
 
 	if len(groups) != 7 {
 		check.errors = append(check.errors, errors.Errorf("Invalid conventional commits format: %q", c.msg))
@@ -124,12 +142,17 @@ func (c Commit) ValidateConventionalCommit() policy.Check { //nolint:ireturn
 	return check
 }
 
-func parseHeader(msg string) []string {
-	// To circumvent any policy violation due to the leading \n that GitHub
-	// prefixes to the commit message on a squash merge, we remove it from the
-	// message.
-	header := strings.Split(strings.TrimPrefix(msg, "\n"), "\n")[0]
+func parseHeader(header string) []string {
 	groups := HeaderRegex.FindStringSubmatch(header)
 
 	return groups
+}
+
+func isAutoSquashMessage(header string) bool {
+	return AutoSquashHeaderRegex.MatchString(header)
+}
+
+func firstHeaderLine(msg string) string {
+	// GitHub can prefix squash-merge commit messages with a leading newline.
+	return strings.Split(strings.TrimPrefix(msg, "\n"), "\n")[0]
 }

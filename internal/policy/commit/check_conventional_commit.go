@@ -128,7 +128,7 @@ func parseHeader(msg string) []string {
 	// To circumvent any policy violation due to the leading \n that GitHub
 	// prefixes to the commit message on a squash merge, we remove it from the
 	// message.
-	header := strings.Split(strings.TrimPrefix(msg, "\n"), "\n")[0]
+	header, _, _ := strings.Cut(strings.TrimPrefix(msg, "\n"), "\n")
 	groups := HeaderRegex.FindStringSubmatch(header)
 
 	return groups

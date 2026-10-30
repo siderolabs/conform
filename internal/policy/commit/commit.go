@@ -61,7 +61,7 @@ type GPG struct {
 // Commit implements the policy.Policy interface and enforces commit
 // messages to conform the Conventional Commit standard.
 //
-//nolint:maligned,govet,recvcheck
+//nolint:govet,recvcheck
 type Commit struct {
 	// SpellCheck enforces correct spelling.
 	SpellCheck *SpellCheck `mapstructure:"spellcheck"`

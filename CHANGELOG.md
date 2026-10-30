@@ -1,3 +1,71 @@
+## [conform 0.1.0-alpha.32](https://github.com/siderolabs/conform/releases/tag/v0.1.0-alpha.32) (2026-10-30)
+
+Welcome to the v0.1.0-alpha.32 release of conform!  
+*This is a pre-release of conform*
+
+
+
+Please try out the release binaries and report any issues at
+https://github.com/siderolabs/conform/issues.
+
+### GitHub Action
+
+The GitHub Action now uses the latest released conform image.
+
+
+### Custom Config Path
+
+`conform enforce` now accepts a `--config` flag to load policies from a file other than `.conform.yaml`.
+
+
+### Component Updates
+
+Conform is now built with Go 1.27.3.
+
+Go dependencies have been updated to their latest versions, including:
+
+* go-git: v5.19.3
+* keybase/go-crypto: 0bdff31 (used for GPG signature verification)
+
+
+### Git Worktree Support
+
+Conform now works when run from a linked git worktree, where `.git` is a gitdir file rather than a directory.
+
+
+### Contributors
+
+* Andrey Smirnov
+* Aleksander Brajer-Wiaderek
+* Christian Schlotter
+* Edward Sammut Alessi
+* Yann Soubeyrand
+
+### Changes
+<details><summary>6 commits</summary>
+<p>
+
+* [`6e68060`](https://github.com/siderolabs/conform/commit/6e68060b6a464ecc7ca5f85005bd89451f644402) chore: bump deps and rekres
+* [`b951e44`](https://github.com/siderolabs/conform/commit/b951e4415e9cde1cc0cda7ad3eb467e195d8eb77) feat: open repository with worktree support
+* [`f841358`](https://github.com/siderolabs/conform/commit/f841358bd2c5546b9b1bd446688e64489755ac3a) chore: rekres and bump deps
+* [`de4d5cb`](https://github.com/siderolabs/conform/commit/de4d5cb728d6852f42eb6fb165e0373f340a419e) chore: bump dependencies
+* [`53b0619`](https://github.com/siderolabs/conform/commit/53b06192ca4b9bbeac3f89299a2a2eb792a63ce3) fix: bump action image
+* [`1759e43`](https://github.com/siderolabs/conform/commit/1759e4321b92adc739498807e6652af68f89e3b4) feat: add custom config file path flag
+</p>
+</details>
+
+### Dependency Changes
+
+* **github.com/go-git/go-git/v5**   v5.16.4 -> v5.19.3
+* **github.com/golangci/misspell**  v0.4.1 -> v0.8.0
+* **github.com/jdkato/prose/v3**    a376476c2627 -> v3.2.1
+* **github.com/keybase/go-crypto**  de78d2cb44f4 -> 0bdff31fd453
+* **github.com/spf13/cobra**        v1.8.0 -> v1.10.2
+* **github.com/stretchr/testify**   v1.10.0 -> v1.11.1
+* **golang.org/x/sync**             v0.6.0 -> v0.24.0
+
+Previous release can be found at [v0.1.0-alpha.31](https://github.com/siderolabs/conform/releases/tag/v0.1.0-alpha.31)
+
 ## [conform 0.1.0-alpha.31](https://github.com/siderolabs/conform/releases/tag/v0.1.0-alpha.31) (2026-01-12)
 
 Welcome to the v0.1.0-alpha.31 release of conform!

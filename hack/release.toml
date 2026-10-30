@@ -5,7 +5,36 @@ project_name = "conform"
 github_repo = "siderolabs/conform"
 match_deps = "^github.com/(siderolabs/[a-zA-Z0-9-]+)$"
 
-# previous = -
-# pre_release = true
+previous = "v0.1.0-alpha.31"
+pre_release = true
 
-# [notes]
+[notes]
+
+    [notes.config]
+        title = "Custom Config Path"
+        description = """\
+`conform enforce` now accepts a `--config` flag to load policies from a file other than `.conform.yaml`.
+"""
+
+    [notes.worktrees]
+        title = "Git Worktree Support"
+        description = """\
+Conform now works when run from a linked git worktree, where `.git` is a gitdir file rather than a directory.
+"""
+
+    [notes.action]
+        title = "GitHub Action"
+        description = """\
+The GitHub Action now uses the latest released conform image.
+"""
+
+    [notes.updates]
+        title = "Component Updates"
+        description = """\
+Conform is now built with Go 1.27.3.
+
+Go dependencies have been updated to their latest versions, including:
+
+* go-git: v5.19.3
+* keybase/go-crypto: 0bdff31 (used for GPG signature verification)
+"""

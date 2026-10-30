@@ -7,12 +7,13 @@ require (
 	github.com/go-git/go-git/v5 v5.19.3
 	github.com/golangci/misspell v0.8.0
 	github.com/google/go-github/v60 v60.0.0
+	github.com/google/go-github/v93 v93.0.0
 	github.com/jdkato/prose/v3 v3.2.1
 	github.com/keybase/go-crypto v0.0.0-20261026170941-0bdff31fd453
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.10.2
-	github.com/stretchr/testify v1.11.1
+	github.com/stretchr/testify v1.12.1
 	golang.org/x/sync v0.24.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -39,6 +40,7 @@ require (
 	github.com/skeema/knownhosts v1.3.3 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect

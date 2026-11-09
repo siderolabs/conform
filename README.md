@@ -117,6 +117,15 @@ commit         Commit Body                  PASS          Commit body is valid
 license        File Header                  PASS          All files have a valid license header
 ```
 
+To check every commit of a branch (e.g. in CI), pass the base branch:
+
+```bash
+conform enforce --base-branch=origin/main
+```
+
+The GPG identity check fetches the GPG keys of the public members of the GitHub organization.
+Set `GITHUB_TOKEN` to access the GitHub API with a token and avoid the low rate limits of unauthenticated requests.
+
 To setup a `commit-msg` hook:
 
 ```bash

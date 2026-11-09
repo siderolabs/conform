@@ -15,6 +15,23 @@ import (
 	"github.com/siderolabs/conform/internal/policy"
 )
 
+func TestMain(m *testing.M) {
+	// disable GPG signing of the commits created by the git CLI in the tests,
+	// as it might be enabled in the global git config of the user
+	for key, value := range map[string]string{
+		"GIT_CONFIG_COUNT":   "1",
+		"GIT_CONFIG_KEY_0":   "commit.gpgsign",
+		"GIT_CONFIG_VALUE_0": "false",
+	} {
+		if err := os.Setenv(key, value); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+	}
+
+	os.Exit(m.Run())
+}
+
 //nolint:gocognit
 func TestConventionalCommitPolicy(t *testing.T) {
 	//nolint:govet

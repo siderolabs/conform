@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/pkg/errors"
 
 	"github.com/siderolabs/conform/internal/git"
@@ -83,7 +84,15 @@ type Commit struct {
 	MaximumOfOneCommit bool `mapstructure:"maximumOfOneCommit"`
 
 	msg string
+	// commit is the commit being checked; signature checks are run against it.
+	commit *object.Commit
+	// keyring caches the GPG keyring of the GitHub organization members, it is
+	// fetched once and used to verify all commits.
+	keyring *gpgKeyring
 }
+
+// shortHashLength is the length of the abbreviated commit hash used in messages.
+const shortHashLength = 7
 
 // FirstWordRegex is theregular expression used to find the first word in a
 // commit.
@@ -102,7 +111,16 @@ func (c *Commit) Compliance(options *policy.Options) (*policy.Report, error) {
 		return report, errors.Errorf("failed to open git repo: %v", err)
 	}
 
-	var msgs []string
+	type commitToCheck struct {
+		commit *object.Commit
+		msg    string
+	}
+
+	if c.keyring == nil {
+		c.keyring = &gpgKeyring{}
+	}
+
+	var commits []commitToCheck
 
 	switch o := options; {
 	case o.CommitMsgFile != nil:
@@ -112,16 +130,26 @@ func (c *Commit) Compliance(options *policy.Options) (*policy.Report, error) {
 			return report, errors.Errorf("failed to read commit message file: %v", err)
 		}
 
-		msgs = append(msgs, string(contents))
+		// the commit doesn't exist yet, so signature checks are run against HEAD
+		head, err := c.headCommit(g)
+		if err != nil {
+			return report, err
+		}
+
+		commits = append(commits, commitToCheck{msg: string(contents), commit: head})
 	case o.RevisionRange != "":
 		revs, err := extractRevisionRange(options)
 		if err != nil {
 			return report, errors.Errorf("failed to get commit message: %v", err)
 		}
 
-		msgs, err = g.Messages(revs[0], revs[1])
+		rangeCommits, err := g.Commits(revs[0], revs[1])
 		if err != nil {
 			return report, errors.Errorf("failed to get commit message: %v", err)
+		}
+
+		for _, commit := range rangeCommits {
+			commits = append(commits, commitToCheck{msg: commit.Message, commit: commit})
 		}
 	default:
 		msg, err := g.Message()
@@ -129,11 +157,17 @@ func (c *Commit) Compliance(options *policy.Options) (*policy.Report, error) {
 			return report, errors.Errorf("failed to get commit message: %v", err)
 		}
 
-		msgs = append(msgs, msg)
+		head, err := c.headCommit(g)
+		if err != nil {
+			return report, err
+		}
+
+		commits = append(commits, commitToCheck{msg: msg, commit: head})
 	}
 
-	for i := range msgs {
-		c.msg = msgs[i]
+	for _, commit := range commits {
+		c.msg = commit.msg
+		c.commit = commit.commit
 
 		c.compliance(report, g, options)
 	}
@@ -171,10 +205,10 @@ func (c *Commit) compliance(report *policy.Report, g *git.Git, options *policy.O
 
 	if c.GPG != nil {
 		if c.GPG.Required {
-			report.AddCheck(c.ValidateGPGSign(g))
+			report.AddCheck(c.ValidateGPGSign())
 
 			if c.GPG.Identity != nil {
-				report.AddCheck(c.ValidateGPGIdentity(g))
+				report.AddCheck(c.ValidateGPGIdentity())
 			}
 		}
 	}
@@ -196,6 +230,20 @@ func (c *Commit) compliance(report *policy.Report, g *git.Git, options *policy.O
 			report.AddCheck(c.ValidateBody())
 		}
 	}
+}
+
+// headCommit returns the HEAD commit if signature checks are enabled, nil otherwise.
+func (c *Commit) headCommit(g *git.Git) (*object.Commit, error) {
+	if c.GPG == nil || !c.GPG.Required {
+		return nil, nil //nolint:nilnil
+	}
+
+	head, err := g.HeadCommit()
+	if err != nil {
+		return nil, errors.Errorf("failed to get HEAD commit: %v", err)
+	}
+
+	return head, nil
 }
 
 func (c Commit) firstWord() (string, error) {

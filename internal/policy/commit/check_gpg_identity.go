@@ -6,12 +6,15 @@ package commit
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"sync"
 
 	"github.com/google/go-github/v60/github"
+	"github.com/keybase/go-crypto/openpgp"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/siderolabs/conform/internal/git"
@@ -46,77 +49,140 @@ func (g GPGIdentityCheck) Errors() []error {
 }
 
 // ValidateGPGIdentity checks the commit GPG signature for a known identity.
-func (c Commit) ValidateGPGIdentity(g *git.Git) policy.Check { //nolint:ireturn
+func (c Commit) ValidateGPGIdentity() policy.Check { //nolint:ireturn
 	check := &GPGIdentityCheck{}
 
-	switch {
-	case c.GPG.Identity.GitHubOrganization != "":
-		githubClient := github.NewClient(nil)
+	if c.GPG.Identity.GitHubOrganization == "" {
+		check.errors = append(check.errors, errors.New("no signature identity configuration found"))
 
-		list, _, err := githubClient.Organizations.ListMembers(context.Background(), c.GPG.Identity.GitHubOrganization, &github.ListMembersOptions{})
-		if err != nil {
-			check.errors = append(check.errors, err)
+		return check
+	}
 
-			return check
-		}
+	if !git.HasGPGSignature(c.commit) {
+		check.errors = append(check.errors, fmt.Errorf("commit %s: no GPG signature", c.commit.Hash.String()[:shortHashLength]))
 
-		members := make([]string, len(list))
+		return check
+	}
 
-		for i := range list {
-			members[i] = list[i].GetLogin()
-		}
+	keyring, err := c.keyring.get(context.Background(), c.GPG.Identity.GitHubOrganization)
+	if err != nil {
+		check.errors = append(check.errors, err)
 
-		keyrings, err := getKeyring(context.Background(), members)
-		if err != nil {
-			check.errors = append(check.errors, err)
+		return check
+	}
 
-			return check
-		}
+	entity, err := git.VerifyPGPSignature(c.commit, keyring)
+	if err != nil {
+		check.errors = append(check.errors, fmt.Errorf("commit %s: %w", c.commit.Hash.String()[:shortHashLength], err))
 
-		entity, err := g.VerifyPGPSignature(keyrings)
-		if err != nil {
-			check.errors = append(check.errors, err)
+		return check
+	}
 
-			return check
-		}
+	for identity := range entity.Identities {
+		check.identity = identity
 
-		for identity := range entity.Identities {
-			check.identity = identity
-
-			break
-		}
-	default:
-		check.errors = append(check.errors, fmt.Errorf("no signature identity configuration found"))
+		break
 	}
 
 	return check
 }
 
+// gpgKeyring fetches the keyring of the GitHub organization members once.
+type gpgKeyring struct {
+	err     error
+	keyring openpgp.EntityList
+	once    sync.Once
+}
+
+func (k *gpgKeyring) get(ctx context.Context, org string) (openpgp.EntityList, error) {
+	k.once.Do(func() {
+		k.keyring, k.err = fetchOrgKeyring(ctx, org)
+	})
+
+	return k.keyring, k.err
+}
+
+// fetchOrgKeyring is a variable to allow overriding it in tests.
+var fetchOrgKeyring = githubOrgKeyring
+
+// githubOrgKeyring builds the keyring from the GPG keys of the public members of the GitHub organization.
+//
+// If GITHUB_TOKEN (or INPUT_TOKEN) is set, the GitHub API is accessed with it to get higher rate limits.
+func githubOrgKeyring(ctx context.Context, org string) (openpgp.EntityList, error) {
+	githubClient := github.NewClient(nil)
+
+	if token := githubToken(); token != "" {
+		githubClient = githubClient.WithAuthToken(token)
+	}
+
+	opts := &github.ListMembersOptions{
+		PublicOnly: true,
+		PerPage:    100,
+	}
+
+	var members []string
+
+	for {
+		list, resp, err := githubClient.Organizations.ListMembers(ctx, org, opts)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list members of GitHub organization %q: %w", org, err)
+		}
+
+		for _, member := range list {
+			members = append(members, member.GetLogin())
+		}
+
+		if resp.NextPage == 0 {
+			break
+		}
+
+		opts.Page = resp.NextPage
+	}
+
+	armoredKeyrings, err := getKeyring(ctx, members)
+	if err != nil {
+		return nil, err
+	}
+
+	return git.ReadArmoredKeyrings(armoredKeyrings)
+}
+
+func githubToken() string {
+	for _, env := range []string{"GITHUB_TOKEN", "INPUT_TOKEN"} {
+		if token := os.Getenv(env); token != "" {
+			return token
+		}
+	}
+
+	return ""
+}
+
 func getKeyring(ctx context.Context, members []string) ([]string, error) {
-	var (
-		result []string
-		mu     sync.Mutex
-	)
+	const concurrency = 8
+
+	result := make([]string, len(members))
 
 	eg, ctx := errgroup.WithContext(ctx)
+	eg.SetLimit(concurrency)
 
-	for _, member := range members {
+	for i, member := range members {
 		eg.Go(func() error {
 			key, err := getKey(ctx, member)
+			if err != nil {
+				return err
+			}
 
-			mu.Lock()
+			result[i] = key
 
-			result = append(result, key)
-
-			mu.Unlock()
-
-			return err
+			return nil
 		})
 	}
 
-	err := eg.Wait()
+	if err := eg.Wait(); err != nil {
+		return nil, err
+	}
 
-	return result, err
+	return result, nil
 }
 
 func getKey(ctx context.Context, login string) (string, error) {
@@ -132,6 +198,10 @@ func getKey(ctx context.Context, login string) (string, error) {
 	}
 
 	defer resp.Body.Close() //nolint:errcheck
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to fetch GPG keys of %q: unexpected status %s", login, resp.Status)
+	}
 
 	buf, err := io.ReadAll(resp.Body)
 

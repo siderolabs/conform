@@ -35,21 +35,12 @@ func (g GPGCheck) Errors() []error {
 	return g.errors
 }
 
-// ValidateGPGSign checks the commit message for a GPG signature.
-func (c Commit) ValidateGPGSign(g *git.Git) policy.Check { //nolint:ireturn
+// ValidateGPGSign checks the commit for a GPG signature.
+func (c Commit) ValidateGPGSign() policy.Check { //nolint:ireturn
 	check := &GPGCheck{}
 
-	ok, err := g.HasGPGSignature()
-	if err != nil {
-		check.errors = append(check.errors, err)
-
-		return check
-	}
-
-	if !ok {
-		check.errors = append(check.errors, errors.Errorf("Commit does not have a GPG signature"))
-
-		return check
+	if !git.HasGPGSignature(c.commit) {
+		check.errors = append(check.errors, errors.Errorf("Commit %s does not have a GPG signature", c.commit.Hash.String()[:shortHashLength]))
 	}
 
 	return check

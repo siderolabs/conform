@@ -79,93 +79,142 @@ func (g *Git) Message() (message string, err error) {
 	return message, err
 }
 
-// Messages returns the list of commit messages in the range commit1..commit2.
-func (g *Git) Messages(commit1, commit2 string) ([]string, error) {
-	hash1, err := g.repo.ResolveRevision(plumbing.Revision(commit1))
+// HeadCommit returns the commit HEAD points to.
+func (g *Git) HeadCommit() (*object.Commit, error) {
+	ref, err := g.repo.Head()
 	if err != nil {
 		return nil, err
 	}
 
-	hash2, err := g.repo.ResolveRevision(plumbing.Revision(commit2))
-	if err != nil {
-		return nil, err
-	}
-
-	c2, err := g.repo.CommitObject(*hash2)
-	if err != nil {
-		return nil, err
-	}
-
-	c1, err := g.repo.CommitObject(*hash1)
-	if err != nil {
-		return nil, err
-	}
-
-	if ok, ancestorErr := c1.IsAncestor(c2); ancestorErr != nil || !ok {
-		c, mergeBaseErr := c1.MergeBase(c2)
-		if mergeBaseErr != nil {
-			return nil, errors.Errorf("invalid ancestor %s", c1)
-		}
-
-		c1 = c[0]
-	}
-
-	msgs := make([]string, 0)
-
-	for {
-		msgs = append(msgs, c2.Message)
-
-		c2, err = c2.Parents().Next()
-		if err != nil {
-			return nil, err
-		}
-
-		if c2.ID() == c1.ID() {
-			break
-		}
-	}
-
-	return msgs, nil
+	return g.repo.CommitObject(ref.Hash())
 }
 
-// HasGPGSignature returns the commit message. In the case that a commit has multiple
-// parents, the message of the last parent is returned.
+// Commits returns the list of commits in the range commit1..commit2: the commits
+// reachable from commit2 which are not reachable from commit1 (as `git log commit1..commit2`).
 //
-//nolint:nonamedreturns
-func (g *Git) HasGPGSignature() (ok bool, err error) {
-	ref, err := g.repo.Head()
+// All parents of merge commits are followed, so commits merged into the range are included.
+// The commits are returned newest first (breadth-first order starting from commit2).
+func (g *Git) Commits(commit1, commit2 string) ([]*object.Commit, error) {
+	c1, err := g.resolveCommit(commit1)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	commit, err := g.repo.CommitObject(ref.Hash())
+	c2, err := g.resolveCommit(commit2)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	ok = commit.PGPSignature != ""
+	excluded, err := g.ancestors(c1)
+	if err != nil {
+		return nil, err
+	}
 
-	return ok, err
+	if _, ok := excluded[c2.Hash]; ok {
+		if c2.Hash == c1.Hash {
+			return nil, nil
+		}
+
+		return nil, errors.Errorf("invalid revision range: %s is not an ancestor of %s", commit1, commit2)
+	}
+
+	var (
+		commits     []*object.Commit
+		reachedBase bool
+	)
+
+	seen := map[plumbing.Hash]struct{}{c2.Hash: {}}
+	queue := []*object.Commit{c2}
+
+	for len(queue) > 0 {
+		c := queue[0]
+		queue = queue[1:]
+
+		commits = append(commits, c)
+
+		for _, parentHash := range c.ParentHashes {
+			if _, ok := excluded[parentHash]; ok {
+				reachedBase = true
+
+				continue
+			}
+
+			if _, ok := seen[parentHash]; ok {
+				continue
+			}
+
+			seen[parentHash] = struct{}{}
+
+			parent, err := g.repo.CommitObject(parentHash)
+			if err != nil {
+				return nil, errors.Errorf("failed to get parent %s of commit %s: %v", parentHash, c.Hash, err)
+			}
+
+			queue = append(queue, parent)
+		}
+	}
+
+	if !reachedBase {
+		return nil, errors.Errorf("invalid revision range: %s and %s have no common history", commit1, commit2)
+	}
+
+	return commits, nil
 }
 
-// VerifyPGPSignature validates PGP signature against a keyring.
-func (g *Git) VerifyPGPSignature(armoredKeyrings []string) (*openpgp.Entity, error) {
-	ref, err := g.repo.Head()
+func (g *Git) resolveCommit(rev string) (*object.Commit, error) {
+	hash, err := g.repo.ResolveRevision(plumbing.Revision(rev))
 	if err != nil {
 		return nil, err
 	}
 
-	commit, err := g.repo.CommitObject(ref.Hash())
-	if err != nil {
-		return nil, err
+	return g.repo.CommitObject(*hash)
+}
+
+// ancestors returns the set of commits reachable from the commit, including the commit itself.
+//
+// Missing commits (e.g. beyond the boundary of a shallow clone) are skipped.
+func (g *Git) ancestors(c *object.Commit) (map[plumbing.Hash]struct{}, error) {
+	result := map[plumbing.Hash]struct{}{c.Hash: {}}
+	queue := []*object.Commit{c}
+
+	for len(queue) > 0 {
+		c = queue[0]
+		queue = queue[1:]
+
+		for _, parentHash := range c.ParentHashes {
+			if _, ok := result[parentHash]; ok {
+				continue
+			}
+
+			parent, err := g.repo.CommitObject(parentHash)
+			if err != nil {
+				if errors.Is(err, plumbing.ErrObjectNotFound) {
+					continue
+				}
+
+				return nil, err
+			}
+
+			result[parentHash] = struct{}{}
+
+			queue = append(queue, parent)
+		}
 	}
 
+	return result, nil
+}
+
+// HasGPGSignature returns true if the commit is signed.
+func HasGPGSignature(commit *object.Commit) bool {
+	return commit.PGPSignature != ""
+}
+
+// ReadArmoredKeyrings parses a list of armored keyrings into a single keyring.
+func ReadArmoredKeyrings(armoredKeyrings []string) (openpgp.EntityList, error) {
 	var keyring openpgp.EntityList
 
 	for _, armoredKeyring := range armoredKeyrings {
-		var el openpgp.EntityList
-
-		el, err = openpgp.ReadArmoredKeyRing(strings.NewReader(armoredKeyring))
+		el, err := openpgp.ReadArmoredKeyRing(strings.NewReader(armoredKeyring))
 		if err != nil {
 			return nil, err
 		}
@@ -173,13 +222,18 @@ func (g *Git) VerifyPGPSignature(armoredKeyrings []string) (*openpgp.Entity, err
 		keyring = append(keyring, el...)
 	}
 
+	return keyring, nil
+}
+
+// VerifyPGPSignature validates the commit PGP signature against a keyring.
+func VerifyPGPSignature(commit *object.Commit, keyring openpgp.EntityList) (*openpgp.Entity, error) {
 	// Extract signature.
 	signature := strings.NewReader(commit.PGPSignature)
 
 	encoded := &plumbing.MemoryObject{}
 
 	// Encode commit components, excluding signature and get a reader object.
-	if err = commit.EncodeWithoutSignature(encoded); err != nil {
+	if err := commit.EncodeWithoutSignature(encoded); err != nil {
 		return nil, err
 	}
 

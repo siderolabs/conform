@@ -9,6 +9,6 @@ inputs:
     required: true
 runs:
   using: "docker"
-  image: "docker://ghcr.io/siderolabs/conform:v0.1.0-alpha.31"
+  image: "docker://ghcr.io/siderolabs/conform:v0.1.0-alpha.33"
   args:
     - 'enforce'

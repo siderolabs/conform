@@ -1,3 +1,33 @@
+## [conform 0.1.0-alpha.33](https://github.com/siderolabs/conform/releases/tag/v0.1.0-alpha.33) (2026-11-09)
+
+Welcome to the v0.1.0-alpha.33 release of conform!  
+*This is a pre-release of conform*
+
+
+
+Please try out the release binaries and report any issues at
+https://github.com/siderolabs/conform/issues.
+
+### Contributors
+
+* Andrey Smirnov
+
+### Changes
+<details><summary>1 commit</summary>
+<p>
+
+* [`fd04580`](https://github.com/siderolabs/conform/commit/fd045806faec904ccf1e97bec022469b501ec740) fix: verify GPG signatures of every commit
+</p>
+</details>
+
+### Dependency Changes
+
+* **github.com/ProtonMail/go-crypto**  v1.5.2 **_new_**
+* **github.com/jdkato/prose/v3**       v3.2.1 -> v3.2.3
+* **github.com/stretchr/testify**      v1.11.1 -> v1.12.1
+
+Previous release can be found at [v0.1.0-alpha.32](https://github.com/siderolabs/conform/releases/tag/v0.1.0-alpha.32)
+
 ## [conform 0.1.0-alpha.32](https://github.com/siderolabs/conform/releases/tag/v0.1.0-alpha.32) (2026-10-30)
 
 Welcome to the v0.1.0-alpha.32 release of conform!  

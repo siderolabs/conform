@@ -8,13 +8,14 @@ require (
 	github.com/go-git/go-git/v5 v5.19.3
 	github.com/golangci/misspell v0.8.0
 	github.com/google/go-github/v60 v60.0.0
-	github.com/jdkato/prose/v3 v3.2.3
+	github.com/google/go-github/v93 v93.0.0
+	github.com/jdkato/prose/v3 v3.3.5
 	github.com/keybase/go-crypto v0.0.0-20261026170941-0bdff31fd453
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.12.1
-	golang.org/x/sync v0.24.0
+	golang.org/x/sync v0.25.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
